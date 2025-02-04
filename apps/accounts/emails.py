@@ -1,8 +1,17 @@
 import random
 import threading
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from .models import Otp  
+from .models import Otp
+
+
+def generate_otp(user):
+    otp = random.randint(100000, 999999)
+    # Save the OTP to the Otp model
+    Otp.objects.create(user=user, otp=otp)
+    return otp
+
 
 class EmailThread(threading.Thread):
     def __init__(self, email):
@@ -12,77 +21,61 @@ class EmailThread(threading.Thread):
     def run(self):
         self.email.send()
 
-class OTPService:
-    @staticmethod
-    def generate_otp():
-        """Generates a 6-digit OTP"""
-        return random.randint(100000, 999999)
-        
-    @staticmethod
-    def store_otp(user, otp):
-        """Stores the OTP in the database"""
-        otp = Otp.objects.create(user=user, otp=otp)
-        return otp
+
+class SendEmail:
 
     @staticmethod
-    def send_otp_email(request, user):
-        """Sends OTP email to the user"""
-        domain = f"{request.scheme}://{request.get_host()}" # http www.example.com
-        subject = "Your OTP Verification Code"
-        otp = OTPService.store_otp(user, OTPService.generate_otp())
-        context = {
-            "domain": domain,
-            "name": user.full_name,
-            "otp": otp,
-        }
-        message = render_to_string("accounts/emails/email_verification_code.html", context)
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-        email_message.content_subtype = "html"
-        EmailThread(email_message).start()
-        
-    @staticmethod
-    def welcome(request, user):
-        domain = f"{request.scheme}://{request.get_host()}"  
-        subject = "Account Verified"
-        context = {
-            "domain": domain,
-            "name": user.full_name,
-        }
-        message = render_to_string("accounts/emails/welcome_message.html", context)
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-        email_message.content_subtype = "html"
-        EmailThread(email_message).start()
-        
-    @staticmethod
-    def send_password_reset_otp(request, user):
-        domain = f"{request.scheme}://{request.get_host()}"  # http www.example.com
-        otp = OTPService.store_otp(user, OTPService.generate_otp())
-        subject = "Your Password Reset OTP"
+    def send_email(request, user):
+        otp = generate_otp(user)
+        subject = "Verify your email"
         email = user.email
         context = {
-            "domain": domain,
+            "frontend_url": settings.FRONTEND_URL,
             "name": user.full_name,
             "email": email,
             "otp": otp,
         }
-        message = render_to_string("accounts/emails/password_reset_html_email.html", context)
+        message = render_to_string("verify_email_request.html", context)
+        email_message = EmailMessage(subject=subject, body=message, to=[email])
+        email_message.content_subtype = "html"
+        EmailThread(email_message).start()
+
+    @staticmethod
+    def welcome(request, user):
+        subject = "Account Verified"
+        context = {
+            "frontend_url": settings.FRONTEND_URL,
+            "name": user.full_name,
+        }
+        message = render_to_string("welcome_message.html", context)
+        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
+        email_message.content_subtype = "html"
+        EmailThread(email_message).start()
+
+    @staticmethod
+    def send_password_reset_email(request, user):
+        otp = generate_otp(user)
+        subject = "Your Password Reset OTP"
+        email = user.email
+        context = {
+            "frontend_url": settings.FRONTEND_URL,
+            "name": user.full_name,
+            "email": email,
+            "otp": otp,
+        }
+        message = render_to_string("password_reset_email.html", context)
         email_message = EmailMessage(subject=subject, body=message, to=[email])
         email_message.content_subtype = "html"
         EmailThread(email_message).start()
 
     @staticmethod
     def password_reset_success(request, user):
-        domain = f"{request.scheme}://{request.get_host()}"
         subject = "Password Reset Successful"
         context = {
-            "domain": domain,
+            "frontend_url": settings.FRONTEND_URL,
             "name": user.full_name,
         }
-        message = render_to_string("accounts/password_reset_success.html", context)
+        message = render_to_string("password_reset_success.html", context)
         email_message = EmailMessage(subject=subject, body=message, to=[user.email])
         email_message.content_subtype = "html"
         EmailThread(email_message).start()
-
-
-
-

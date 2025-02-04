@@ -192,13 +192,17 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    # 'DEFAULT_THROTTLE_CLASSES': [
-    #     # 'rest_framework.throttling.ScopedRateThrottle',
-    #     'apps.accounts.throttles.EmailThrottle',
-    # ],
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'otp': '100/day',
-    # }
+    'DEFAULT_THROTTLE_CLASSES': [
+        # 'rest_framework.throttling.ScopedRateThrottle',
+        'apps.accounts.throttles.EmailThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'otp': '100/day',
+        'verify_email': '5/minute',  # Allow 5 verification attempts per minute
+        'logout': '10/minute',  # Limit logout attempts to 10 per minute
+        'password_change': '5/minute',
+        'anon': '100/day',
+    }
 }
 
 SPECTACULAR_SETTINGS = {
@@ -211,7 +215,7 @@ SPECTACULAR_SETTINGS = {
 } 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1), # change to 5 minutes
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1), # change to 5 minutes by removing this to the default
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,  # This will blacklist tokens after use
@@ -233,7 +237,7 @@ CORS_ALLOWED_ORIGINS = [
     #TODO: ADD LATER
 ]
 
-# FRONTEND_URL = config("FRONTEND_URL")
+FRONTEND_URL = config("FRONTEND_URL")
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)

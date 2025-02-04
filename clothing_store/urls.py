@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-# from apps.common.serializers import SuccessResponseSerializer
+from apps.common.serializers import SuccessResponseSerializer
 
 
 class HealthCheckView(APIView):
@@ -24,7 +24,7 @@ class HealthCheckView(APIView):
         "/",
         summary="API Health Check",
         description="This endpoint checks the health of the API",
-        # responses=SuccessResponseSerializer,
+        responses=SuccessResponseSerializer,
         tags=["HealthCheck"],
     )
     def get(self, request):
@@ -50,7 +50,7 @@ handler500 = handler500
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("__debug__/", include("debug_toolbar.urls")),
-    # path("api/v1/auth/", include("apps.accounts.urls")),
+    path("api/v1/auth/", include("apps.accounts.urls")),
     # path("api/v1/profiles/", include("apps.profiles.urls")),
     
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
