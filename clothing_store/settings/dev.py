@@ -8,10 +8,21 @@ DEBUG = True
 
 # ALLOWED_HOSTS = config("ALLOWED_HOSTS").split(" ")
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://*.ngrok.io", "https://*.ngrok-free.app"]
-
 
 CSRF_TRUSTED_ORIGINS = ["https://*.ngrok.io", "https://*.ngrok-free.app"]
+
+CORS_ALLOWED_ORIGINS = [
+    config("FRONTEND_URL_DEV"),
+]
+
+FRONTEND_URL = config("FRONTEND_URL_DEV")
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  # Longer access token for development
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
 
 DATABASES = {
     "default": {
@@ -78,3 +89,5 @@ logging.config.dictConfig(
         },
     }
 )
+
+# NOTE: CORS_ALLOW_CREDENTIALS = True, CORS_ALLOWED_ORIGINS =[]

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from django.conf import settings
 from datetime import timedelta
 from pathlib import Path
 from decouple import config
@@ -122,6 +123,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "apps.accounts.validators.CustomPasswordValidator",
+    },
 ]
 
 
@@ -140,22 +144,30 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/')]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static/")]
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': config('CLOUDINARY_API_KEY'),
-    'API_SECRET': config('CLOUDINARY_API_SECRET'),
-    'MEDIA_TAG': 'clothing_store/media',
-    'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDINARY_API_KEY"),
+    "API_SECRET": config("CLOUDINARY_API_SECRET"),
+    "MEDIA_TAG": "clothing_store/media",
+    "STATIC_IMAGES_EXTENSIONS": [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "bmp",
+        "tif",
+        "tiff",
+        "ico",
+    ],
 }
 
 STORAGES = {
-    'default': {
-        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    },
+    "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
     "staticfiles": {
         # "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
@@ -171,55 +183,49 @@ REDIS_DB = 1
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = "accounts.User"
 
 # Email server configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 # EMAIL_PORT = config('EMAIL_PORT')
 # EMAIL_USE_SSL = config('EMAIL_USE_SSL')
-EMAIL_PORT = 587 
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_THROTTLE_CLASSES': [
-        # 'rest_framework.throttling.ScopedRateThrottle',
-        'apps.accounts.throttles.EmailThrottle',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'otp': '100/day',
-        'verify_email': '5/minute',  # Allow 5 verification attempts per minute
-        'logout': '10/minute',  # Limit logout attempts to 10 per minute
-        'password_change': '5/minute',
-        'anon': '100/day',
-    }
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",
+        "user": "1000/day",
+    },
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'CLOTHING STORE API',
-    'DESCRIPTION':'''
-        
-    ''',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False, 
-} 
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1), # change to 5 minutes by removing this to the default
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,  # This will blacklist tokens after use
+    "TITLE": "CLOTHING STORE API",
+    "DESCRIPTION": """
+        The Clothing Store API provides endpoints for managing an e-commerce platform. 
+        It supports user authentication, product management, order processing, and more. 
+        Designed for seamless integration with front-end applications, this API ensures 
+        secure and efficient communication between the client and server.
+    """,
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
+
 
 EMAIL_OTP_EXPIRE_MINUTES = 15
 
@@ -232,12 +238,6 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 FIRST_PURCHASE_DISCOUNT = 10
-
-CORS_ALLOWED_ORIGINS = [
-    #TODO: ADD LATER
-]
-
-FRONTEND_URL = config("FRONTEND_URL")
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)

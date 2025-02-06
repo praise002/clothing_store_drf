@@ -26,6 +26,7 @@ class HealthCheckView(APIView):
         description="This endpoint checks the health of the API",
         responses=SuccessResponseSerializer,
         tags=["HealthCheck"],
+        auth=[],
     )
     def get(self, request):
         return Response({"message": "pong"}, status=status.HTTP_200_OK)

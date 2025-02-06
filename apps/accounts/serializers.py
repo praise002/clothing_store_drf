@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -67,11 +68,15 @@ class PasswordChangeSerializer(serializers.Serializer):
                 {"error": "New password and confirm password do not match."}
             )
         return attrs
-    
+
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):
-            raise serializers.ValidationError({"error": "The current password you entered is incorrect. Please try again."})
+            raise serializers.ValidationError(
+                {
+                    "error": "The current password you entered is incorrect. Please try again."
+                }
+            )
 
         return value
 
@@ -84,6 +89,10 @@ class PasswordChangeSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
 
+        # Blacklist all active refresh tokens for the user
+        for token in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=token)
+
 
 class RequestPasswordResetOtpSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -92,6 +101,14 @@ class RequestPasswordResetOtpSerializer(serializers.Serializer):
 class SetNewPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
     new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"error": "New password and confirm password do not match."}
+            )
+        return attrs
 
     def validate_new_password(self, value):
         return validate_password_strength(value)

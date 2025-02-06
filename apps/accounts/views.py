@@ -5,7 +5,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.exceptions import TokenError
 
 from drf_spectacular.utils import extend_schema
@@ -34,6 +33,7 @@ from .models import User, Otp
 from .permissions import IsUnauthenticated
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +74,6 @@ class RegisterView(APIView):
 
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-    throttle_classes = [AnonRateThrottle] # uses the defult rate DEFAULT_THROTTLE_RATES['anon']
 
     @extend_schema(
         summary="Login a user",
@@ -108,13 +107,31 @@ class LoginView(TokenObtainPairView):
             )
 
         # If email is verified, proceed with the normal token generation process
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+
+        # Extract the refresh token from the response
+        # refresh_token = response.data.pop("refresh", None)
+        # access_token = response.data.get("access")
+
+        # # Set the refresh token as an HTTP-only cookie
+        # response = Response(
+        #     {"message": "Login successful.", "access_token": access_token},
+        #     status=status.HTTP_200_OK,
+        # )
+        # response.set_cookie(
+        #     key="refresh_token",
+        #     value=refresh_token,
+        #     httponly=True,  # Prevent JavaScript access
+        #     secure=True,    # Only send over HTTPS
+        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+        # )
+
+        return response
 
 
 class ResendVerificationEmailView(APIView):
     serializer_class = SendOtpSerializer
     permission_classes = (IsUnauthenticated,)
-    throttle_scope = "otp" #TODO: TEST IF IT WORKS
 
     @extend_schema(
         summary="Send OTP to a user's email",
@@ -139,14 +156,14 @@ class ResendVerificationEmailView(APIView):
                 {"error": "No account is associated with this email."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-            
+
         if user.is_email_verified:
             return Response(
                 {"message": "Your email is already verified. No OTP sent."},
                 status=status.HTTP_200_OK,
             )
 
-        # Invalidate/clear any previous OTPs 
+        # Invalidate/clear any previous OTPs
         invalidate_previous_otps(user)
 
         # Send OTP to user's email
@@ -160,7 +177,6 @@ class ResendVerificationEmailView(APIView):
 class VerifyEmailView(APIView):
     serializer_class = VerifyOtpSerializer
     permission_classes = (IsUnauthenticated,)
-    throttle_scope = "verify_email" #TODO: TEST IF IT WORKS
 
     @extend_schema(
         summary="Verify a user's email",
@@ -233,7 +249,6 @@ class VerifyEmailView(APIView):
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = LogoutSerializer
-    throttle_scope = "logout"  #TODO: TEST IF IT WORKS
 
     @extend_schema(
         summary="Logout a user",
@@ -251,12 +266,12 @@ class LogoutView(APIView):
 
         refresh_token = serializer.validated_data["refresh"]
         try:
-            token = RefreshToken(refresh_token)   
+            token = RefreshToken(refresh_token)
             token.blacklist()
             return Response(
                 {"message": "Logout successful."}, status=status.HTTP_200_OK
             )
-            
+
         except TokenError as e:
             return Response(
                 {"error": "Invalid or expired refresh token."},
@@ -269,11 +284,17 @@ class LogoutView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+        # Clear the HTTP-only cookie containing the refresh token
+        # response = Response(
+        #     {"message": "Logout successful."}, status=status.HTTP_200_OK
+        # )
+        # response.delete_cookie("refresh_token")
+        # return response
+
 
 class PasswordChangeView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PasswordChangeSerializer
-    throttle_scope = "password_change" #TODO: NOT WORKING
 
     @extend_schema(
         summary="Change user password",
@@ -294,12 +315,11 @@ class PasswordChangeView(APIView):
         return Response(
             {"message": "Password changed successfully."}, status=status.HTTP_200_OK
         )
-# TODO: QUES: IF PASSWORD IS CHANGED SHOULD I INVALIDATE JWT
+
 
 class PasswordResetRequestView(APIView):
     permission_classes = (IsUnauthenticated,)
     serializer_class = RequestPasswordResetOtpSerializer
-    throttle_scope = "otp"
 
     @extend_schema(
         summary="Send Password Reset Otp",
@@ -439,6 +459,7 @@ class PasswordResetDoneView(APIView):
 
 
 class RefreshTokensView(TokenRefreshView):
+
     @extend_schema(
         summary="Refresh user access token",
         description="This endpoint allows users to refresh their access token using a valid refresh token. It returns a new access token, which can be used for further authenticated requests.",
@@ -454,6 +475,21 @@ class RefreshTokensView(TokenRefreshView):
         """
         response = super().post(request, *args, **kwargs)
 
-        return response
+        # Extract the new refresh token from the response
+        # refresh_token = response.data.pop("refresh", None)
+        # access_token = response.data.get("access")
 
-# TODO: VIEW TO GET NEW REFRESH TOKEN
+        # Set the new refresh token as an HTTP-only cookie
+        # response = Response(
+        #     {"message": "Token refreshed successfully.", "access_token": access_token},
+        #     status=status.HTTP_200_OK,
+        # )
+        # response.set_cookie(
+        #     key="refresh_token",
+        #     value=refresh_token,
+        #     httponly=True,  # Prevent JavaScript access
+        #     secure=True,    # Only send over HTTPS
+        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+        # )
+
+        return response
