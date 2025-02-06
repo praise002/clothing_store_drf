@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms import ValidationError
+from cloudinary.models import CloudinaryField
 
 from apps.common.models import BaseModel
 
@@ -46,16 +47,12 @@ class TeamMember(BaseModel):
     name = models.CharField(max_length=255)
     role = models.CharField(max_length=255, choices=ROLE_CHOICES)
     description = models.TextField()
-    avatar = models.ImageField(upload_to="team/")
+    avatar = CloudinaryField("image", folder="team/")
     social_links = models.OneToOneField(Social, on_delete=models.SET_NULL, null=True)
 
     @property
     def avatar_url(self):
-        try:
-            url = self.avatar.url
-        except:
-            url = ""
-        return url
+        return self.avatar.url
 
 
 class Message(BaseModel):

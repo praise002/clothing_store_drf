@@ -222,13 +222,13 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    # "social_core.backends.google.GoogleOAuth2",
-    "drf_social_oauth2.backends.GoogleIdentityBackend",
+    "social_core.backends.google.GoogleOAuth2",
+    # "drf_social_oauth2.backends.GoogleIdentityBackend",
     "drf_social_oauth2.backends.DjangoOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 )
 
-# DRFSO2_PROPRIETARY_BACKEND_NAME = "Google" deault is Django
+# DRFSO2_PROPRIETARY_BACKEND_NAME = "" deault is Django
 # ACTIVATE_JWT = True
 
 # Google configuration
@@ -237,6 +237,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config("GOOGLE_CLIENT_SECRET")
 
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    # 'openid',  # Required for OpenID Connect
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile",
 ]
