@@ -1,6 +1,6 @@
 from autoslug import AutoSlugField
 from django.db import models
-from django.urls import reverse
+
 
 from apps.profiles.models import Profile
 from apps.common.models import BaseModel
@@ -26,12 +26,9 @@ class Category(BaseModel):
     def __str__(self):
         return self.name
 
-    @property
-    def get_absolute_url(self):
-        return reverse("shop:category_products", args=[str(self.slug)])
-
 
 # NOTE: USE PERMSSIONS IN ADMIN TO PREVENT ACCIDENTAL DELETION OF PRODUCT
+
 
 class Product(BaseModel):
     name = models.CharField(max_length=19)
@@ -45,7 +42,9 @@ class Product(BaseModel):
     is_available = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     flash_deals = models.BooleanField(default=False)
-    image = CloudinaryField("image", folder="products/")
+    image = CloudinaryField(
+        "image", folder="products/", validators=[validate_file_size]
+    )
 
     objects = ProductManager()
 
@@ -74,16 +73,8 @@ class Product(BaseModel):
         return avg
 
     @property
-    def get_absolute_url(self):
-        return reverse("shop:product_detail", args=[str(self.id), str(self.slug)])
-
-    @property
     def image_url(self):
-        try:
-            url = self.image.url
-        except:
-            url = "https://res.cloudinary.com/dq0ow9lxw/image/upload/v1732236163/fallback_ssjbcw.png"
-        return url
+        return self.image.url
 
     class Meta:
         ordering = ["-created"]
@@ -107,7 +98,7 @@ class Review(BaseModel):
 
 
 class Wishlist(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE) 
     products = models.ManyToManyField(Product, related_name="wishlists", blank=True)
     added_at = models.DateTimeField(auto_now_add=True)
 

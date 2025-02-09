@@ -53,6 +53,7 @@ class TeamMember(BaseModel):
     @property
     def avatar_url(self):
         return self.avatar.url
+        
 
 
 class Message(BaseModel):

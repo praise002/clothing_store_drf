@@ -1,11 +1,6 @@
 from rest_framework import serializers
 
 
-class BaseModelSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(read_only=True)
-    created = serializers.DateTimeField(read_only=True)
-
-
 class SuccessResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="success")
     message = serializers.CharField()
