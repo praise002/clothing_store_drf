@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from typing import Optional
 
 from apps.common.models import BaseModel
 
@@ -23,7 +24,7 @@ class Profile(BaseModel):
         return f"{self.user.full_name}"
 
     @property
-    def avatar_url(self):
+    def avatar_url(self) -> Optional[str]:
         try:
             url = self.avatar.url
         except:

@@ -1,7 +1,7 @@
 from autoslug import AutoSlugField
 from django.db import models
 
-
+from typing import Optional
 from apps.profiles.models import Profile
 from apps.common.models import BaseModel
 from django.utils.translation import gettext_lazy as _
@@ -61,11 +61,11 @@ class Product(BaseModel):
         return self.name
 
     @property
-    def num_of_reviews(self):
+    def num_of_reviews(self) -> Optional[int]:
         return self.reviews.count()
 
     @property
-    def avg_rating(self):
+    def avg_rating(self) -> Optional[float]:
         reviews = [review.rating for review in self.reviews.all()]
         avg = 0
         if len(reviews) > 0:
@@ -73,7 +73,7 @@ class Product(BaseModel):
         return avg
 
     @property
-    def image_url(self):
+    def image_url(self) -> Optional[str]:
         return self.image.url
 
     class Meta:
@@ -89,6 +89,16 @@ class Review(BaseModel):
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE)
     text = models.TextField()
     rating = models.SmallIntegerField(choices=RATING_CHOICES)
+    image = CloudinaryField(
+        "review_image",
+        folder="reviews/",
+        validators=[validate_file_size],
+        null=True,
+        blank=True,
+    )
+    product_received = models.BooleanField(
+        default=False
+    )  # To track if the product has been received
 
     def __str__(self):
         return f"{self.customer.user.full_name} review on {self.product.name}"
@@ -98,7 +108,7 @@ class Review(BaseModel):
 
 
 class Wishlist(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE) 
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name="wishlists", blank=True)
     added_at = models.DateTimeField(auto_now_add=True)
 

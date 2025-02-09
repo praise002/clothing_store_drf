@@ -83,13 +83,14 @@ class ProductListView(APIView):
     serializer_class = ProductSerializer
 
     @extend_schema(
-        summary="List all products",
-        description="This endpoint retrieves a list of all products.",
+        summary="List all available products",
+        description="This endpoint retrieves a list of all available products.",
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
             401: ErrorResponseSerializer,
         },
+        operation_id="list_all_products",  # Unique operationId
         auth=[],
     )
     def get(self, request):
@@ -106,8 +107,8 @@ class ProductRetrieveView(APIView):
     serializer_class = ProductSerializer
 
     @extend_schema(
-        summary="Retrieve a product",
-        description="This endpoint retrieves a single product by its ID.",
+        summary="Retrieve a specific product by ID and slug",
+        description="This endpoint retrieves a specific product using its ID and slug.",
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
@@ -168,7 +169,7 @@ class WishlistView(APIView):
 class WishlistUpdateDestroyView(APIView):
     serializer_class = WishlistSerializer
     permission_classes = [IsAuthenticated]
-    
+
     @extend_schema(
         summary="Add to wishlist",
         description="This endpoint adds a product to the wishlist of the authenticated user.",
@@ -179,11 +180,16 @@ class WishlistUpdateDestroyView(APIView):
             404: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
+        request=None,  # No request body
     )
     def post(self, request, product_id):
         wishlist, _ = Wishlist.objects.get_or_create(profile=request.user.profile)
-        # product_id = request.data.get("product_id")
-        
+
+        if not validate_uuid(product_id):
+            return Response(
+                {"error": "Invalid product ID."}, status=status.HTTP_400_BAD_REQUEST
+            )
+            
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
@@ -197,7 +203,10 @@ class WishlistUpdateDestroyView(APIView):
             )
         wishlist.products.add(product)
         return Response(
-            {"message": "Product added to wishlist."}, status=status.HTTP_200_OK
+            {
+                "message": "Product added to wishlist.",
+            },
+            status=status.HTTP_200_OK,
         )
 
     @extend_schema(
@@ -213,7 +222,11 @@ class WishlistUpdateDestroyView(APIView):
     )
     def delete(self, request, product_id):
         wishlist, _ = Wishlist.objects.get_or_create(profile=request.user.profile)
-        # product_id = request.data.get("product_id")
+        if not validate_uuid(product_id):
+            return Response(
+                {"error": "Invalid product ID."}, status=status.HTTP_400_BAD_REQUEST
+            )
+            
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:

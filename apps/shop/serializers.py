@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Category, Product, Review, Wishlist
+from drf_spectacular.utils import extend_schema_field
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -56,6 +57,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "reviews",
         ]
 
+    @extend_schema_field(serializers.URLField)
     def get_cropped_image_url(self, obj):
         return obj.get_cropped_image_url()
 
@@ -72,7 +74,7 @@ class WishlistSerializer(serializers.ModelSerializer):
         model = Wishlist
         fields = [
             "id",
-            "profile", #TODO: NOT SHOWING, return in view
+            "profile",
             "products",
         ]
-        # read_only_fields = ["profile", "products"]
+        
