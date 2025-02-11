@@ -4,21 +4,11 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from apps.common.models import BaseModel
-# from apps.coupons.models import Coupon
+from apps.coupondiscount.models import Coupon
 from apps.profiles.models import Profile
 from apps.shop.models import Product
 
-# class Delivery(models.Model):
-#     fee = models.PositiveSmallIntegerField(default=3000)
-#     delivery_time = models.CharField(max_length=50, default="1-3 business days")  
 
-#     class Meta:
-#         verbose_name = "Delivery"
-#         verbose_name_plural = "Deliveries"
-
-#     def __str__(self):
-#         return f"{self.delivery_time} - Fee: {self.fee}"
-    
 class Order(BaseModel):
     # Shipping status
     SHIPPING_STATUS_PENDING = "P"
@@ -37,7 +27,7 @@ class Order(BaseModel):
     paid = models.BooleanField(default=False)
     shipping_status = models.CharField(
         max_length=1, choices=SHIPPING_STATUS_CHOICES, blank=True
-    ) # i will put it to pending if payment was successful
+    )  # i will put it to pending if payment was successful
     placed_at = models.DateTimeField(auto_now_add=True)
     payment_ref = models.CharField(max_length=15, blank=True)
     # coupon = models.ForeignKey(
@@ -50,7 +40,7 @@ class Order(BaseModel):
     # delivery_fee = models.PositiveSmallIntegerField(
     #     default=0
     # )  # if delivery gets deleted. order is preserved
-    
+
     class Meta:
         ordering = ["-placed_at"]
         indexes = [
@@ -61,8 +51,8 @@ class Order(BaseModel):
         return f"Order {self.id} by {self.customer.user.full_name}"
 
     # def get_total_cost(self):
-    #     total_cost = self.get_total_cost_before_discount() 
-    #     return total_cost - self.get_discount() 
+    #     total_cost = self.get_total_cost_before_discount()
+    #     return total_cost - self.get_discount()
 
     # def get_total_cost_before_discount(self):
     #     return sum(item.get_cost() for item in self.items.all()) + self.delivery_fee
@@ -72,7 +62,7 @@ class Order(BaseModel):
     #     if self.discount:
     #         return total_cost * (self.discount / Decimal(100))
     #     return Decimal(0)
-    
+
 
 class OrderItem(BaseModel):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)

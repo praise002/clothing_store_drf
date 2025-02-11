@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 
 from apps.common.pagination import CustomPagination, DefaultPagination
@@ -12,6 +14,7 @@ from apps.common.serializers import (
     SuccessResponseSerializer,
 )
 from apps.common.validators import validate_uuid
+from apps.shop.filters import ProductFilter
 from .models import Category, Product, Wishlist
 from .serializers import CategorySerializer, ProductSerializer, WishlistSerializer
 
@@ -198,7 +201,9 @@ class WishlistUpdateDestroyView(APIView):
             )
 
         try:
-            product = Product.objects.get(id=product_id)
+            product = Product.objects.get(
+                id=product_id, is_available=True, in_stock__gt=0
+            )
         except Product.DoesNotExist:
             return Response(
                 {"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND
@@ -325,6 +330,9 @@ class ProductListGenericView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = DefaultPagination
+    filterset_class = ProductFilter
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    search_fields = ["name", "description"]
 
     @extend_schema(
         summary="List all available products",

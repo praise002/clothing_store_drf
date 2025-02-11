@@ -62,6 +62,30 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.get_cropped_image_url()
 
 
+class ProductAddSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    cropped_image_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "category",
+            "price",
+            "in_stock",
+            "is_available",
+            "image_url",
+            "cropped_image_url",
+        ]
+
+    @extend_schema_field(serializers.URLField)
+    def get_cropped_image_url(self, obj):
+        return obj.get_cropped_image_url()
+
+
 class WishlistSerializer(serializers.ModelSerializer):
     """
     Serializer for the Wishlist model.
@@ -69,7 +93,7 @@ class WishlistSerializer(serializers.ModelSerializer):
 
     products = ProductSerializer(read_only=True, many=True)
     profile = serializers.PrimaryKeyRelatedField(read_only=True)
-    
+
     class Meta:
         model = Wishlist
         fields = [
@@ -77,4 +101,3 @@ class WishlistSerializer(serializers.ModelSerializer):
             "profile",
             "products",
         ]
-        
