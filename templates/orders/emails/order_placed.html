@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
+    <h2 style="color: #1eb0f4;">Thank you for your purchase!</h2>
+    <p>Dear {{ order.customer.user.first_name }},</p>
+    <p>You have successfully placed an order. Below are the details:</p>
+    <hr />
+    <p>
+      <strong>Order ID:</strong> {{ order.id }}<br />
+      <strong>Name:</strong> {{ order.customer.user.full_name }}<br />
+      <strong>Shipping Address:</strong> {{ order.customer.user.shipping_address }},
+      {{ order.customer.user.city }}, {{ order.customer.user.postal_code }}<br />
+    </p>
+    <hr />
+    <p>Proceed to pay.</p>
+    <p>
+      Best regards,<br />
+      <em>The Clothing Store Team</em>
+    </p>
+  </body>
+</html>

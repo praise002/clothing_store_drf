@@ -1,9 +1,10 @@
 from celery import shared_task
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from datetime import timedelta
 from django.utils import timezone
-from .models import Order
+from .models import Order, PaymentStatus
 
 
 @shared_task
@@ -29,7 +30,7 @@ def order_canceled(order_id):
     subject = f"Canceled Order nr. {order.id} - Your order could not be completed"
     context = {
         "order": order,
-        "domain": "http://127.0.0.1:8000",
+        "frontend_url": settings.FRONTEND_URL,
     }
     message = render_to_string("orders/emails/order_canceled.html", context)
     email_message = EmailMessage(subject=subject, body=message, to=[user.email])
@@ -40,11 +41,18 @@ def order_canceled(order_id):
 def cancel_expired_orders():
     expiration = timezone.now() + timedelta(hours=24)
     expired_orders = Order.objects.filter(
-        paid=False, # Check if the order is not paid
+        payment_status=PaymentStatus.PENDING, # Check if the order is not paid
         created__gt=expiration  # Check expiration
     )
 
     for order in expired_orders:
+        # Restore stock for each order item
+        for item in order.items.all():
+            product = item.product
+            product.in_stock += item.quantity
+            product.save()
+        
+        # Send cancellation email and delete order
         print(f"Cancelling expired order {order.id}") # TODO: REMOVE LATER
         order_canceled(order.id)
         order.delete()

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Paid</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
+    <h2 style="color:  #1eb0f4;">Thank you for your purchase!</h2>
+    <p>Dear {{ order.customer.user.first_name }},</p>
+    <p>
+        Your payment has been received.
+    </p>
+    <p>
+      Please, find attached the invoice for your recent purchase.
+    </p>
+    
+    <p>
+        We appreciate your purchase and will notify you once your order has been shipped.
+    </p>
+    <p>Best regards,<br>
+    <em>The Clothing Store Team</em></p>
+</body>
+</html>

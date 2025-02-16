@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Cancellation</title>
+    <!-- Include Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        max-width: 640px;
+        margin: 0 auto;
+        background: white;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .header {
+        background: #7289da;
+        padding: 40px 20px;
+        text-align: center;
+      }
+      .header h1 {
+        font-size: 24px;
+        margin: 0;
+      }
+      .footer {
+        padding: 20px;
+        text-align: center;
+        background-color: #f9f9f9;
+      }
+      .footer a {
+        color: #1eb0f4;
+        text-decoration: none;
+      }
+      
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      a {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Email Header -->
+      <div class="header">
+        <h1>Order Canceled</h1>
+      </div>
+
+      <!-- Email Body -->
+      <div class="body mt-4">
+        <p>
+          Dear <strong>{{ order.customer.user.first_name }}</strong>,
+        </p>
+        <p>
+          We regret to inform you that your order <strong>#{{ order.id }}</strong> has been canceled because your payment could not be completed. This may have happened due to one of the following reasons:
+        </p>
+
+        <ul>
+          <li>
+            <strong>Debit/Credit Card Issues:</strong> Incorrect PIN, name, expiry date, or an inactive card for online transactions.
+          </li>
+          <li>
+            <strong>Missing OTP:</strong> The OTP sent by your bank was not entered or the registered phone number differs from your current one.
+          </li>
+          <li>
+            <strong>Insufficient Funds:</strong> Your account had insufficient funds or credit at the time of the transaction.
+          </li>
+          <li>
+            <strong>Bank Declined:</strong> Your bank declined the transaction for unspecified reasons.
+          </li>
+          <li>
+            <strong>Incomplete Payment:</strong> You did not proceed to pay.
+          </li>
+        </ul>
+
+        <p>If you wish to place a new order, we suggest the following actions:</p>
+        <ul>
+          <li>Ensure your Debit/Credit card is activated for online transactions.</li>
+          <li>Use the correct phone number to receive the OTP and verify it promptly.</li>
+          <li>Ensure you have sufficient funds or credit in your bank account/card.</li>
+          <li>Choose a different payment method if necessary.</li>
+        </ul>
+
+        <p>We apologize for any inconvenience caused and look forward to serving you better in the future.</p>
+
+        <p class="mt-3">
+          <a href="{{ frontend_url }}" class="btn btn-primary btn-lg" style="background-color: #007bff;">Visit Store</a>
+        </p>
+      </div>
+
+      <!-- Email Footer -->
+      <div class="footer">
+        <p>
+          If you have any questions, feel free to <a href="mailto:praizthecoder@gmail.com">contact us</a>.
+        </p>
+        <p>
+          Thank you for choosing <strong>Clothing Store</strong>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
