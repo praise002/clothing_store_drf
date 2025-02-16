@@ -41,7 +41,7 @@ def cancel_expired_orders():
     expiration = timezone.now() + timedelta(hours=24)
     expired_orders = Order.objects.filter(
         paid=False, # Check if the order is not paid
-        placed_at__gt=expiration  # Check expiration
+        created__gt=expiration  # Check expiration
     )
 
     for order in expired_orders:

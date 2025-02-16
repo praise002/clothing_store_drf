@@ -23,7 +23,7 @@ class CartSerializer(serializers.Serializer):
         return obj.get_total_price()
 
 
-class CartAddSerializer(serializers.Serializer):
+class CartAddUpdateSerializer(serializers.Serializer):
     product_id = serializers.UUIDField() #TODO: IF IT RAISES AN ERROR WITH INVALID UUID
     quantity = serializers.IntegerField(min_value=1, default=1)
     override = serializers.BooleanField(default=False)

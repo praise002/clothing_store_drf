@@ -15,7 +15,7 @@ from apps.common.validators import validate_uuid
 from drf_spectacular.utils import extend_schema
 from apps.shop.models import Product
 
-from .serializers import CartSerializer, CartAddSerializer
+from .serializers import CartSerializer, CartAddUpdateSerializer
 
 tags = ["cart"]
 
@@ -39,13 +39,13 @@ class CartDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CartAddView(APIView):
-    serializer_class = CartAddSerializer
+class CartAddUpdateView(APIView):
+    serializer_class = CartAddUpdateSerializer
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        summary="Add a product to the cart",
-        description="This endpoint adds a product to the cart.",
+        summary="Add or update a product to the cart",
+        description="This endpoint adds or updates a product to the cart.",
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
@@ -59,7 +59,7 @@ class CartAddView(APIView):
         # Use CartSerializer for response data
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         product_id = serializer.validated_data["product_id"]
         product = get_object_or_404(
             Product,
@@ -67,19 +67,18 @@ class CartAddView(APIView):
             is_available=True,
             in_stock__gt=0,
         )
-        
+
         cart = Cart(request)
         cart.add(
             product=product,
             quantity=serializer.validated_data["quantity"],
             override_quantity=serializer.validated_data["override"],
         )
-        
-        
+
         # Serialize response with CartSerializer
         cart_serializer = CartSerializer(cart)
         return Response(
-            {"message": "Product added to cart", "data": cart_serializer.data},
+            cart_serializer.data,
             status=status.HTTP_200_OK,
         )
 

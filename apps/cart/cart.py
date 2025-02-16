@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.conf import settings
-from apps.coupondiscount.models import Coupon
+
 from apps.shop.models import Product
 import redis
 import json
@@ -54,9 +54,9 @@ class Cart:
         if product_id not in self.cart:
             self.cart[product_id] = {"quantity": 0, "price": str(product.price)}
 
-        if override_quantity: #updating items directly from cart page
+        if override_quantity:  # updating items directly from cart page
             self.cart[product_id]["quantity"] = quantity
-        else: #adding more items to cart
+        else:  # adding more items to cart
             self.cart[product_id]["quantity"] += quantity
 
         self.save()

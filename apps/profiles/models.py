@@ -45,31 +45,57 @@ class NigerianStates(models.TextChoices):
     FCT = "FC", "Federal Capital Territory"
 
 
-class State(BaseModel):
-    name = models.CharField(
+class ShippingFee(models.Model):
+    state = models.CharField(
+        max_length=2,
+        choices=NigerianStates.choices,
+        unique=True,  # Ensure each state has only one shipping fee
+    )
+    fee = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.state} - ₦{self.fee}"
+
+
+# a customer can have more than one shipping address, they only need to # need to supply one when placing an order or use the default
+class ShippingAddress(BaseModel):
+    phone_number = models.CharField(max_length=100)
+    state = models.CharField(
         max_length=2,
         choices=NigerianStates.choices,
     )
-    delivery_fee = models.PositiveIntegerField(default=0)  # Delivery fee for this state
-    delivery_time = models.CharField(max_length=50, default="1-3 business days")
-    tracking_number = models.CharField(
-        max_length=50, blank=True, unique=True
-    )  # Tracking number format
+    postal_code = models.CharField(max_length=20)
+    city = models.CharField(max_length=100)
+    street_address = models.CharField(max_length=100)
+    shipping_fee = models.PositiveIntegerField(
+        default=0
+    )  # This will be updated dynamically
+    shipping_time = models.CharField(max_length=50, default="1-3 business days")
+    user = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    default = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to dynamically set the shipping fee based on the state.
+        """
+        try:
+            # Retrieve the shipping fee for the selected state
+            shipping_fee_instance = ShippingFee.objects.get(state=self.state)
+            self.shipping_fee = shipping_fee_instance.fee
+        except ShippingFee.DoesNotExist:
+            self.shipping_fee = 0  # Default to 0 if no fee is found
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} - ₦{self.delivery_fee}"
+        return f"{self.state} - ₦{self.shipping_fee}"
 
 
 class Profile(BaseModel):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False
     )
-    shipping_address = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
-    city = models.CharField(max_length=100)
-    state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True, blank=True)
     avatar = models.ImageField(upload_to="photos/%Y/%m/%d/", null=True, blank=True)
-    phone = models.CharField(max_length=100)
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:

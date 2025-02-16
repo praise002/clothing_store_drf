@@ -38,6 +38,7 @@ class Product(BaseModel):
         Category, related_name="products", on_delete=models.SET_NULL, null=True
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    # price_after_discount = models.DecimalField(max_digits=10, decimal_places=2)
     in_stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)

@@ -31,12 +31,12 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     list_display = [
         "id",
-        "placed_at",
+        "created",
         "customer",
-        "paid",
         "payment_ref",
         order_detail,
         order_pdf,
     ]
+
 
 # admin.site.register(models.Delivery)

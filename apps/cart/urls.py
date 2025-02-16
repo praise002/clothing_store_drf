@@ -3,6 +3,6 @@ from .import views
 
 urlpatterns = [
     path('', views.CartDetailView.as_view()),
-    path('add/', views.CartAddView.as_view()),
+    path('add/', views.CartAddUpdateView.as_view()),
     path('remove/<str:product_id>/', views.CartRemoveView.as_view()),
 ]
