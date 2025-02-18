@@ -50,6 +50,10 @@ class OrderCreateSerializer(
     serializers.ModelSerializer
 ):  # Cart(request) will get it for the authenticated user
     shipping_id = serializers.UUIDField()
+    
+    class Meta:
+        model = Order
+        fields = ['shipping_id']
 
     def validate_cart_id(self, cart_id):
         """

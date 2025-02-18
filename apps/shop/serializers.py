@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
+
+from apps.orders.models import OrderItem
 from .models import Category, Product, Review, Wishlist
 from drf_spectacular.utils import extend_schema_field
 
@@ -27,12 +30,96 @@ class ReviewSerializer(serializers.ModelSerializer):
             "customer",
             "text",
             "rating",
+            "image",
             "created",
         ]
-        # read_only_fields = ["id", "customer", "customer_name", "created"]
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Review model.
+    """
+
+    customer = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            "product",  
+            "text",
+            "customer", # customer will be logged in user
+            "rating",  # 1-5
+            "image",
+        ]
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        product = attrs["product"]
+
+        # Check if user has purchased the product
+        has_purchased = OrderItem.objects.filter(
+            order__customer=user.profile,
+            product=product,
+            order__shipping_status="delivered",
+        ).exists()
+
+        if not has_purchased:
+            raise serializers.ValidationError(
+                "You can only review products you have purchased."
+            )
+
+        # Check if user has already reviewed this product
+        has_reviewed = Review.objects.filter(
+            customer=user.profile, product=product
+        ).exists()
+
+        if has_reviewed:
+            raise serializers.ValidationError("You have already reviewed this product.")
+
+        return attrs
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ["text", "rating", "image"]
+
+    def validate(self, attrs):
+        instance = self.instance
+        # Ensure the user can only update their own review
+        if instance and instance.customer != self.context["request"].user.profile:
+            raise PermissionDenied("You do not have permission to update this review.")
+        return attrs #TODO: TEST IF IT WORKS
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    cropped_image_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "category",
+            "price",
+            "in_stock",
+            "is_available",
+            "featured",
+            "flash_deals",
+            "avg_rating",
+            "image_url",
+            "cropped_image_url",
+        ]
+
+    @extend_schema_field(serializers.URLField)
+    def get_cropped_image_url(self, obj):
+        return obj.get_cropped_image_url()
+
+
+class ProductWithReviewsSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     cropped_image_url = serializers.SerializerMethodField(read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)

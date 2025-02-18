@@ -23,6 +23,11 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
             "shipping_time",
             "default",
         ]
+        read_only_fields = [
+            "user",
+            "shipping_fee",
+            "shipping_time",
+        ]
 
 
 class ShippingAddressCreateSerializer(serializers.ModelSerializer):
@@ -96,5 +101,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "user",
             "last_updated",
+            "avatar_url",
+        ]
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name"]
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    user = UserUpdateSerializer()
+
+    class Meta:
+        model = Profile
+        fields = [
+            "user",
             "avatar_url",
         ]

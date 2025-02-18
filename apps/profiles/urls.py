@@ -18,7 +18,7 @@ urlpatterns = [
     ),
     # Retrieve, update, or delete a specific shipping address
     path(
-        "shipping-addresses/<str:pk>/",
+        "shipping-addresses/<uuid:pk>/",
         views.ShippingAddressDetailView.as_view(),
         name="shipping-address-detail",
     ),

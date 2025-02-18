@@ -17,6 +17,7 @@ from apps.common.serializers import (
 from apps.common.validators import validate_uuid
 from .models import ShippingAddress
 from .serializers import (
+    ProfileUpdateSerializer,
     ShippingAddressCreateSerializer,
     ShippingAddressSerializer,
     ShippingAddressUpdateSerializer,
@@ -39,7 +40,7 @@ class ShippingAddressListView(APIView):
         description="This endpoint retrieves all shipping addresses for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -68,7 +69,7 @@ class ShippingAddressCreateView(APIView):
         description="This endpoint creates an address for shipping orders.",
         tags=shipping_tags,
         responses={
-            201: SuccessResponseSerializer,
+            201: ShippingAddressCreateSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
@@ -106,28 +107,22 @@ class ShippingAddressDetailView(APIView):
         # Ensure users can only access their own shipping addresses
         return ShippingAddress.objects.filter(user=self.request.user.profile)
 
-    def validate_shipping_id(self, shipping_id):
-        if not validate_uuid(shipping_id):
-            return Response(
-                {"error": "Invalid shipping address ID."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        return shipping_id
-
     def get_object(self, pk):
         # Retrieve a specific shipping address for the user
         try:
-            id = self.validate_shipping_id(pk)
-            return self.get_queryset().get(id=id)
+            return self.get_queryset().get(id=pk)
         except ShippingAddress.DoesNotExist:
-            return None
+            return Response(
+                {"error": "Shipping address not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
     @extend_schema(
         summary="Get a shipping address",
         description="This endpoint retrieves a single shipping address for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -135,21 +130,16 @@ class ShippingAddressDetailView(APIView):
     def get(self, request, pk):
         # Retrieve a single shipping address
         shipping_address = self.get_object(pk)
-        if not shipping_address:
-            return Response(
-                {"error": "Shipping address not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         serializer = self.serializer_class(shipping_address)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        summary="Partially update a shipping address",
-        description="This endpoint partially updates a shipping address for the authenticated user.",
+        summary="Update a shipping address",
+        description="This endpoint updates a shipping address for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressUpdateSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
@@ -158,43 +148,9 @@ class ShippingAddressDetailView(APIView):
     def patch(self, request, pk):
         # Partially update a shipping address
         shipping_address = self.get_object(pk)
-        if not shipping_address:
-            return Response(
-                {"error": "Shipping address not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         serializer = ShippingAddressUpdateSerializer(
             shipping_address, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        updated_instance = serializer.save()  # Save the updated instance
-        updated_serializer = ShippingAddressSerializer(updated_instance)  # Re-serialize
-
-        return Response(updated_serializer.data, status=status.HTTP_200_OK)
-
-    @extend_schema(
-        summary="Update a shipping address",
-        description="This endpoint updates a shipping address for the authenticated user.",
-        tags=shipping_tags,
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
-    )
-    def put(self, request, pk):
-        # Update a shipping address (full update)
-        shipping_address = self.get_object(pk)
-        if not shipping_address:
-            return Response(
-                {"error": "Shipping address not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = ShippingAddressUpdateSerializer(
-            shipping_address, data=request.data
         )
         serializer.is_valid(raise_exception=True)
         updated_instance = serializer.save()  # Save the updated instance
@@ -216,11 +172,6 @@ class ShippingAddressDetailView(APIView):
     def delete(self, request, pk):
         # Delete a shipping address
         shipping_address = self.get_object(pk)
-        if not shipping_address:
-            return Response(
-                {"error": "Shipping address not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         # Allow deletion only if the address is not the default
         if shipping_address.default:
@@ -269,7 +220,7 @@ class ShippingAddressListGenericView(ListAPIView):
         description="This endpoint retrieves all shipping addresses for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -305,7 +256,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         description="This endpoint retrieves a single shipping address for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -318,21 +269,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         description="This endpoint updates a shipping address for the authenticated user.",
         tags=shipping_tags,
         responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
-    )
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    @extend_schema(
-        summary="Partially update a shipping address",
-        description="This endpoint partially updates a shipping address for the authenticated user.",
-        tags=shipping_tags,
-        responses={
-            200: SuccessResponseSerializer,
+            200: ShippingAddressUpdateSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
@@ -383,17 +320,19 @@ class MyProfileView(APIView):
         description="This endpoint allows authenticated users to edit their profile details. Users can update their personal information. Only the account owner can modify their profile.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ProfileUpdateSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
     def patch(self, request):
         profile = request.user.profile
-        serializer = self.serializer_class(profile, data=request.data, partial=True)
+        serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        profile = serializer.save()
+
+        profile_serializer = self.serializer_class(profile)  # res-serialize
+        return Response(profile_serializer.data, status=status.HTTP_200_OK)
 
 
 class MyProfileViewGeneric(RetrieveUpdateAPIView):
@@ -430,7 +369,7 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
         description="This endpoint allows authenticated users to edit their profile details. Users can update their personal information. Only the account owner can modify their profile.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: ProfileUpdateSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
