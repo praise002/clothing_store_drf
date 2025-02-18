@@ -4,7 +4,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from datetime import timedelta
 from django.utils import timezone
-from .models import Order, PaymentStatus
+from .models import Order
 
 
 @shared_task
@@ -41,7 +41,7 @@ def order_canceled(order_id):
 def cancel_expired_orders():
     expiration = timezone.now() + timedelta(hours=24)
     expired_orders = Order.objects.filter(
-        payment_status=PaymentStatus.PENDING, # Check if the order is not paid
+        payment_status="pending", # Check if the order is not paid
         created__gt=expiration  # Check expiration
     )
 

@@ -7,6 +7,27 @@ from django.template.loader import render_to_string
 from apps.orders.models import Order
 
 
+from apps.orders.models import Order
+from apps.payments.utils import generate_tracking_number
+
+
+@shared_task
+def process_successful_payment(order, transaction_id):
+    """
+    Process successful payment asynchronously:
+    1. Update order statuses
+    2. Generate tracking number
+    3. Save order changes
+    """
+    order.transaction_id = transaction_id
+    order.order_status = "confirmed"
+    order.shipping_status = "processing"
+    order.payment_status = "paid"
+    tracking_number = generate_tracking_number()
+    order.tracking_number = tracking_number
+    order.save()
+
+
 @shared_task
 def payment_completed(order_id):
     """

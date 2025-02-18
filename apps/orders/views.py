@@ -13,6 +13,7 @@ from apps.common.serializers import (
 )
 
 
+from apps.orders.models import Order
 from apps.orders.serializers import (
     OrderCreateSerializer,
     OrderSerializer,
@@ -89,14 +90,56 @@ class OrderCreateGenericView(CreateAPIView):
         self.perform_create(serializer)
         order = serializer.instance
         order_serializer = OrderSerializer(order)
-        
+
         # launch asynchronous task
         order_created.delay(order.id)
-        
+
         return Response(
             {
                 "message": "Order created successfully.",
                 "data": order_serializer.data,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class OrderHistoryView(APIView):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Retrieve the order history of the authenticated user",
+        description="This endpoint retrieves all orders placed by the authenticated user.",
+        tags=tags,
+        responses={
+            200: OrderSerializer,
+            401: ErrorResponseSerializer,
+        },
+    )
+    def get(self, request):
+        """
+        Retrieve the order history of the authenticated user.
+        """
+        # Get the authenticated user's profile
+        user_profile = request.user.profile
+
+        # Retrieve all orders for the user
+        orders = Order.objects.filter(customer=user_profile).order_by("-created")
+
+        if not orders.exists():
+            return Response(
+                {"message": "No orders found in your history."},
+                status=status.HTTP_200_OK,
+            )
+
+        # Serialize the orders
+        serializer = self.serializer_class(orders, many=True)
+
+        # Return the serialized data
+        return Response(
+            {
+                "message": "Order history retrieved successfully.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
         )

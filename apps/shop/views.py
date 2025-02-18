@@ -6,7 +6,6 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
     CreateAPIView,
-    RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -282,6 +281,7 @@ class WishlistUpdateDestroyView(APIView):
             {"message": "Product removed from wishlist."}, status=status.HTTP_200_OK
         )
 
+
 class ReviewCreateView(APIView):
     serializer_class = ReviewCreateSerializer
     permission_classes = [IsAuthenticated]
@@ -315,6 +315,7 @@ class ReviewCreateView(APIView):
             {"message": "Review created successfully.", "data": review_serializer.data},
             status=status.HTTP_201_CREATED,
         )
+
 
 class ReviewUpdateDestroyView(APIView):
     serializer_class = ReviewUpdateSerializer
@@ -379,6 +380,7 @@ class ReviewUpdateDestroyView(APIView):
             {"message": "Review deleted successfully."},
             status=status.HTTP_204_NO_CONTENT,
         )
+
 
 # Generic version
 class CategoryListGenericView(ListAPIView):
@@ -471,11 +473,101 @@ class ProductListGenericView(ListAPIView):
     def get(self, request):
         return super().get(request)
 
+
 class ProductRetrieveGenericView(RetrieveAPIView):
-    pass
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related("category").filter(
+        in_stock__gt=0, is_available=True
+    )
+
+    @extend_schema(
+        summary="Retrieve a specific product by ID and slug",
+        description="This endpoint retrieves a specific product using its ID and slug.",
+        tags=tags,
+        responses={
+            200: ProductSerializer,
+            400: ErrorDataResponseSerializer,
+            404: ErrorResponseSerializer,
+        },
+        auth=[],
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Override the get method to customize the response format.
+        """
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self):
+        """
+        Retrieve the product instance using both `pk` and `slug`.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwargs = self.lookup_url_kwargs or self.lookup_field
+
+        # Extract `pk` and `slug` from the URL kwargs
+        pk = self.kwargs.get(lookup_url_kwargs)
+        slug = self.kwargs.get("slug")
+
+        try:
+            # Filter the product by both `pk` and `slug`
+            obj = queryset.get(id=pk, slug=slug)
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Return the retrieved object
+        self.check_object_permissions(self.request, obj)
+        return obj
+
 
 class ProductReviewsRetrieveGenericView(RetrieveAPIView):
-    pass
+    serializer_class = ProductWithReviewsSerializer
+    queryset = (
+        Product.objects.select_related("category")
+        .prefetch_related("reviews", "reviews__customer")
+        .filter(in_stock__gt=0, is_available=True)
+    )
+
+    @extend_schema(
+        summary="Retrieve a specific product by ID and slug with reviews",
+        description="This endpoint retrieves a specific product using its ID and slug with its reviews.",
+        tags=review_tags,
+        responses={
+            200: ProductWithReviewsSerializer,
+            404: ErrorResponseSerializer,
+        },
+        auth=[],
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Override the get method to customize the response format.
+        """
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self):
+        """
+        Retrieve the product instance using both `pk` and `slug`.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwargs = self.lookup_url_kwargs or self.lookup_field
+
+        # Extract `pk` and `slug` from the URL kwargs
+        pk = self.kwargs.get(lookup_url_kwargs)
+        slug = self.kwargs.get("slug")
+
+        try:
+            # Filter the product by both `pk` and `slug`
+            obj = queryset.get(id=pk, slug=slug)
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Return the retrieved object
+        self.check_object_permissions(self.request, obj)
+        return obj
+
 
 class WishlistGenericView(RetrieveAPIView):
     """
@@ -501,10 +593,6 @@ class WishlistGenericView(RetrieveAPIView):
     def get(self, request):
         return super().get(request)
 
-class WishlistUpdateDestroyGenericView():
-    pass
-class ReviewRetrieveUpdateDestroyGenericView(RetrieveUpdateDestroyAPIView):
-    pass
 
 class ReviewCreateGenericAPIView(CreateAPIView):
     serializer_class = ReviewCreateSerializer

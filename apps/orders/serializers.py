@@ -23,7 +23,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    total_price = serializers.SerializerMethodField()
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -39,11 +39,11 @@ class OrderSerializer(serializers.ModelSerializer):
             "shipping_fee",
             "created",
             "items",
-            "total_price",
+            "total_cost",
         ]
 
-    def get_total_price(self, obj):
-        return obj.get_total_price()
+    def get_total_cost(self, obj):
+        return obj.get_total_cost()
 
 
 class OrderCreateSerializer(
@@ -134,6 +134,7 @@ class OrderCreateSerializer(
         # Save the state and shipping fee in case the address is deleted or updated
         state = shipping_address.state
         shipping_fee = shipping_address.shipping_fee
+        phone_number = shipping_address.phone_number
 
         # Create the order
         order = Order.objects.create(
@@ -141,6 +142,7 @@ class OrderCreateSerializer(
             shipping_address=shipping_address,
             state=state,
             shipping_fee=shipping_fee,
+            phone_number=phone_number,
         )
 
         # Add items from the cart to the order

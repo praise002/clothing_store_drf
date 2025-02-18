@@ -27,6 +27,10 @@ class OrderStatus(models.TextChoices):
         "cancelled",
         "Cancelled",
     )  # order canceled by admin due to low stock or no payment
+    FAILED = (
+        "failed",
+        "Failed",
+    )  
 
 
 class PaymentStatus(models.TextChoices):
@@ -53,7 +57,8 @@ class Order(BaseModel):
         max_length=20, choices=ShippingStatus.choices, default=ShippingStatus.PENDING
     )
 
-    payment_ref = models.CharField(max_length=15, blank=True)
+    transaction_id = models.CharField(max_length=50, blank=True)
+    reference = models.CharField(max_length=50, unique=True)
     tracking_number = models.CharField(max_length=50, blank=True, unique=True)
 
     # Shipping
@@ -61,6 +66,7 @@ class Order(BaseModel):
     shipping_fee = models.PositiveSmallIntegerField(
         default=0
     )  # if delivery fee changes, amount is preserved
+    phone_number = models.CharField()
 
     class Meta:
         ordering = ["-created"]
@@ -73,10 +79,7 @@ class Order(BaseModel):
 
     def get_total_cost(self):
         """Calculate the total cost."""
-        return sum(item.get_cost() for item in self.items.all()) + self.delivery_fee
-
-
-# TODO: Update delivery_fee in the view
+        return sum(item.get_cost() for item in self.items.all()) + self.shipping_fee
 
 
 class OrderItem(BaseModel):
