@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from apps.orders.models import Order
 from apps.payments.models import PaymentEvent
 from apps.payments.tasks import payment_completed, process_successful_payment
-from apps.payments.utils import generate_tracking_number
+
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ def webhook(request):
             # Step 8: Perform additional processing (e.g., update database, send email)
             process_successful_payment.delay(order, transaction_id)
             payment_completed.delay(transaction_id)
-            
+
             return HttpResponse(status=200)
         else:
             # Transaction verification failed

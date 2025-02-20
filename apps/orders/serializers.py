@@ -30,13 +30,15 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "customer",
-            "order_status",
             "payment_status",
+            "payment_method",
             "shipping_status",
-            "payment_ref",
+            "reference",
+            "transaction_id",
             "tracking_number",
             "state",
             "shipping_fee",
+            "date_delivered",
             "created",
             "items",
             "total_cost",
@@ -133,16 +135,22 @@ class OrderCreateSerializer(
         )
         # Save the state and shipping fee in case the address is deleted or updated
         state = shipping_address.state
+        city = shipping_address.city
+        street_address = shipping_address.street_address
         shipping_fee = shipping_address.shipping_fee
         phone_number = shipping_address.phone_number
+        postal_code = shipping_address.postal_code
 
         # Create the order
         order = Order.objects.create(
             customer=request.user.profile,
             shipping_address=shipping_address,
             state=state,
+            city=city,
+            street_address=street_address,
             shipping_fee=shipping_fee,
             phone_number=phone_number,
+            postal_code=postal_code,
         )
 
         # Add items from the cart to the order

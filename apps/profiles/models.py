@@ -71,7 +71,9 @@ class ShippingAddress(BaseModel):
         default=0
     )  # This will be updated dynamically
     shipping_time = models.CharField(max_length=50, default="1-3 business days")
-    user = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        "Profile", on_delete=models.CASCADE, related_name="shipping_addresses"
+    )
     default = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):

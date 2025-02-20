@@ -93,13 +93,10 @@ class Review(BaseModel):
     image = CloudinaryField(
         "review_image",
         folder="reviews/",
-        validators=[validate_file_size],
+        # validators=[validate_file_size],
         null=True,
         blank=True,
     )
-    product_received = models.BooleanField(
-        default=False
-    )  # To track if the product has been received
 
     def __str__(self):
         return f"{self.customer.user.full_name} review on {self.product.name}"

@@ -6,6 +6,7 @@ from apps.orders.models import Order
 
 class PaymentInitializeSerializer(serializers.Serializer):
     order_id = serializers.UUIDField()
+    payment_method = serializers.ChoiceField(choices=Order.PaymentGateway.choices)
     
     def validate_order_id(self, order_id):
         """

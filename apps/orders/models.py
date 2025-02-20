@@ -1,42 +1,9 @@
 from django.db import models
 
-
 from apps.common.models import BaseModel
-
+from apps.orders.choices import PaymentGateway, PaymentStatus, ShippingStatus
 from apps.profiles.models import Profile
 from apps.shop.models import Product
-
-
-class ShippingStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    PROCESSING = (
-        "processing",
-        "Processing",
-    )  # once order is confirmed shipping status is set to processing by the admin
-    IN_TRANSIT = "in_transit", "In Transit"
-    DELIVERED = "delivered", "Delivered"
-
-
-class OrderStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    CONFIRMED = (
-        "confirmed",
-        "Confirmed",
-    )  # order confirmed after successful payment and stock verification
-    CANCELLED = (
-        "cancelled",
-        "Cancelled",
-    )  # order canceled by admin due to low stock or no payment
-    FAILED = (
-        "failed",
-        "Failed",
-    )  
-
-
-class PaymentStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    PAID = "paid", "Paid"
-    REFUNDED = "refunded", "Refunded"
 
 
 class Order(BaseModel):
@@ -44,29 +11,31 @@ class Order(BaseModel):
         Profile, on_delete=models.PROTECT, related_name="orders"
     )
 
-    order_status = models.CharField(
-        max_length=20,
-        choices=OrderStatus.choices,
-        default=OrderStatus.PENDING,
-        help_text="Current status of the order in the fulfillment process",
-    )
     payment_status = models.CharField(
         max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
+    )
+    payment_method = models.CharField(
+        max_length=20, choices=PaymentGateway.choices, default="PAYSTACK"
     )
     shipping_status = models.CharField(
         max_length=20, choices=ShippingStatus.choices, default=ShippingStatus.PENDING
     )
+    date_delivered = models.DateField(null=True, blank=True)
 
     transaction_id = models.CharField(max_length=50, blank=True)
     reference = models.CharField(max_length=50, unique=True)
     tracking_number = models.CharField(max_length=50, blank=True, unique=True)
 
-    # Shipping
-    state = models.CharField()
+    # Shipping address details
+    state = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    street_address = models.CharField(max_length=100)
     shipping_fee = models.PositiveSmallIntegerField(
         default=0
     )  # if delivery fee changes, amount is preserved
+    shipping_time = models.CharField(max_length=50, default="1-3 business days")
     phone_number = models.CharField()
+    postal_code = models.CharField(max_length=20)
 
     class Meta:
         ordering = ["-created"]

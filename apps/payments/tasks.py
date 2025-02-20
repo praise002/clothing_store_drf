@@ -5,10 +5,23 @@ from django.contrib.staticfiles import finders
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from apps.orders.models import Order
-
+from datetime import timedelta
+from django.utils import timezone
 
 from apps.orders.models import Order
+from apps.orders.tasks import order_canceled
 from apps.payments.utils import generate_tracking_number
+
+
+@shared_task
+def process_cancelled_failed_payment(payment_status, order):
+    """Update the payment status if failed or cancelled"""
+    if payment_status.lower() == "failed":
+        order.payment_status = "failed"
+        order.save()
+    elif payment_status.lower() == "cancelled":
+        order.payment_status = "cancelled"
+        order.save()
 
 
 @shared_task
@@ -20,9 +33,8 @@ def process_successful_payment(order, transaction_id):
     3. Save order changes
     """
     order.transaction_id = transaction_id
-    order.order_status = "confirmed"
     order.shipping_status = "processing"
-    order.payment_status = "paid"
+    order.payment_status = "successfull"
     tracking_number = generate_tracking_number()
     order.tracking_number = tracking_number
     order.save()

@@ -14,7 +14,7 @@ from apps.common.serializers import (
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
-from apps.common.validators import validate_uuid
+
 from .models import ShippingAddress
 from .serializers import (
     ProfileUpdateSerializer,

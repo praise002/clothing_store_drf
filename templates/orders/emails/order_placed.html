@@ -13,8 +13,8 @@
     <p>
       <strong>Order ID:</strong> {{ order.id }}<br />
       <strong>Name:</strong> {{ order.customer.user.full_name }}<br />
-      <strong>Shipping Address:</strong> {{ order.customer.user.shipping_address }},
-      {{ order.customer.user.city }}, {{ order.customer.user.postal_code }}<br />
+      <strong>Shipping Address:</strong> {{ order.shipping_address }},
+      {{ order.postal_code }}, {{ order.city }}, {{ order.state }}<br />
     </p>
     <hr />
     <p>Proceed to pay.</p>
