@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
 from apps.common.validators import validate_uuid
+from apps.orders.choices import PaymentGateway
 from apps.orders.models import Order
 
 
 class PaymentInitializeSerializer(serializers.Serializer):
     order_id = serializers.UUIDField()
-    payment_method = serializers.ChoiceField(choices=Order.PaymentGateway.choices)
+    payment_method = serializers.ChoiceField(choices=PaymentGateway.choices)
     
     def validate_order_id(self, order_id):
         """

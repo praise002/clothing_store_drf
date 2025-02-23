@@ -1,7 +1,7 @@
 from django.db import models
 
 from apps.common.models import BaseModel
-from apps.orders.choices import PaymentGateway, PaymentStatus, ShippingStatus
+from apps.orders.choices import FLWRefundStatus, PaymentGateway, PaymentStatus, PaystackRefundStatus, ShippingStatus
 from apps.profiles.models import Profile
 from apps.shop.models import Product
 
@@ -20,10 +20,24 @@ class Order(BaseModel):
     shipping_status = models.CharField(
         max_length=20, choices=ShippingStatus.choices, default=ShippingStatus.PENDING
     )
+    
+    # Refund status
+    paystack_refund_status = models.CharField(
+        max_length=20, choices=PaystackRefundStatus.choices, blank=True
+    )
+    flw_refund_status = models.CharField(
+        max_length=20, choices=FLWRefundStatus.choices, blank=True
+    )
+    
     date_delivered = models.DateField(null=True, blank=True)
 
+    # flw
     transaction_id = models.CharField(max_length=50, blank=True)
     reference = models.CharField(max_length=50, unique=True)
+    
+    # paystack
+    payment_ref = models.CharField(max_length=50, unique=True)
+    
     tracking_number = models.CharField(max_length=50, blank=True, unique=True)
 
     # Shipping address details

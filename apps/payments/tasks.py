@@ -80,3 +80,15 @@ def payment_completed(order_id):
 
     # Send the email
     email_message.send(fail_silently=False)
+
+@shared_task
+def refund_pending(order_id):
+    pass
+
+@shared_task
+def refund_failed(order_id):
+    pass
+
+@shared_task
+def refund_processed(order_id):
+    pass

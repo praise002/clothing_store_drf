@@ -9,6 +9,10 @@ class ShippingStatus(models.TextChoices):
     )  # once order is confirmed shipping status is set to processing by the admin
     IN_TRANSIT = "in_transit", "In Transit"
     DELIVERED = "delivered", "Delivered"
+    CANCELLED = (
+        "cancelled",
+        "Cancelled",
+    )  # when user cancels order after payment we set shipping status to cancelled
 
 
 class PaymentStatus(models.TextChoices):
@@ -17,9 +21,21 @@ class PaymentStatus(models.TextChoices):
     SUCCESSFULL = "successfull", "Successfull"
     CANCELLED = "cancelled", "Cancelled"  # user cancels the payment on the payment page
     FAILED = "failed", "Failed"  # payment failed due to credit card issues, etc
-    REFUNDED = "refunded", "Refunded"
+    REFUNDED = "refunded", "Refunded"  # user cancels order and payment is refunded
 
 
 class PaymentGateway(models.TextChoices):
     PAYSTACK = "paystack", "Paystack"
     FLUTTERWAVE = "flutterwave", "Flutterwave"
+
+
+class PaystackRefundStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    PROCESSING = "processing", "Processing"
+    FAILED = "failed", "Failed"
+    PROCESSED = "processed", "Processed"
+
+
+class FLWRefundStatus(models.TextChoices):
+    COMPLETED = "completed", "Completed"
+    FAILED = "failed", "Failed"
