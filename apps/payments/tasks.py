@@ -5,11 +5,9 @@ from django.contrib.staticfiles import finders
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from apps.orders.models import Order
-from datetime import timedelta
-from django.utils import timezone
 
 from apps.orders.models import Order
-from apps.orders.tasks import order_canceled
+
 from apps.payments.utils import generate_tracking_number
 
 
@@ -22,6 +20,7 @@ def process_cancelled_failed_payment(payment_status, order):
     elif payment_status.lower() == "cancelled":
         order.payment_status = "cancelled"
         order.save()
+    payment_pending_cancellation.delay(order.id)
 
 
 @shared_task
@@ -81,13 +80,36 @@ def payment_completed(order_id):
     # Send the email
     email_message.send(fail_silently=False)
 
+
+@shared_task
+def payment_pending_cancellation(order_id):
+    order = Order.objects.get(id=order_id)
+    user = order.customer.user
+    subject = f"Clothing Store - Invoice no. {order.id}"
+    context = {
+        "order": order,
+    }
+    message = render_to_string("orders/emails/order_pending_cancellation.html", context)
+
+    # Send email with PDF attachment
+    email_message = EmailMessage(subject=subject, body=message, to=[user.email])
+
+    # Set the content type to HTML for the body
+    email_message.content_subtype = "html"
+
+    # Send the email
+    email_message.send(fail_silently=False)
+
+
 @shared_task
 def refund_pending(order_id):
     pass
 
+
 @shared_task
 def refund_failed(order_id):
     pass
+
 
 @shared_task
 def refund_processed(order_id):

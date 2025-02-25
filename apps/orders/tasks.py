@@ -46,8 +46,9 @@ def order_canceled(order_id):
 @shared_task
 def cancel_expired_orders():
     """
-    Cancel orders, restore stock, and send emails to customers for orders that are
-    Pending/Cancelled/Failed for more than 24 hours
+    Restore stock, and send emails to customers for orders that are
+    shipping status has been pending for 24 hours.
+    This includes payment status of failed and cancelled.
     """
     # Define the expiration window (24 hours)
     expiration_window = timedelta(hours=24)
@@ -58,7 +59,7 @@ def cancel_expired_orders():
     # Query for orders that are in "pending", "cancelled", or "failed" status
     # AND were created more than 24 hours ago
     expired_orders = Order.objects.filter(
-        shipping_status__in=["pending", "cancelled", "failed"],
+        shipping_status="pending",
         created__lte=expiration_threshold,
     )
 
@@ -70,12 +71,12 @@ def cancel_expired_orders():
             product.save()
 
         # Send cancellation email
-        logger.info(f"Cancelling expired order {order.id}")
+        logger.info(f"Restocking expired order {order.id}")
         order_canceled(order.id)
 
 
 @shared_task
-def delete_canceled_orders():
+def delete_expired_orders():
     # Define the expiration window (24 hours)
     expiration_window = timedelta(hours=24)
 
@@ -85,10 +86,10 @@ def delete_canceled_orders():
     # Query for orders that are in "pending", "cancelled", or "failed" status
     # AND were created more than 24 hours ago
     expired_orders = Order.objects.filter(
-        shipping_status__in=["pending", "cancelled", "failed"],
+        shipping_status="pending",
         created__lte=expiration_threshold,
     )
-    
+
     for order in expired_orders:
         logger.info(f"Deleting expired order {order.id}")
         order.delete()
