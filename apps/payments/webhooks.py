@@ -42,9 +42,7 @@ def flw_payment_webhook(request):
         payload = json.loads(request.body)
     except json.JSONDecodeError:
         logger.error("Invalid JSON payload in webhook request.")
-        return Response(
-            {"status": "error", "message": "Invalid JSON payload"}, status=400
-        )
+        return HttpResponse(status=400)
 
     # Step 3: Extract required fields
     data = payload.get("data", {})
@@ -53,9 +51,7 @@ def flw_payment_webhook(request):
 
     if not all([transaction_id, tx_ref]):
         logger.warning("Missing required fields in webhook payload.")
-        return Response(
-            {"status": "error", "message": "Missing required fields"}, status=400
-        )
+        return HttpResponse(status=400)
 
     verification_url = (
         f"https://api.flutterwave.com/v3/transactions/{transaction_id}/verify"
@@ -67,13 +63,10 @@ def flw_payment_webhook(request):
 
     # Step 4: Retrieve the Order record
     try:
-        order = Order.objects.get(reference=tx_ref)
+        order = Order.objects.get(tx_ref=tx_ref)
     except Order.DoesNotExist:
-        logger.error(f"Order not found for reference: {tx_ref}.")
-        return Response(
-            {"status": "error", "message": "Order not found"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        logger.error(f"Order not found for tx_ref: {tx_ref}.")
+        return HttpResponse(status=404)
 
     try:
         # Step 5: Verify the transaction with Flutterwave
@@ -106,16 +99,13 @@ def flw_payment_webhook(request):
 
             # Step 8: Perform additional processing (e.g., update database, send email)
             process_successful_payment.delay(order, transaction_id)
-            payment_completed.delay(transaction_id)
+            payment_completed.delay(order.id)
 
             return HttpResponse(status=200)
         else:
             # Transaction verification failed
             logger.warning("Transaction verification failed.")
-            return Response(
-                {"status": "error", "message": "Transaction verification failed"},
-                status=400,
-            )
+            return HttpResponse(status=404)
 
     except requests.exceptions.RequestException as err:
         # Handle API errors
@@ -125,100 +115,128 @@ def flw_payment_webhook(request):
                 "message", "An error occurred while verifying the transaction."
             )
         logger.error(f"Flutterwave API request failed: {error_message}", exc_info=True)
-        return Response({"status": "error", "message": error_message}, status=400)
+        return HttpResponse(status=404)
 
 
 # PAYSTACK
+@require_POST
+@csrf_exempt
+def paystack_payment_webhook(request):
+    body, event = validate_paystack_webhook(request)
+    reference = data["reference"]
+
+    if event == "charge.success":
+        data = body["data"]
+        if data["status"] == "success":
+            try:
+                order = Order.objects.get(tx_ref=reference)
+            except Order.DoesNotExist:
+                logger.error(f"Order not found for tx_ref: {reference}.")
+                return HttpResponse(status=404)
+
+            process_successful_payment.delay(order)
+            payment_completed.delay(order.id)
+        else:
+            return HttpResponse(status=200)
+    return HttpResponse(status=200)
+
+
 def validate_paystack_webhook(request):
     """
     Validates the authenticity of a Paystack webhook event.
-    Returns True if the event is legitimate, False otherwise.
     """
+    # retrive the payload from the request body
     secret_key = config("PAYSTACK_TEST_SECRET_KEY")
 
-    # Get the signature from the request header
-    signature = request.headers.get("x-paystack-signature")
-    if not signature:
-        return False  # Missing signature
+    payload = request.body
+    # signature header to to verify the request is from paystack
+    sig_header = request.headers.get("x-paystack-signature")
+    body, event = None, None
 
-    # Parse the payload
     try:
-        payload = request.body.decode("utf-8")
-        payload_json = json.loads(payload)
-    except json.JSONDecodeError:
-        return False  # Invalid JSON payload
+        # sign the payload with `HMAC SHA512`
+        hash = hmac.new(
+            secret_key.encode("utf-8"),
+            payload,
+            digestmod=hashlib.sha512,
+        ).hexdigest()
 
-    # Compute the expected signature
-    expected_signature = hmac.new(
-        secret_key.encode("utf-8"),
-        msg=payload.encode("utf-8"),
-        digestmod=hashlib.sha512,
-    ).hexdigest()
-
-    # Compare the signatures
-    return hmac.compare_digest(signature, expected_signature)
-
-
-@require_POST
-@csrf_exempt
-def paystack_refund_webhook(request):
-    # Validate the webhook event
-    if not validate_paystack_webhook(request):
-        return HttpResponse(status=401)
-
-    # Parse the payload
-    try:
-        payload = json.loads(request.body)
-    except json.JSONDecodeError:
+        # compare our signature with paystacks signature
+        if hash == sig_header:
+            # if signature matches,
+            # proceed to retrive event status from payload
+            body_unicode = payload.decode("utf-8")
+            body = json.loads(body_unicode)
+            # event status
+            event = body["event"]
+        else:
+            raise Exception
+    except Exception as e:
         return HttpResponse(status=400)
 
-    # Process the event
-    event_type = payload.get("event")
-    data = payload.get("data", {})
+    return (body, event)
 
-    if event_type == "refund.pending":
-        handle_refund_pending(data)
-    elif event_type == "refund.processing":
-        handle_refund_processing(data)
-    elif event_type == "refund.failed":
-        handle_refund_failed(data)
-    elif event_type == "refund.processed":
-        handle_refund_processed(data)
 
-    return HttpResponse(status=200)
+# @require_POST
+# @csrf_exempt
+# def paystack_refund_webhook(request):
+#     # Validate the webhook event
+#     if not validate_paystack_webhook(request):
+#         return HttpResponse(status=401)
 
-@require_POST
-@csrf_exempt
-def flutterwave_webhook(request):
-    try:
-        payload = json.loads(request.body)
-    except json.JSONDecodeError:
-        return HttpResponse(status=400)  # Bad Request
+#     # Parse the payload
+#     try:
+#         payload = json.loads(request.body)
+#     except json.JSONDecodeError:
+#         return HttpResponse(status=400)
 
-    event_type = payload.get("event")
-    data = payload.get("data", {})
+#     # Process the event
+#     event_type = payload.get("event")
+#     data = payload.get("data", {})
 
-    if event_type == "refund.success":
-        handle_refund_success(data)
-    elif event_type == "refund.failed":
-        handle_refund_failed(data)
+#     if event_type == "refund.pending":
+#         handle_refund_pending(data)
+#     elif event_type == "refund.processing":
+#         handle_refund_processing(data)
+#     elif event_type == "refund.failed":
+#         handle_refund_failed(data)
+#     elif event_type == "refund.processed":
+#         handle_refund_processed(data)
 
-    return HttpResponse(status=200)  # OK
+#     return HttpResponse(status=200)
 
-def handle_refund_success(data):
-    transaction_id = data.get("tx_ref")
-    try:
-        order = Order.objects.get(payment_ref=transaction_id)
-        order.payment_status = PaymentStatus.REVERSED
-        order.save()
-    except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+# @require_POST
+# @csrf_exempt
+# def flutterwave_webhook(request):
+#     try:
+#         payload = json.loads(request.body)
+#     except json.JSONDecodeError:
+#         return HttpResponse(status=400)  # Bad Request
 
-def handle_refund_failed(data):
-    transaction_id = data.get("tx_ref")
-    try:
-        order = Order.objects.get(payment_ref=transaction_id)
-        order.payment_status = PaymentStatus.SUCCESSFUL  # Revert to successful
-        order.save()
-    except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+#     event_type = payload.get("event")
+#     data = payload.get("data", {})
+
+#     if event_type == "refund.success":
+#         handle_refund_success(data)
+#     elif event_type == "refund.failed":
+#         handle_refund_failed(data)
+
+#     return HttpResponse(status=200)  # OK
+
+# def handle_refund_success(data):
+#     transaction_id = data.get("tx_ref")
+#     try:
+#         order = Order.objects.get(payment_ref=transaction_id)
+#         order.payment_status = PaymentStatus.REVERSED
+#         order.save()
+#     except Order.DoesNotExist:
+#         logger.error(f"Order not found for transaction ID: {transaction_id}")
+
+# def handle_refund_failed(data):
+#     transaction_id = data.get("tx_ref")
+#     try:
+#         order = Order.objects.get(payment_ref=transaction_id)
+#         order.payment_status = PaymentStatus.SUCCESSFUL  # Revert to successful
+#         order.save()
+#     except Order.DoesNotExist:
+#         logger.error(f"Order not found for transaction ID: {transaction_id}")

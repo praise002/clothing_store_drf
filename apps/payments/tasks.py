@@ -31,7 +31,8 @@ def process_successful_payment(order, transaction_id):
     2. Generate tracking number
     3. Save order changes
     """
-    order.transaction_id = transaction_id
+    if order.payment_method == "flutterwave":
+        order.transaction_id = transaction_id
     order.shipping_status = "processing"
     order.payment_status = "successfull"
     tracking_number = generate_tracking_number()
