@@ -1,4 +1,5 @@
 from io import BytesIO
+from django.shortcuts import get_object_or_404
 import weasyprint
 from celery import shared_task
 from django.contrib.staticfiles import finders
@@ -20,19 +21,22 @@ def process_cancelled_failed_payment(payment_status, order):
     elif payment_status.lower() == "cancelled":
         order.payment_status = "cancelled"
         order.save()
-    payment_pending_cancellation.delay(order.id)
+    order_pending_cancellation.delay(order.id)
 
 
 @shared_task
-def process_successful_payment(order, transaction_id):
+def process_successful_payment(order_id, transaction_id=None):
     """
     Process successful payment asynchronously:
     1. Update order statuses
     2. Generate tracking number
     3. Save order changes
     """
+    
+    order = get_object_or_404(Order, id=order_id)
     if order.payment_method == "flutterwave":
         order.transaction_id = transaction_id
+        
     order.shipping_status = "processing"
     order.payment_status = "successfull"
     tracking_number = generate_tracking_number()
@@ -46,13 +50,14 @@ def payment_completed(order_id):
     Task to send an e-mail notification when an order is
     successfully paid.
     """
+    # TODO: USE TRY-EXCEPT
     order = Order.objects.get(id=order_id)
     user = order.customer.user
-    subject = f"Clothing Store - Invoice no. {order.id}"
+    subject = f"Payment Confirmed - Order #{order.id}"
     context = {
         "order": order,
     }
-    message = render_to_string("orders/emails/order_paid.html", context)
+    message = render_to_string("orders/emails/payment_successful.html", context)
 
     # Generate PDF
     html = render_to_string(
@@ -62,7 +67,7 @@ def payment_completed(order_id):
         },
     )
     out = BytesIO()
-    stylesheets = [weasyprint.CSS(finders.find("assets/css/pdf.css"))]
+    stylesheets = [weasyprint.CSS(finders.find("pdf.css"))]
     weasyprint.HTML(string=html).write_pdf(out, stylesheets=stylesheets)
 
     # Prepare the PDF for attachment
@@ -83,10 +88,10 @@ def payment_completed(order_id):
 
 
 @shared_task
-def payment_pending_cancellation(order_id):
+def order_pending_cancellation(order_id):
     order = Order.objects.get(id=order_id)
     user = order.customer.user
-    subject = f"Clothing Store - Invoice no. {order.id}"
+    subject = f"Order Pending Cancellation - Order #{order.id}"
     context = {
         "order": order,
     }

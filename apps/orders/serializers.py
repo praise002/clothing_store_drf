@@ -28,12 +28,11 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            "id",
-            "customer",
+            "id", "customer",
             "payment_status",
             "payment_method",
             "shipping_status",
-            "reference",
+            "tx_ref",
             "transaction_id",
             "tracking_number",
             "state",
@@ -57,11 +56,11 @@ class OrderCreateSerializer(
         model = Order
         fields = ['shipping_id']
 
-    def validate_cart_id(self, cart_id):
+    def validate_cart(self):
         """
         Ensure the cart is not empty.
         """
-
+        # TODO: ORDER CREATING WITHOUT ITEMS FIXME
         # Initialize the cart instance
         request = self.context.get("request")
         if not request:
@@ -73,15 +72,12 @@ class OrderCreateSerializer(
         ):  #  falsy evaluates to true if cart is empty
             raise serializers.ValidationError("The cart is empty.")
 
-        return cart_id
+        return cart
 
     def validate_shipping_id(self, shipping_id):
         """
-        Validate the shipping ID format and ensure the shipping address exists.
+        Validate the shipping ID by ensuring the shipping address exists and belongs to the user.
         """
-        if not validate_uuid(shipping_id):
-            raise serializers.ValidationError("Invalid shipping ID format.")
-
         # Ensure the shipping address exists and belongs to the user
         try:
             user_profile = self.context["request"].user.profile
@@ -144,7 +140,6 @@ class OrderCreateSerializer(
         # Create the order
         order = Order.objects.create(
             customer=request.user.profile,
-            shipping_address=shipping_address,
             state=state,
             city=city,
             street_address=street_address,

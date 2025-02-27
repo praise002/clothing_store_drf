@@ -6,48 +6,48 @@ from apps.common.models import BaseModel
 
 
 class NigerianStates(models.TextChoices):
-    ABIA = "AB", "Abia"
-    ADAMAWA = "AD", "Adamawa"
-    AKWA_IBOM = "AK", "Akwa Ibom"
-    ANAMBRA = "AN", "Anambra"
-    BAUCHI = "BA", "Bauchi"
-    BAYELSA = "BY", "Bayelsa"
-    BENUE = "BE", "Benue"
-    BORNO = "BO", "Borno"
-    CROSS_RIVER = "CR", "Cross River"
-    DELTA = "DE", "Delta"
-    EBONYI = "EB", "Ebonyi"
-    EDO = "ED", "Edo"
-    EKITI = "EK", "Ekiti"
-    ENUGU = "EN", "Enugu"
-    GOMBE = "GO", "Gombe"
-    IMO = "IM", "Imo"
-    JIGAWA = "JI", "Jigawa"
-    KADUNA = "KD", "Kaduna"
-    KANO = "KN", "Kano"
-    KATSINA = "KT", "Katsina"
-    KEBBI = "KE", "Kebbi"
-    KOGI = "KO", "Kogi"
-    KWARA = "KW", "Kwara"
-    LAGOS = "LA", "Lagos"
-    NASARAWA = "NA", "Nasarawa"
-    NIGER = "NI", "Niger"
-    OGUN = "OG", "Ogun"
-    ONDO = "ON", "Ondo"
-    OSUN = "OS", "Osun"
-    OYO = "OY", "Oyo"
-    PLATEAU = "PL", "Plateau"
-    RIVERS = "RI", "Rivers"
-    SOKOTO = "SO", "Sokoto"
-    TARABA = "TA", "Taraba"
-    YOBE = "YO", "Yobe"
-    ZAMFARA = "ZA", "Zamfara"
-    FCT = "FC", "Federal Capital Territory"
+    ABIA = "Abia", "Abia"
+    ADAMAWA = "Adamawa", "Adamawa"
+    AKWA_IBOM = "Akwa Ibom", "Akwa Ibom"
+    ANAMBRA = "Anambra", "Anambra"
+    BAUCHI = "Bauchi", "Bauchi"
+    BAYELSA = "Bayelsa", "Bayelsa"
+    BENUE = "Benue", "Benue"
+    BORNO = "Borno", "Borno"
+    CROSS_RIVER = "Cross River", "Cross River"
+    DELTA = "Delta", "Delta"
+    EBONYI = "Ebonyi", "Ebonyi"
+    EDO = "Edo", "Edo"
+    EKITI = "Ekiti", "Ekiti"
+    ENUGU = "Enugu", "Enugu"
+    GOMBE = "Gombe", "Gombe"
+    IMO = "Imo", "Imo"
+    JIGAWA = "Jigawa", "Jigawa"
+    KADUNA = "Kaduna", "Kaduna"
+    KANO = "Kano", "Kano"
+    KATSINA = "Katsina", "Katsina"
+    KEBBI = "Kebbi", "Kebbi"
+    KOGI = "Kogi", "Kogi"
+    KWARA = "Kwara", "Kwara"
+    LAGOS = "Lagos", "Lagos"
+    NASARAWA = "Nasarawa", "Nasarawa"
+    NIGER = "Niger", "Niger"
+    OGUN = "Ogun", "Ogun"
+    ONDO = "Ondo", "Ondo"
+    OSUN = "Osun", "Osun"
+    OYO = "Oyo", "Oyo"
+    PLATEAU = "Plateau", "Plateau"
+    RIVERS = "Rivers", "Rivers"
+    SOKOTO = "Sokoto", "Sokoto"
+    TARABA = "Taraba", "Taraba"
+    YOBE = "Yobe", "Yobe"
+    ZAMFARA = "Zamfara", "Zamfara"
+    FCT = "FCT", "FCT"
 
 
 class ShippingFee(models.Model):
     state = models.CharField(
-        max_length=2,
+        max_length=20,
         choices=NigerianStates.choices,
         unique=True,  # Ensure each state has only one shipping fee
     )
@@ -61,7 +61,7 @@ class ShippingFee(models.Model):
 class ShippingAddress(BaseModel):
     phone_number = models.CharField(max_length=100)
     state = models.CharField(
-        max_length=2,
+        max_length=20,
         choices=NigerianStates.choices,
     )
     postal_code = models.CharField(max_length=20)

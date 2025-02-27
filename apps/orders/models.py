@@ -38,9 +38,9 @@ class Order(BaseModel):
     date_delivered = models.DateField(null=True, blank=True)
 
     transaction_id = models.CharField(max_length=50, blank=True)
-    tx_ref = models.CharField(max_length=50, unique=True)
+    tx_ref = models.CharField(max_length=50, blank=True)
 
-    tracking_number = models.CharField(max_length=50, blank=True, unique=True)
+    tracking_number = models.CharField(max_length=50, blank=True)
 
     # Shipping address details
     state = models.CharField(max_length=100)

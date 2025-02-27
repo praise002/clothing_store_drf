@@ -7,6 +7,7 @@ urlpatterns = [
     path("flw/payment/callback/", views.payment_callback_flw),
     path("flw-webhook/", wh),
     path("paystack/initialize-transaction/", views.InitiatePaymentPaystack.as_view()),
+    path("paystack/verify-transaction/<uuid:reference>/", views.VerifyTransactionPaystack.as_view()),
 ]
 
 # https://66d7-185-107-57-10.ngrok-free.app/success/?status=successful&tx_ref=f556e708-d829-4de9-9d20-e43f281c3cd3&transaction_id=8335507

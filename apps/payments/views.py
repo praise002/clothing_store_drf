@@ -26,7 +26,7 @@ from apps.payments.tasks import (
     process_successful_payment,
 )
 from apps.payments.utils import compute_payload_hash
-from apps.payments.utils import issue_refund
+# from apps.payments.utils import issue_refund
 import logging
 
 logger = logging.getLogger(__name__)
@@ -196,7 +196,6 @@ class InitiatePaymentFLW(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
 # PAYSTACK
 class InitiatePaymentPaystack(APIView):
     serializer_class = PaymentInitializeSerializer
@@ -223,9 +222,13 @@ class InitiatePaymentPaystack(APIView):
         user = request.user
         amount = order.get_total_cost() * Decimal("100")
         payment_method = request.data.get("payment_method")
-        if payment_method != PaymentGateway.PAYSTACK:
+        if payment_method.lower() != PaymentGateway.PAYSTACK:
             return Response(
-                {"error": "Invalid payment method"}, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
+                    "available_methods": dict(PaymentGateway.choices)
+                    }, 
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         order.payment_method = payment_method
@@ -244,7 +247,7 @@ class InitiatePaymentPaystack(APIView):
         }
 
         # Generate a unique reference for the payment
-        tx_ref = str(uuid.uuid4())
+        tx_ref = str(uuid.uuid4()) #TODO: VERY UNLIKELY FOR COLLISION BUT TEST FOR COLLISION
 
         # Associate the reference to the Order record
         order.tx_ref = tx_ref
@@ -252,7 +255,7 @@ class InitiatePaymentPaystack(APIView):
 
         metadata = json.dumps(
             {
-                "order_id": order.id,
+                "order_id": str(order.id),
             }
         )
 
@@ -296,9 +299,9 @@ class InitiatePaymentPaystack(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+# https://83b7-149-22-84-153.ngrok-free.app/payments/webhook/
 # Use webhook instead
-class VerifyTransactionView(APIView):
+class VerifyTransactionPaystack(APIView):
     serializer_class = None
 
     @extend_schema(
@@ -312,7 +315,7 @@ class VerifyTransactionView(APIView):
             404: ErrorResponseSerializer,
         },
     )
-    def get(self, request, reference, *args, **kwargs):
+    def get(self, request, reference):
         try:
             order = Order.objects.get(tx_ref=reference)
         except Order.DoesNotExist:
@@ -329,13 +332,13 @@ class VerifyTransactionView(APIView):
         }
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            data = response.json()
-            if data["status"] and data["status"] == "success":
-                process_successful_payment.delay(order)
-                payment_completed.delay(order.id)
-                return Response(data, status=status.HTTP_200_OK)
+            response_data = response.json()
+            if response_data["status"] and response_data["data"]["status"] == "success":
+                process_successful_payment.delay(order.id)
+                payment_completed.delay(order.id) #TODO: RACE CONDITION FIX FOR TRACKING NUMBER
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
-                return Response(data, status=status.HTTP_200_OK)
+                return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response(
                 {"error": "Failed to verify transaction", "details": response.json()},

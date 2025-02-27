@@ -25,8 +25,8 @@ class PaymentStatus(models.TextChoices):
 
 
 class PaymentGateway(models.TextChoices):
-    PAYSTACK = "paystack", "Paystack"
-    FLUTTERWAVE = "flutterwave", "Flutterwave"
+    PAYSTACK = "paystack", "paystack"
+    FLUTTERWAVE = "flutterwave", "flutterwave"
 
 
 class PaystackRefundStatus(models.TextChoices):
