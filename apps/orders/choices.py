@@ -16,12 +16,10 @@ class ShippingStatus(models.TextChoices):
 
 
 class PaymentStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    PROCESSING = "processing", "Processing"
-    SUCCESSFULL = "successfull", "Successfull"
-    CANCELLED = "cancelled", "Cancelled"  # user cancels the payment on the payment page
-    FAILED = "failed", "Failed"  # payment failed due to credit card issues, etc
-    REFUNDED = "refunded", "Refunded"  # user cancels order and payment is refunded
+    PENDING = "pending", "pending"
+    SUCCESSFULL = "successfull", "successfull"
+    CANCELLED = "cancelled", "cancelled"  # payment cancelled due to payment failure or other reasons
+    REFUNDED = "refunded", "refunded"  # user cancels order and payment is refunded
 
 
 class PaymentGateway(models.TextChoices):

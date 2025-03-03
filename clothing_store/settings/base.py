@@ -263,6 +263,10 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=0, minute=0),  # Every day at midnight
         # 'schedule': 1,
     },
+    "pending-orders": {
+        "task": "apps.orders.check_pending_orders",
+        "schedule": 60 * 5,  # Run every 5 minutes
+    },
 }
 
 FIRST_PURCHASE_DISCOUNT = 10

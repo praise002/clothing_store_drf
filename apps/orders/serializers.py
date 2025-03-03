@@ -28,7 +28,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            "id", "customer",
+            "id",
+            "customer",
             "payment_status",
             "payment_method",
             "shipping_status",
@@ -51,28 +52,10 @@ class OrderCreateSerializer(
     serializers.ModelSerializer
 ):  # Cart(request) will get it for the authenticated user
     shipping_id = serializers.UUIDField()
-    
+
     class Meta:
         model = Order
-        fields = ['shipping_id']
-
-    def validate_cart(self):
-        """
-        Ensure the cart is not empty.
-        """
-        # TODO: ORDER CREATING WITHOUT ITEMS FIXME
-        # Initialize the cart instance
-        request = self.context.get("request")
-        if not request:
-            raise serializers.ValidationError("Request context is missing.")
-
-        cart = Cart(request)
-        if not cart.cart or not any(
-            cart.cart.values()
-        ):  #  falsy evaluates to true if cart is empty
-            raise serializers.ValidationError("The cart is empty.")
-
-        return cart
+        fields = ["shipping_id"]
 
     def validate_shipping_id(self, shipping_id):
         """
@@ -92,7 +75,7 @@ class OrderCreateSerializer(
 
     def validate(self, data):
         """
-        Perform additional validation (e.g., stock availability).
+        Perform additional validation, including checking if the cart is empty and stock availability.
         """
 
         # Initialize the cart instance
@@ -101,6 +84,12 @@ class OrderCreateSerializer(
             raise serializers.ValidationError("Request context is missing.")
 
         cart = Cart(request)
+
+        # Ensure the cart is not empty
+        if not cart.cart or not any(
+            cart.cart.values()
+        ):  #  falsy evaluates to true if cart is empty
+            raise serializers.ValidationError("The cart is empty.")
 
         # Check stock availability for each item in the cart
         for item in cart:

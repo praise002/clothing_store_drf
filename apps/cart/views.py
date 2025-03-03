@@ -48,7 +48,7 @@ class CartAddUpdateView(APIView):
         description="This endpoint adds or updates a product to the cart.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: CartSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,

@@ -1,9 +1,7 @@
-import uuid
-import json
-import requests
+import uuid, json, requests
 from decimal import Decimal
 from decouple import config
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -21,11 +19,13 @@ from apps.orders.choices import PaymentGateway, PaymentStatus, ShippingStatus
 from apps.orders.models import Order
 from apps.payments.serializers import PaymentInitializeSerializer
 from apps.payments.tasks import (
-    payment_completed,
+    order_pending_cancellation,
+    payment_successful,
     process_cancelled_failed_payment,
     process_successful_payment,
 )
-from apps.payments.utils import compute_payload_hash
+from apps.payments.utils import compute_payload_hash, issue_refund
+
 # from apps.payments.utils import issue_refund
 import logging
 
@@ -35,6 +35,7 @@ tags = ["Payment"]
 
 
 # FLUTTERWAVE
+# TODO: USE WEBHOOK
 @extend_schema(
     summary="Payment Callback",
     description="Handles the payment callback from the payment gateway and updates the donation status.",
@@ -70,7 +71,7 @@ def payment_callback_flw(request):
 
     # Provide feedback based on the payment status
     if payment_status.lower() == "successful":
-        order.payment_status = "processing"
+        order.payment_status = "processing" # NOTE: REMOVED PROCESSING
         return Response(
             {
                 "status": "success",
@@ -196,6 +197,7 @@ class InitiatePaymentFLW(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 # PAYSTACK
 class InitiatePaymentPaystack(APIView):
     serializer_class = PaymentInitializeSerializer
@@ -226,9 +228,9 @@ class InitiatePaymentPaystack(APIView):
             return Response(
                 {
                     "error": f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
-                    "available_methods": dict(PaymentGateway.choices)
-                    }, 
-                status=status.HTTP_400_BAD_REQUEST
+                    "available_methods": dict(PaymentGateway.choices),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         order.payment_method = payment_method
@@ -247,7 +249,9 @@ class InitiatePaymentPaystack(APIView):
         }
 
         # Generate a unique reference for the payment
-        tx_ref = str(uuid.uuid4()) #TODO: VERY UNLIKELY FOR COLLISION BUT TEST FOR COLLISION
+        tx_ref = str(
+            uuid.uuid4()
+        )  # TODO: VERY UNLIKELY FOR COLLISION BUT TEST FOR COLLISION
 
         # Associate the reference to the Order record
         order.tx_ref = tx_ref
@@ -299,6 +303,8 @@ class InitiatePaymentPaystack(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
 # https://83b7-149-22-84-153.ngrok-free.app/payments/webhook/
 # Use webhook instead
 class VerifyTransactionPaystack(APIView):
@@ -334,10 +340,12 @@ class VerifyTransactionPaystack(APIView):
         if response.status_code == 200:
             response_data = response.json()
             if response_data["status"] and response_data["data"]["status"] == "success":
-                process_successful_payment.delay(order.id)
-                payment_completed.delay(order.id) #TODO: RACE CONDITION FIX FOR TRACKING NUMBER
+                process_successful_payment.apply_async(
+                    args=[str(order.id)], link=payment_successful.si(order.id)
+                )
                 return Response(response_data, status=status.HTTP_200_OK)
             else:
+                order_pending_cancellation.delay(order.id)
                 return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -346,56 +354,56 @@ class VerifyTransactionPaystack(APIView):
             )
 
 
-# class CancelOrderAPIView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         # Retrieve the order_id from the request data
-#         order_id = request.data.get("order_id", None)
-#         if not order_id:
-#             return Response(
-#                 {"error": "Order ID is required."}, status=status.HTTP_400_BAD_REQUEST
-#             )
+class CancelOrderAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        # Retrieve the order_id from the request data
+        order_id = request.data.get("order_id", None)
+        if not order_id:
+            return Response(
+                {"error": "Order ID is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
-#         # Fetch the order
-#         order = get_object_or_404(Order, id=order_id)
+        # Fetch the order
+        order = get_object_or_404(Order, id=order_id)
 
-#         # Check if the order can be canceled
-#         if order.shipping_status in [
-#             ShippingStatus.IN_TRANSIT,
-#             ShippingStatus.DELIVERED,
-#         ]:
-#             return Response(
-#                 {
-#                     "error": "This order cannot be canceled as it is already in transit or delivered."
-#                 },
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
+        # Check if the order can be canceled
+        if order.shipping_status in [
+            ShippingStatus.IN_TRANSIT,
+            ShippingStatus.DELIVERED,
+        ]:
+            return Response(
+                {
+                    "error": "This order cannot be canceled as it is already in transit or delivered."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-#         # Issue a refund if the payment was successful
-#         if order.payment_status == PaymentStatus.SUCCESSFULL:
-#             try:
-#                 refund_result = issue_refund(
-#                     order.payment_method, order.payment_ref, order.transaction_id
-#                 )
-#                 order.paystack_refund_status = refund_result
-#                 order.flw_refund_status = refund_result  # TODO: MIGHT NEED FIXING
-#             except Exception as e:
-#                 return Response(
-#                     {
-#                         "error": f"Failed to issue a refund: {str(e)}. Please contact support."
-#                     },
-#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#                 )
+        # Issue a refund if the payment was successful
+        if order.payment_status == PaymentStatus.SUCCESSFULL:
+            try:
+                refund_result = issue_refund(
+                    order.payment_method, order.tx_ref, order.transaction_id
+                )
+                order.paystack_refund_status = refund_result
+                # order.flw_refund_status = refund_result  # TODO: MIGHT NEED FIXING
+            except Exception as e:
+                return Response(
+                    {
+                        "error": f"Failed to issue a refund: {str(e)}. Please contact support."
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
-#         order.shipping_status = ShippingStatus.CANCELLED
-#         order.save()
+        order.shipping_status = ShippingStatus.CANCELLED
+        order.save()
 
-#         # Restore stock for each order item
-#         for item in order.items.all():
-#             product = item.product
-#             product.in_stock += item.quantity
-#             product.save()
+        # Restore stock for each order item
+        for item in order.items.all():
+            product = item.product
+            product.in_stock += item.quantity
+            product.save()
 
-#         return Response(
-#             {"message": f"Order {order_id} has been successfully canceled."},
-#             status=status.HTTP_200_OK,
-#         )
+        return Response(
+            {"message": f"Order {order_id} has been successfully canceled."},
+            status=status.HTTP_200_OK,
+        )

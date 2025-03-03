@@ -35,7 +35,7 @@ class OrderCreateView(APIView):
         description="This endpoint creates an order from the user's cart and assigns a shipping address.",
         tags=tags,
         responses={
-            201: SuccessResponseSerializer,
+            201: OrderSerializer,
             400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },

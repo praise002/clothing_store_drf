@@ -11,13 +11,17 @@ from rest_framework.response import Response
 
 from apps.orders.models import Order
 from apps.payments.models import PaymentEvent
-from apps.payments.tasks import payment_completed, process_successful_payment
-# from apps.payments.utils import (
-#     handle_refund_failed,
-#     handle_refund_pending,
-#     handle_refund_processed,
-#     handle_refund_processing,
-# )
+from apps.payments.tasks import (
+    payment_successful,
+    process_successful_payment,
+)
+
+from apps.payments.utils import (
+    handle_refund_failed,
+    handle_refund_pending,
+    handle_refund_processed,
+    handle_refund_processing,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -99,7 +103,7 @@ def flw_payment_webhook(request):
 
             # Step 8: Perform additional processing (e.g., update database, send email)
             process_successful_payment.delay(order, transaction_id)
-            payment_completed.delay(order.id)
+            payment_successful.delay(order.id)
 
             return HttpResponse(status=200)
         else:
@@ -122,22 +126,26 @@ def flw_payment_webhook(request):
 @require_POST
 @csrf_exempt
 def paystack_payment_webhook(request):
+    logger.info(f"Received Paystack webhook")
     body, event = validate_paystack_webhook(request)
-    reference = data["reference"]
 
     if event == "charge.success":
-        data = body["data"]
-        if data["status"] == "success":
+        response_data = body.get("data", {})
+        logger.info(response_data)
+        reference = response_data["reference"]
+        if response_data["status"] == "success":
             try:
                 order = Order.objects.get(tx_ref=reference)
             except Order.DoesNotExist:
                 logger.error(f"Order not found for tx_ref: {reference}.")
                 return HttpResponse(status=404)
 
-            process_successful_payment.delay(order)
-            payment_completed.delay(order.id)
+            process_successful_payment.apply_async(
+                args=[str(order.id)], link=payment_successful.si(order.id)
+            )
         else:
             return HttpResponse(status=200)
+
     return HttpResponse(status=200)
 
 
@@ -177,33 +185,33 @@ def validate_paystack_webhook(request):
     return (body, event)
 
 
-# @require_POST
-# @csrf_exempt
-# def paystack_refund_webhook(request):
-#     # Validate the webhook event
-#     if not validate_paystack_webhook(request):
-#         return HttpResponse(status=401)
+@require_POST
+@csrf_exempt
+def paystack_refund_webhook(request):
+    # Validate the webhook event
+    if not validate_paystack_webhook(request):
+        return HttpResponse(status=401)
 
-#     # Parse the payload
-#     try:
-#         payload = json.loads(request.body)
-#     except json.JSONDecodeError:
-#         return HttpResponse(status=400)
+    # Parse the payload
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)
 
-#     # Process the event
-#     event_type = payload.get("event")
-#     data = payload.get("data", {})
+    # Process the event
+    event_type = payload.get("event")
+    data = payload.get("data", {})
 
-#     if event_type == "refund.pending":
-#         handle_refund_pending(data)
-#     elif event_type == "refund.processing":
-#         handle_refund_processing(data)
-#     elif event_type == "refund.failed":
-#         handle_refund_failed(data)
-#     elif event_type == "refund.processed":
-#         handle_refund_processed(data)
+    if event_type == "refund.pending":
+        handle_refund_pending(data)
+    elif event_type == "refund.processing":
+        handle_refund_processing(data)
+    elif event_type == "refund.failed":
+        handle_refund_failed(data)
+    elif event_type == "refund.processed":
+        handle_refund_processed(data)
 
-#     return HttpResponse(status=200)
+    return HttpResponse(status=200)
 
 # @require_POST
 # @csrf_exempt
