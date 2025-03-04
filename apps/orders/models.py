@@ -5,23 +5,24 @@ from apps.orders.choices import (
     FLWRefundStatus,
     PaymentGateway,
     PaymentStatus,
-    
     PaystackRefundStatus,
     ShippingStatus,
 )
 from apps.profiles.models import Profile
 from apps.shop.models import Product
 
+
 class TrackingNumber(models.Model):
     """
     A model to store unique tracking numbers for orders.
     """
+
     number = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return self.number
-    
+
     @staticmethod
     def generate_tracking_number():
         """
@@ -29,12 +30,14 @@ class TrackingNumber(models.Model):
         """
         from django.utils.timezone import now
         import uuid
+
         while True:
             timestamp = now().strftime("%Y%m%d")  # Current date in YYYYMMDD format
-            random_uuid = uuid.uuid4().hex[:6].upper() 
-            tracking_number = f"NG{timestamp}{random_uuid}" 
+            random_uuid = uuid.uuid4().hex[:6].upper()
+            tracking_number = f"NG{timestamp}{random_uuid}"
             if not TrackingNumber.objects.filter(number=tracking_number).exists():
                 return tracking_number
+
 
 class Order(BaseModel):
     customer = models.ForeignKey(
@@ -66,8 +69,8 @@ class Order(BaseModel):
     tx_ref = models.CharField(max_length=50, blank=True)
 
     tracking_number = models.OneToOneField(
-        TrackingNumber, 
-        on_delete=models.PROTECT, # Allow NULL until the tracking number is generated
+        TrackingNumber,
+        on_delete=models.PROTECT,  # Allow NULL until the tracking number is generated
         null=True,
         blank=True,
         related_name="order",
@@ -81,7 +84,7 @@ class Order(BaseModel):
         default=0
     )  # if delivery fee changes, amount is preserved
     shipping_time = models.CharField(max_length=50, default="1-3 business days")
-    phone_number = models.CharField()
+    phone_number = models.CharField(max_length=20)
     postal_code = models.CharField(max_length=20)
 
     pending_email_sent = models.BooleanField(default=False)
@@ -124,7 +127,7 @@ class Order(BaseModel):
         # Update the payment_status
         self.payment_status = new_status
         self.save()
-        
+
     def generate_and_assign_tracking_number(self):
         """
         Generate a unique tracking number and assign it to this order.
@@ -135,6 +138,7 @@ class Order(BaseModel):
             )
             self.tracking_number = tracking_number
             self.save()
+
 
 class OrderItem(BaseModel):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)

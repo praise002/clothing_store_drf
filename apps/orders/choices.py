@@ -17,7 +17,7 @@ class ShippingStatus(models.TextChoices):
 
 class PaymentStatus(models.TextChoices):
     PENDING = "pending", "pending"
-    SUCCESSFULL = "successfull", "successfull"
+    SUCCESSFUL = "successful", "successful"
     CANCELLED = "cancelled", "cancelled"  # payment cancelled due to payment failure or other reasons
     REFUNDED = "refunded", "refunded"  # user cancels order and payment is refunded
 
@@ -28,10 +28,10 @@ class PaymentGateway(models.TextChoices):
 
 
 class PaystackRefundStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    PROCESSING = "processing", "Processing"
-    FAILED = "failed", "Failed"
-    PROCESSED = "processed", "Processed"
+    PENDING = "pending", "pending"
+    PROCESSING = "processing", "processing"
+    FAILED = "failed", "failed"
+    PROCESSED = "processed", "processed"
 
 
 class FLWRefundStatus(models.TextChoices):

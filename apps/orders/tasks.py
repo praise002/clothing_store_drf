@@ -71,7 +71,7 @@ def cancel_expired_orders():
         created__lte=expiration_threshold,
     )
 
-    for order in expired_orders:
+    for order in expired_orders:  
         # Restore stock for each order item
         for item in order.items.all():
             product = item.product
@@ -80,8 +80,9 @@ def cancel_expired_orders():
 
         # Send cancellation email
         logger.info(f"Restocking expired order {order.id}")
-        order.payment_status = PaymentStatus.CANCELLED
         order_canceled(order.id)
+        order.payment_status = PaymentStatus.CANCELLED
+        order.save()
 
 
 @shared_task
@@ -108,14 +109,18 @@ def check_pending_orders():
     """
     Periodically check for pending orders and send an email notification if not already sent.
     """
+    try:
+        threshold = timezone.now() - timedelta(hours=1)
+        pending_orders = Order.objects.filter(
+            created__lte=threshold, payment_status="pending",
+            pending_email_sent=False
+        )
 
-    threshold = timezone.now() - timedelta(hours=1)
-    pending_orders = Order.objects.filter(
-        created__lte=threshold, payment_status="pending",
-        pending_email_sent=False
-    )
-
-    for order in pending_orders:
-        logger.info(f"Sending pending cancellation email for order {order.id}")
-        order.pending_email_sent = True
-        order_pending_cancellation(order.id)
+        for order in pending_orders:
+            logger.info(f"Sending pending cancellation email for order {order.id}")
+            order_pending_cancellation(order.id)
+            order.pending_email_sent = True
+            order.save()
+            
+    except Exception as e:
+        logger.error(f"Task failed: {e}")

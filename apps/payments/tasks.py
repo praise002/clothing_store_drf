@@ -1,29 +1,17 @@
 from io import BytesIO
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 import weasyprint, logging
 from celery import shared_task
 from django.contrib.staticfiles import finders
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-from apps.orders.choices import ShippingStatus
+from apps.orders.choices import PaymentStatus, ShippingStatus
 from apps.orders.models import Order
 
 from apps.orders.models import Order
 
 logger = logging.getLogger(__name__)
-
-# TODO: REMOVE LATER
-@shared_task
-def process_cancelled_failed_payment(payment_status, order):
-    """Update the payment status if failed or cancelled"""
-    if payment_status.lower() == "failed": #TODOl FIX LATER, LEAVE EVERYTHING AS CANCELED
-        order.payment_status = "failed"
-        order.save()
-    elif payment_status.lower() == "cancelled":
-        order.payment_status = "cancelled"
-        order.save()
-    order_pending_cancellation.delay(order.id)
-
 
 @shared_task
 def process_successful_payment(order_id, transaction_id=None):
@@ -35,15 +23,16 @@ def process_successful_payment(order_id, transaction_id=None):
     """
     
     order = get_object_or_404(Order, id=order_id)
-    if order.payment_method == "flutterwave":
-        order.transaction_id = transaction_id
-        
-    order.shipping_status = "processing"
-    order.update_shipping_status(ShippingStatus.PROCESSING)
-    order.payment_status = "successfull"
-    tracking_number = order.generate_and_assign_tracking_number()
-    order.tracking_number = tracking_number
-    order.save()
+    
+    with transaction.atomic():
+        if order.payment_method == "flutterwave":
+            order.transaction_id = transaction_id
+            
+        order.update_shipping_status(ShippingStatus.PROCESSING)
+        order.payment_status = PaymentStatus.SUCCESSFULL
+        tracking_number = order.generate_and_assign_tracking_number()
+        order.tracking_number = tracking_number
+        order.save()
 
 
 @shared_task
@@ -175,6 +164,29 @@ def refund_processed(order_id):
             "order": order,
         }
         message = render_to_string("orders/emails/order_refund_processed.html", context)
+
+        # Send email with PDF attachment
+        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
+
+        # Set the content type to HTML for the body
+        email_message.content_subtype = "html"
+
+        # Send the email
+        email_message.send(fail_silently=False)
+    except Exception as e:
+        logger.error(f"Failed to send refund confirmation: {str(e)}")
+        raise
+
+@shared_task
+def refund_success(order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        user = order.customer.user
+        subject = f"Order Refund Successful - Order #{order.id}"
+        context = {
+            "order": order,
+        }
+        message = render_to_string("orders/emails/order_refund_success.html", context)
 
         # Send email with PDF attachment
         email_message = EmailMessage(subject=subject, body=message, to=[user.email])

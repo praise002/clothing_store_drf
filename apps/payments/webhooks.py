@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 
+from apps.orders.choices import PaymentStatus
 from apps.orders.models import Order
 from apps.payments.models import PaymentEvent
 from apps.payments.tasks import (
@@ -17,10 +18,12 @@ from apps.payments.tasks import (
 )
 
 from apps.payments.utils import (
-    handle_refund_failed,
-    handle_refund_pending,
-    handle_refund_processed,
-    handle_refund_processing,
+    handle_refund_failed_flw,
+    handle_refund_failed_paystack,
+    handle_refund_pending_paystack,
+    handle_refund_processed_paystack,
+    handle_refund_processing_paystack,
+    handle_refund_success_flw,
 )
 
 
@@ -121,6 +124,23 @@ def flw_payment_webhook(request):
         logger.error(f"Flutterwave API request failed: {error_message}", exc_info=True)
         return HttpResponse(status=404)
 
+@require_POST
+@csrf_exempt
+def flutterwave_refund_webhook(request):
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)  # Bad Request
+
+    event_type = payload.get("event")
+    data = payload.get("data", {})
+
+    if event_type == "refund.success":
+        handle_refund_success_flw(data)
+    elif event_type == "refund.failed":
+        handle_refund_failed_flw(data)
+
+    return HttpResponse(status=200)
 
 # PAYSTACK
 @require_POST
@@ -203,48 +223,17 @@ def paystack_refund_webhook(request):
     data = payload.get("data", {})
 
     if event_type == "refund.pending":
-        handle_refund_pending(data)
+        handle_refund_pending_paystack(data)
     elif event_type == "refund.processing":
-        handle_refund_processing(data)
+        handle_refund_processing_paystack(data)
     elif event_type == "refund.failed":
-        handle_refund_failed(data)
+        handle_refund_failed_paystack(data)
     elif event_type == "refund.processed":
-        handle_refund_processed(data)
+        handle_refund_processed_paystack(data)
 
     return HttpResponse(status=200)
 
-# @require_POST
-# @csrf_exempt
-# def flutterwave_webhook(request):
-#     try:
-#         payload = json.loads(request.body)
-#     except json.JSONDecodeError:
-#         return HttpResponse(status=400)  # Bad Request
 
-#     event_type = payload.get("event")
-#     data = payload.get("data", {})
 
-#     if event_type == "refund.success":
-#         handle_refund_success(data)
-#     elif event_type == "refund.failed":
-#         handle_refund_failed(data)
 
-#     return HttpResponse(status=200)  # OK
 
-# def handle_refund_success(data):
-#     transaction_id = data.get("tx_ref")
-#     try:
-#         order = Order.objects.get(payment_ref=transaction_id)
-#         order.payment_status = PaymentStatus.REVERSED
-#         order.save()
-#     except Order.DoesNotExist:
-#         logger.error(f"Order not found for transaction ID: {transaction_id}")
-
-# def handle_refund_failed(data):
-#     transaction_id = data.get("tx_ref")
-#     try:
-#         order = Order.objects.get(payment_ref=transaction_id)
-#         order.payment_status = PaymentStatus.SUCCESSFUL  # Revert to successful
-#         order.save()
-#     except Order.DoesNotExist:
-#         logger.error(f"Order not found for transaction ID: {transaction_id}")

@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
@@ -13,12 +14,14 @@ from apps.common.serializers import (
 )
 
 
+from apps.orders.choices import PaymentStatus, ShippingStatus
 from apps.orders.models import Order
 from apps.orders.serializers import (
     OrderCreateSerializer,
     OrderSerializer,
 )
 from apps.orders.tasks import order_created
+from apps.payments.utils import issue_refund
 
 
 tags = ["orders"]
@@ -141,5 +144,83 @@ class OrderHistoryView(APIView):
                 "message": "Order history retrieved successfully.",
                 "data": serializer.data,
             },
+            status=status.HTTP_200_OK,
+        )
+
+
+class CancelOrderAPIView(APIView):
+    serializer_class = None
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Cancel an order",
+        description="Allows a user to cancel their order. If payment was made, initiates refund.",
+        tags=tags,
+        responses={
+            200: {"description": "Order cancelled successfully"},
+            400: {"description": "Order cannot be cancelled"},
+            404: {"description": "Order not found"},
+            403: {"description": "Not authorized to cancel this order"},
+        },
+    )
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if order.customer.user != request.user:
+            return Response(
+                {"error": "Not authorized to cancel this order"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Check if the order can be canceled
+        if order.shipping_status in [
+            ShippingStatus.IN_TRANSIT,
+            ShippingStatus.DELIVERED,
+        ]:
+            return Response(
+                {
+                    "error": "This order cannot be canceled as it is already in transit or delivered."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Issue a refund if the payment was successful
+        if order.payment_status == PaymentStatus.SUCCESSFULL:
+            try:
+                refund_result = issue_refund(
+                    order.payment_method, order.tx_ref, order.transaction_id
+                )
+                return Response(
+                    {
+                        "status": refund_result.get("status"),
+                        "message": refund_result.get("message"),
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            except Exception as e:
+                return Response(
+                    {
+                        "error": f"Failed to issue a refund: {str(e)}. Please contact support."
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+        order.shipping_status = ShippingStatus.CANCELLED
+        order.save()
+
+        # Restore stock for each order item
+        for item in order.items.all():
+            product = item.product
+            product.in_stock += item.quantity
+            product.save()
+
+        return Response(
+            {"message": f"Order {order_id} has been successfully canceled."},
             status=status.HTTP_200_OK,
         )

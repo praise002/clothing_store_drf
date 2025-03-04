@@ -1,13 +1,13 @@
 from . import views
 from django.urls import path
-from .webhooks import flw_payment_webhook as wh, paystack_payment_webhook as pwh
+from .webhooks import flw_payment_webhook as fwh, paystack_payment_webhook as pwh
 
 urlpatterns = [
     path("flw/initiate-payment/", views.InitiatePaymentFLW.as_view()),
-    path("flw/payment/callback/", views.payment_callback_flw),
-    path("flw-webhook/", wh),
+    path("flw/payment-callback/", views.payment_callback_flw, name="payment_callback"),
+    path("flw-webhook/", fwh),
     path("paystack/initialize-transaction/", views.InitiatePaymentPaystack.as_view()),
-    path("paystack/verify-transaction/<uuid:reference>/", views.VerifyTransactionPaystack.as_view()),
+    # path("paystack/verify-transaction/<uuid:reference>/", views.VerifyTransactionPaystack.as_view()),
     path("paystack-webhook/", pwh),
 ]
 

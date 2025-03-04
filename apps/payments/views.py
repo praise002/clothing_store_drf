@@ -1,3 +1,4 @@
+from django.urls import reverse
 import uuid, json, requests
 from decimal import Decimal
 from decouple import config
@@ -15,15 +16,9 @@ from apps.common.serializers import (
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
-from apps.orders.choices import PaymentGateway, PaymentStatus, ShippingStatus
+from apps.orders.choices import PaymentGateway
 from apps.orders.models import Order
 from apps.payments.serializers import PaymentInitializeSerializer
-from apps.payments.tasks import (
-    order_pending_cancellation,
-    payment_successful,
-    process_cancelled_failed_payment,
-    process_successful_payment,
-)
 from apps.payments.utils import compute_payload_hash, issue_refund
 
 # from apps.payments.utils import issue_refund
@@ -33,20 +28,7 @@ logger = logging.getLogger(__name__)
 
 tags = ["Payment"]
 
-
 # FLUTTERWAVE
-# TODO: USE WEBHOOK
-@extend_schema(
-    summary="Payment Callback",
-    description="Handles the payment callback from the payment gateway and updates the donation status.",
-    responses={
-        200: SuccessResponseSerializer,
-        400: ErrorDataResponseSerializer,
-        404: ErrorResponseSerializer,
-    },
-    tags=tags,
-    auth=[],
-)
 @api_view(["GET"])
 def payment_callback_flw(request):
     payment_status = request.GET.get("status")
@@ -61,7 +43,7 @@ def payment_callback_flw(request):
         )
 
     try:
-        order = Order.objects.get(tx_ref=tx_ref)
+        Order.objects.get(tx_ref=tx_ref)
     except Order.DoesNotExist:
         logger.error(f"Order not found for tx_ref: {tx_ref}.")
         return Response(
@@ -71,7 +53,6 @@ def payment_callback_flw(request):
 
     # Provide feedback based on the payment status
     if payment_status.lower() == "successful":
-        order.payment_status = "processing" # NOTE: REMOVED PROCESSING
         return Response(
             {
                 "status": "success",
@@ -80,7 +61,6 @@ def payment_callback_flw(request):
             status=status.HTTP_200_OK,
         )
     elif payment_status.lower() in ["cancelled", "failed"]:
-        process_cancelled_failed_payment.delay(payment_status, order)
         return Response(
             {
                 "status": "info",
@@ -96,8 +76,7 @@ def payment_callback_flw(request):
             },
             status=status.HTTP_200_OK,
         )
-
-
+        
 class InitiatePaymentFLW(APIView):
     serializer_class = PaymentInitializeSerializer
     permission_classes = [IsAuthenticated]
@@ -122,9 +101,13 @@ class InitiatePaymentFLW(APIView):
         order = get_object_or_404(Order, id=serializer.validated_data["order_id"])
         user = request.user
         payment_method = request.data.get("payment_method")
-        if payment_method != PaymentGateway.FLUTTERWAVE:
+        if payment_method.lower() != PaymentGateway.FLUTTERWAVE:
             return Response(
-                {"error": "Invalid payment method"}, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
+                    "available_methods": dict(PaymentGateway.choices),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         order.payment_method = payment_method
@@ -136,8 +119,9 @@ class InitiatePaymentFLW(APIView):
         # Flutterwave API details
         flutterwave_url = config("FLW_URL")
         flutterwave_secret_key = config("FLW_SECRET_KEY")
-        redirect_url = "https://ba4a-149-88-18-233.ngrok-free.app/api/v1/payment/callback/"  # TODO: change later
-
+        print(flutterwave_secret_key)
+        redirect_url = "https://88de-169-150-218-73.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
+        print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave
         payload = {
             "tx_ref": tx_ref,
@@ -147,7 +131,10 @@ class InitiatePaymentFLW(APIView):
             "customer": {
                 "email": user.email,
                 "name": f"{user.first_name} {user.last_name}",
-                "phonenumber": user.phone_number,
+                "phonenumber": order.phone_number,
+            },
+            "customizations": {
+                "title": "Clothing Store",
             },
         }
 
@@ -168,9 +155,11 @@ class InitiatePaymentFLW(APIView):
 
         try:
             # Make a request to Flutterwave
+            logger.info(f"Sending payload to Flutterwave: {payload}")
             response = requests.post(flutterwave_url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
+            logger.info(f"Flutterwave response: {response_data}")
             return Response(response_data, status=status.HTTP_200_OK)
         except requests.exceptions.RequestException as err:
             logger.error(f"Flutterwave API request failed: {err}", exc_info=True)
@@ -303,107 +292,3 @@ class InitiatePaymentPaystack(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-# https://83b7-149-22-84-153.ngrok-free.app/payments/webhook/
-# Use webhook instead
-class VerifyTransactionPaystack(APIView):
-    serializer_class = None
-
-    @extend_schema(
-        summary="Verify a payment in paystack",
-        description="This endpoint verifies a payment in paystack.",
-        tags=tags,
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
-    )
-    def get(self, request, reference):
-        try:
-            order = Order.objects.get(tx_ref=reference)
-        except Order.DoesNotExist:
-            logger.error(f"Order not found for tx_ref: {reference}.")
-            return Response(
-                {"status": "error", "message": "Order not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        url = f"https://api.paystack.co/transaction/verify/{reference}"
-        secret_key = config("PAYSTACK_TEST_SECRET_KEY")
-        headers = {
-            "Authorization": f"Bearer {secret_key}",
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            response_data = response.json()
-            if response_data["status"] and response_data["data"]["status"] == "success":
-                process_successful_payment.apply_async(
-                    args=[str(order.id)], link=payment_successful.si(order.id)
-                )
-                return Response(response_data, status=status.HTTP_200_OK)
-            else:
-                order_pending_cancellation.delay(order.id)
-                return Response(response_data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"error": "Failed to verify transaction", "details": response.json()},
-                status=response.status_code,
-            )
-
-
-class CancelOrderAPIView(APIView):
-    def post(self, request, *args, **kwargs):
-        # Retrieve the order_id from the request data
-        order_id = request.data.get("order_id", None)
-        if not order_id:
-            return Response(
-                {"error": "Order ID is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Fetch the order
-        order = get_object_or_404(Order, id=order_id)
-
-        # Check if the order can be canceled
-        if order.shipping_status in [
-            ShippingStatus.IN_TRANSIT,
-            ShippingStatus.DELIVERED,
-        ]:
-            return Response(
-                {
-                    "error": "This order cannot be canceled as it is already in transit or delivered."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Issue a refund if the payment was successful
-        if order.payment_status == PaymentStatus.SUCCESSFULL:
-            try:
-                refund_result = issue_refund(
-                    order.payment_method, order.tx_ref, order.transaction_id
-                )
-                order.paystack_refund_status = refund_result
-                # order.flw_refund_status = refund_result  # TODO: MIGHT NEED FIXING
-            except Exception as e:
-                return Response(
-                    {
-                        "error": f"Failed to issue a refund: {str(e)}. Please contact support."
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-
-        order.shipping_status = ShippingStatus.CANCELLED
-        order.save()
-
-        # Restore stock for each order item
-        for item in order.items.all():
-            product = item.product
-            product.in_stock += item.quantity
-            product.save()
-
-        return Response(
-            {"message": f"Order {order_id} has been successfully canceled."},
-            status=status.HTTP_200_OK,
-        )
