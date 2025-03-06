@@ -124,6 +124,7 @@ def flw_payment_webhook(request):
         logger.error(f"Flutterwave API request failed: {error_message}", exc_info=True)
         return HttpResponse(status=404)
 
+
 @require_POST
 @csrf_exempt
 def flutterwave_refund_webhook(request):
@@ -142,33 +143,8 @@ def flutterwave_refund_webhook(request):
 
     return HttpResponse(status=200)
 
+
 # PAYSTACK
-@require_POST
-@csrf_exempt
-def paystack_payment_webhook(request):
-    logger.info(f"Received Paystack webhook")
-    body, event = validate_paystack_webhook(request)
-
-    if event == "charge.success":
-        response_data = body.get("data", {})
-        logger.info(response_data)
-        reference = response_data["reference"]
-        if response_data["status"] == "success":
-            try:
-                order = Order.objects.get(tx_ref=reference)
-            except Order.DoesNotExist:
-                logger.error(f"Order not found for tx_ref: {reference}.")
-                return HttpResponse(status=404)
-
-            process_successful_payment.apply_async(
-                args=[str(order.id)], link=payment_successful.si(order.id)
-            )
-        else:
-            return HttpResponse(status=200)
-
-    return HttpResponse(status=200)
-
-
 def validate_paystack_webhook(request):
     """
     Validates the authenticity of a Paystack webhook event.
@@ -204,36 +180,50 @@ def validate_paystack_webhook(request):
 
     return (body, event)
 
-
 @require_POST
 @csrf_exempt
-def paystack_refund_webhook(request):
-    # Validate the webhook event
-    if not validate_paystack_webhook(request):
-        return HttpResponse(status=401)
-
-    # Parse the payload
+def paystack_webhook(request):
+    """
+    Handle both payment and refund webhook events from Paystack.
+    """
     try:
-        payload = json.loads(request.body)
-    except json.JSONDecodeError:
+        logger.info(f"Received Paystack webhook")
+        body, event = validate_paystack_webhook(request)
+
+        # Process the event
+        response_data = body.get("data", {})
+        logger.info(f"Processing Paystack event: {event}")
+        logger.info(f"Event data: {response_data}")
+
+        if event == "charge.success":
+            reference = response_data["reference"]
+            if response_data["status"] == "success":
+                try:
+                    order = Order.objects.get(tx_ref=reference)
+                except Order.DoesNotExist:
+                    logger.error(f"Order not found for tx_ref: {reference}.")
+                    return HttpResponse(status=404)
+
+                process_successful_payment.apply_async(
+                    args=[str(order.id)], link=payment_successful.si(order.id)
+                )
+            else:
+                return HttpResponse(status=200)
+
+        # Handle refund events
+        elif event == "refund.pending":
+            handle_refund_pending_paystack(response_data)
+        elif event == "refund.processing":
+            handle_refund_processing_paystack(response_data)
+        elif event == "refund.failed":
+            handle_refund_failed_paystack(response_data)
+        elif event == "refund.processed":
+            handle_refund_processed_paystack(response_data)
+
+        return HttpResponse(status=200)
+    except ValueError as e:
+        logger.error(f"Webhook validation failed: {e}")
         return HttpResponse(status=400)
-
-    # Process the event
-    event_type = payload.get("event")
-    data = payload.get("data", {})
-
-    if event_type == "refund.pending":
-        handle_refund_pending_paystack(data)
-    elif event_type == "refund.processing":
-        handle_refund_processing_paystack(data)
-    elif event_type == "refund.failed":
-        handle_refund_failed_paystack(data)
-    elif event_type == "refund.processed":
-        handle_refund_processed_paystack(data)
-
-    return HttpResponse(status=200)
-
-
-
-
-
+    except Exception as e:
+        logger.error(f"Error processing Paystack webhook: {e}")
+        return HttpResponse(status=500)

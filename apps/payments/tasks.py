@@ -13,6 +13,7 @@ from apps.orders.models import Order
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task
 def process_successful_payment(order_id, transaction_id=None):
     """
@@ -21,18 +22,24 @@ def process_successful_payment(order_id, transaction_id=None):
     2. Generate tracking number
     3. Save order changes
     """
-    
-    order = get_object_or_404(Order, id=order_id)
-    
-    with transaction.atomic():
-        if order.payment_method == "flutterwave":
-            order.transaction_id = transaction_id
-            
-        order.update_shipping_status(ShippingStatus.PROCESSING)
-        order.payment_status = PaymentStatus.SUCCESSFULL
-        tracking_number = order.generate_and_assign_tracking_number()
-        order.tracking_number = tracking_number
-        order.save()
+    try:
+        order = Order.objects.get(id=order_id)
+
+        with transaction.atomic():
+            if order.payment_method == "flutterwave":
+                order.transaction_id = transaction_id
+
+            order.update_shipping_status(ShippingStatus.PROCESSING)
+            order.payment_status = PaymentStatus.SUCCESSFUL
+            order.generate_and_assign_tracking_number()
+            order.save()
+            logger.info(f"Order {order.id} {order.shipping_status} {order.payment_status} processed successfully. Tracking number: {order.tracking_number}")
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
+    except Exception as e:
+        logger.error(f"Error processing payment for order {order_id}: {str(e)}")
+        raise
 
 
 @shared_task
@@ -42,7 +49,7 @@ def payment_successful(order_id):
     successfully paid.
     """
     try:
-        order = get_object_or_404(Order, id=order_id)
+        order = Order.objects.get(id=order_id)
         user = order.customer.user
         subject = f"Payment Confirmed - Order #{order.id}"
         context = {
@@ -76,9 +83,13 @@ def payment_successful(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
-        
+
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
+    
     except Exception as e:
-        logger.error(f"Failed to send payment confirmation: {str(e)}")
+        logger.error(f"Failed to send payment successful: {str(e)}")
         raise
 
 
@@ -91,7 +102,9 @@ def order_pending_cancellation(order_id):
         context = {
             "order": order,
         }
-        message = render_to_string("orders/emails/order_pending_cancellation.html", context)
+        message = render_to_string(
+            "orders/emails/order_pending_cancellation.html", context
+        )
 
         # Send email with PDF attachment
         email_message = EmailMessage(subject=subject, body=message, to=[user.email])
@@ -101,8 +114,11 @@ def order_pending_cancellation(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
-        logger.error(f"Failed to send payment confirmation: {str(e)}")
+        logger.error(f"Failed to send payment pending cancellation: {str(e)}")
         raise
 
 
@@ -125,8 +141,11 @@ def refund_pending(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
-        logger.error(f"Failed to send refund confirmation: {str(e)}")
+        logger.error(f"Failed to send refund pending: {str(e)}")
         raise
 
 
@@ -149,8 +168,11 @@ def refund_failed(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
-        logger.error(f"Failed to send refund confirmation: {str(e)}")
+        logger.error(f"Failed to send refund failed: {str(e)}")
         raise
 
 
@@ -173,9 +195,13 @@ def refund_processed(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
         logger.error(f"Failed to send refund confirmation: {str(e)}")
         raise
+
 
 @shared_task
 def refund_success(order_id):
@@ -196,6 +222,9 @@ def refund_success(order_id):
 
         # Send the email
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
         logger.error(f"Failed to send refund confirmation: {str(e)}")
         raise

@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 
 from apps.common.serializers import (
@@ -157,11 +156,23 @@ class CancelOrderAPIView(APIView):
         description="Allows a user to cancel their order. If payment was made, initiates refund.",
         tags=tags,
         responses={
-            200: {"description": "Order cancelled successfully"},
-            400: {"description": "Order cannot be cancelled"},
-            404: {"description": "Order not found"},
-            403: {"description": "Not authorized to cancel this order"},
-        },
+        200: OpenApiResponse(
+            description="Order cancelled successfully",
+            response=None,  
+        ),
+        400: OpenApiResponse(
+            description="Order cannot be cancelled",
+            response=None,  
+        ),
+        404: OpenApiResponse(
+            description="Order not found",
+            response=None,  
+        ),
+        403: OpenApiResponse(
+            description="Not authorized to cancel this order",
+            response=None,  
+        ),
+    },
     )
     def post(self, request, order_id):
         try:
@@ -175,6 +186,13 @@ class CancelOrderAPIView(APIView):
             return Response(
                 {"error": "Not authorized to cancel this order"},
                 status=status.HTTP_403_FORBIDDEN,
+            )
+            
+        # Check if the order is already canceled
+        if order.shipping_status == ShippingStatus.CANCELLED:
+            return Response(
+                {"error": "This order has already been canceled."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if the order can be canceled
@@ -190,7 +208,7 @@ class CancelOrderAPIView(APIView):
             )
 
         # Issue a refund if the payment was successful
-        if order.payment_status == PaymentStatus.SUCCESSFULL:
+        if order.payment_status == PaymentStatus.SUCCESSFUL:
             try:
                 refund_result = issue_refund(
                     order.payment_method, order.tx_ref, order.transaction_id
@@ -224,3 +242,6 @@ class CancelOrderAPIView(APIView):
             {"message": f"Order {order_id} has been successfully canceled."},
             status=status.HTTP_200_OK,
         )
+
+# TODO: REWORK ON THE SCHEMA DOCS TO SMTIN MORE READABLE AND UNDERSTANDABLE
+# FIXME: PENDING ORDRES NOT RECEIVED EMAILS

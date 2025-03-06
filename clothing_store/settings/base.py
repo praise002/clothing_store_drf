@@ -264,7 +264,7 @@ CELERY_BEAT_SCHEDULE = {
         # 'schedule': 1,
     },
     "pending-orders": {
-        "task": "apps.orders.check_pending_orders",
+        "task": "apps.orders.tasks.check_pending_orders",
         "schedule": 60 * 5,  # Run every 5 minutes
     },
 }

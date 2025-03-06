@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.orders.choices import PaymentGateway
+from apps.orders.choices import PaymentGateway, PaymentStatus
 from apps.orders.models import Order
 
 
@@ -15,11 +15,15 @@ class PaymentInitializeSerializer(serializers.Serializer):
         # Ensure the order exists and belongs to the user
         try:
             user_profile = self.context["request"].user.profile
-            Order.objects.get(id=order_id, customer=user_profile)
+            order = Order.objects.get(id=order_id, customer=user_profile)
 
         except Order.DoesNotExist:
             raise serializers.ValidationError(
                 "Order ID not found or does not belong to the user."
             )
+        
+        # Check if the order has already been paid for
+        if order.payment_status == PaymentStatus.SUCCESSFUL:
+            raise serializers.ValidationError("This order has already been paid for.")
 
         return order_id

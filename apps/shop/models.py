@@ -43,9 +43,12 @@ class Product(BaseModel):
     is_available = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     flash_deals = models.BooleanField(default=False)
+    # image = CloudinaryField(
+    #     "image", folder="products/", validators=[validate_file_size]
+    # ) #TODO: FIX LATER
     image = CloudinaryField(
-        "image", folder="products/", validators=[validate_file_size]
-    )
+        "image", folder="products/"
+    ) 
 
     objects = ProductManager()
 

@@ -10,7 +10,9 @@ from apps.orders.choices import (
 )
 from apps.profiles.models import Profile
 from apps.shop.models import Product
+import logging
 
+logger = logging.getLogger(__name__)
 
 class TrackingNumber(models.Model):
     """
@@ -125,7 +127,7 @@ class Order(BaseModel):
             self.cancelled_at = now()
 
         # Update the payment_status
-        self.payment_status = new_status
+        self.shipping_status = new_status
         self.save()
 
     def generate_and_assign_tracking_number(self):
@@ -138,6 +140,7 @@ class Order(BaseModel):
             )
             self.tracking_number = tracking_number
             self.save()
+            logger.info(f"Generated tracking number: {tracking_number}")
 
 
 class OrderItem(BaseModel):

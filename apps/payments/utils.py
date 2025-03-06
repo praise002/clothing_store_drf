@@ -6,6 +6,7 @@ from apps.orders.choices import (
     PaymentGateway,
     PaymentStatus,
     PaystackRefundStatus,
+    ShippingStatus,
 )
 from apps.orders.models import Order
 from apps.payments.tasks import refund_failed, refund_pending, refund_processed, refund_success
@@ -60,6 +61,21 @@ def issue_paystack_refund(tx_ref):
                 "status": "pending",
                 "message": "Refund initiated, waiting for processor",
             }
+        elif refund_status == "processing":
+            return {
+                "status": "processing",
+                "message": "Refund request has been received and is awaiting processing",
+            }
+        elif refund_status == "failed":
+            return {
+                "status": "failed",
+                "message": "Refund could not be processed. Please contact support",
+            }
+        elif refund_status == "processed":
+            return {
+                "status": "processed",
+                "message": "Refund has been successfully processed",
+            }
 
         else:
             raise ValueError(f"Unexpected refund status: {refund_status}")
@@ -113,7 +129,7 @@ def issue_flutterwave_refund(transaction_id, callback_url=None):
 
 #     try:
 #         # Find the associated order
-#         order = Order.objects.get(payment_ref=transaction_id)
+#         order = Order.objects.get(transaction_id=transaction_id)
 
 #         # Update the order's payment status based on the refund status
 #         if refund_status == "SUCCESSFUL":
@@ -132,54 +148,61 @@ def issue_flutterwave_refund(transaction_id, callback_url=None):
 
 
 def handle_refund_pending_paystack(data):
-    transaction_id = data.get("transaction", {}).get("id")
+    tx_ref = data.get("transaction_reference")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(tx_ref=tx_ref)
         order.paystack_refund_status = PaystackRefundStatus.PENDING
         order.save()
         refund_pending.delay(order_id=order.id)
     except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+        logger.error(f"Order not found for transaction ID: {tx_ref}")
 
 
 def handle_refund_processing_paystack(data):
-    transaction_id = data.get("transaction", {}).get("id")
+    tx_ref = data.get("transaction_reference")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(tx_ref=tx_ref)
         order.paystack_refund_status = PaystackRefundStatus.PROCESSING
         order.save()
     except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+        logger.error(f"Order not found for transaction ID: {tx_ref}")
 
 
 def handle_refund_failed_paystack(data):
-    transaction_id = data.get("transaction", {}).get("id")
+    tx_ref = data.get("transaction_reference")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(tx_ref=tx_ref)
         order.paystack_refund_status = PaystackRefundStatus.FAILED
         order.save()
         refund_failed.delay(order_id=order.id)
     except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+        logger.error(f"Order not found for transaction ID: {tx_ref}")
 
 
 def handle_refund_processed_paystack(data):
-    transaction_id = data.get("transaction", {}).get("id")
+    tx_ref = data.get("transaction_reference")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(tx_ref=tx_ref)
+        # Restore stock for each order item
+        for item in order.items.all():
+            product = item.product
+            product.in_stock += item.quantity
+            product.save()
+            
         order.paystack_refund_status = PaystackRefundStatus.PROCESSED
         order.payment_status = PaymentStatus.REFUNDED
+        order.shipping_status = ShippingStatus.CANCELLED
         order.save()
         refund_processed.delay(order_id=order.id)
     except Order.DoesNotExist:
-        logger.error(f"Order not found for transaction ID: {transaction_id}")
+        logger.error(f"Order not found for transaction ID: {tx_ref}")
 
 
 # FLUTTERWAVE
 def handle_refund_success_flw(data):
     transaction_id = data.get("tx_ref")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(transaction_id=transaction_id)
         order.payment_status = PaymentStatus.REFUNDED
         order.flw_refund_status = FLWRefundStatus.COMPLETED
         order.save()
@@ -191,7 +214,7 @@ def handle_refund_success_flw(data):
 def handle_refund_failed_flw(data):
     transaction_id = data.get("tx_ref")
     try:
-        order = Order.objects.get(payment_ref=transaction_id)
+        order = Order.objects.get(transaction_id=transaction_id)
         order.flw_refund_status = FLWRefundStatus.FAILED
         order.save()
         refund_failed.delay(order_id=order.id)

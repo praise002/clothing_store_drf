@@ -19,9 +19,8 @@ from apps.common.serializers import (
 from apps.orders.choices import PaymentGateway
 from apps.orders.models import Order
 from apps.payments.serializers import PaymentInitializeSerializer
-from apps.payments.utils import compute_payload_hash, issue_refund
+from apps.payments.utils import compute_payload_hash
 
-# from apps.payments.utils import issue_refund
 import logging
 
 logger = logging.getLogger(__name__)
@@ -104,7 +103,7 @@ class InitiatePaymentFLW(APIView):
         if payment_method.lower() != PaymentGateway.FLUTTERWAVE:
             return Response(
                 {
-                    "error": f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
+                    "error": f"Invalid payment method. Expected {PaymentGateway.FLUTTERWAVE}",
                     "available_methods": dict(PaymentGateway.choices),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -119,7 +118,7 @@ class InitiatePaymentFLW(APIView):
         # Flutterwave API details
         flutterwave_url = config("FLW_URL")
         flutterwave_secret_key = config("FLW_SECRET_KEY")
-        print(flutterwave_secret_key)
+        
         redirect_url = "https://88de-169-150-218-73.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
         print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave

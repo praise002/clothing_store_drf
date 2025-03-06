@@ -1,14 +1,13 @@
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from datetime import timedelta
 from django.utils import timezone
 
 from apps.orders.choices import PaymentStatus
 from apps.payments.tasks import order_pending_cancellation
-from .models import Order
+from apps.orders.models import Order
 
 import logging
 
@@ -22,7 +21,7 @@ def order_created(order_id):
     successfully created.
     """
     try:
-        order = get_object_or_404(Order, id=order_id)
+        order = Order.objects.get(id=order_id)
         user = order.customer.user
         subject = f"Order nr. {order.id}"
         context = {
@@ -32,23 +31,33 @@ def order_created(order_id):
         email_message = EmailMessage(subject=subject, body=message, to=[user.email])
         email_message.content_subtype = "html"
         email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
     except Exception as e:
         logger.error(f"Failed to send payment confirmation: {str(e)}")
         raise
 
 
 def order_canceled(order_id):
-    order = Order.objects.get(id=order_id)
-    user = order.customer.user
-    subject = f"Canceled Order nr. {order.id} - Your order could not be completed"
-    context = {
-        "order": order,
-        "frontend_url": settings.FRONTEND_URL,
-    }
-    message = render_to_string("orders/emails/order_canceled.html", context)
-    email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-    email_message.content_subtype = "html"
-    email_message.send(fail_silently=False)
+    try:
+        order = Order.objects.get(id=order_id)
+        user = order.customer.user
+        subject = f"Canceled Order nr. {order.id} - Your order could not be completed"
+        context = {
+            "order": order,
+            "frontend_url": settings.FRONTEND_URL,
+        }
+        message = render_to_string("orders/emails/order_canceled.html", context)
+        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
+        email_message.content_subtype = "html"
+        email_message.send(fail_silently=False)
+    except Order.DoesNotExist:
+        logger.error(f"Order {order_id} not found")
+        raise
+    except Exception as e:
+        logger.error(f"Failed to send cancelation confirmation: {str(e)}")
+        raise
 
 
 @shared_task

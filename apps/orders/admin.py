@@ -20,3 +20,5 @@ class OrderAdmin(admin.ModelAdmin):
         "customer",
         "transaction_id",
     ]
+
+admin.site.register(models.TrackingNumber)
