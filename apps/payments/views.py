@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 tags = ["Payment"]
 
+FLW_API_KEY="FLWPUBK_TEST-01c56c31131e3c8f8c512b3d245e59fc-X"
+FLW_SECRET_KEY="FLWSECK_TEST-de4f6d02c1748319dc5ff1ff188e4dcd-X"
+FLW_URL="https://api.flutterwave.com/v3/payments"  
+
 # FLUTTERWAVE
 @api_view(["GET"])
 def payment_callback_flw(request):
@@ -75,7 +79,9 @@ def payment_callback_flw(request):
             },
             status=status.HTTP_200_OK,
         )
-        
+
+
+ 
 class InitiatePaymentFLW(APIView):
     serializer_class = PaymentInitializeSerializer
     permission_classes = [IsAuthenticated]
@@ -116,15 +122,17 @@ class InitiatePaymentFLW(APIView):
         tx_ref = str(uuid.uuid4())
 
         # Flutterwave API details
-        flutterwave_url = config("FLW_URL")
-        flutterwave_secret_key = config("FLW_SECRET_KEY")
+        # flutterwave_url = config("FLW_URL")
+        flutterwave_url = FLW_URL
+        # flutterwave_secret_key = config("FLW_SECRET_KEY")
+        flutterwave_secret_key = FLW_SECRET_KEY
         
         redirect_url = "https://88de-169-150-218-73.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
         print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave
         payload = {
             "tx_ref": tx_ref,
-            "amount": str(order.get_total_cost()),
+            "amount": str(int(order.get_total_cost())),
             "currency": "NGN",
             "redirect_url": redirect_url,
             "customer": {
