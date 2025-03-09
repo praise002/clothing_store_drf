@@ -29,30 +29,34 @@ from apps.payments.utils import (
 
 logger = logging.getLogger(__name__)
 
+
 # FLUTTERWAVE
-
-
 @require_POST
 @csrf_exempt
 def flw_payment_webhook(request):
     logger.info("Webhook request received.")
     # Step 1: Verify the webhook signature
     secret_hash = config("FLW_SECRET_HASH")
-    signature = request.headers.get("verifi-hash")
+    signature = request.headers.get("verif-hash")
+    logger.info(f"Received signature: {signature}")
+    logger.info(f"Expected secret: {secret_hash}")
 
     if not signature or signature != secret_hash:
         # This request isn't from Flutterwave; discard
+        logger.error("Invalid Flutterwave webhook signature")
         return HttpResponse(status=401)
 
     # Step 2: Parse the payload
     try:
         payload = json.loads(request.body)
+        logger.info(f"Received payload: {payload}")
     except json.JSONDecodeError:
         logger.error("Invalid JSON payload in webhook request.")
         return HttpResponse(status=400)
 
     # Step 3: Extract required fields
     data = payload.get("data", {})
+    print(data)
     transaction_id = data.get("id")
     tx_ref = data.get("tx_ref")
 
@@ -88,7 +92,8 @@ def flw_payment_webhook(request):
             and verification_data["data"]["currency"] == payload["data"]["currency"]
         ):
             # Step 7: Handle idempotency (check if the event has already been processed)
-            event_id = payload.get("id")
+            event_id = payload["data"]["id"]
+            print(event_id)
             existing_event = PaymentEvent.objects.filter(event_id=event_id).exists()
 
             if existing_event and existing_event.status == payload["data"]["status"]:
@@ -105,8 +110,10 @@ def flw_payment_webhook(request):
             )
 
             # Step 8: Perform additional processing (e.g., update database, send email)
-            process_successful_payment.delay(order, transaction_id)
-            payment_successful.delay(order.id)
+            process_successful_payment.apply_async(
+                args=[str(order.id), transaction_id],
+                link=[payment_successful.si(order.id)],
+            )
 
             return HttpResponse(status=200)
         else:
@@ -125,23 +132,23 @@ def flw_payment_webhook(request):
         return HttpResponse(status=404)
 
 
-@require_POST
-@csrf_exempt
-def flutterwave_refund_webhook(request):
-    try:
-        payload = json.loads(request.body)
-    except json.JSONDecodeError:
-        return HttpResponse(status=400)  # Bad Request
+# @require_POST
+# @csrf_exempt
+# def flutterwave_refund_webhook(request):
+#     try:
+#         payload = json.loads(request.body)
+#     except json.JSONDecodeError:
+#         return HttpResponse(status=400)  # Bad Request
 
-    event_type = payload.get("event")
-    data = payload.get("data", {})
+#     event_type = payload.get("event")
+#     data = payload.get("data", {})
 
-    if event_type == "refund.success":
-        handle_refund_success_flw(data)
-    elif event_type == "refund.failed":
-        handle_refund_failed_flw(data)
+#     if event_type == "refund.success":
+#         handle_refund_success_flw(data)
+#     elif event_type == "refund.failed":
+#         handle_refund_failed_flw(data)
 
-    return HttpResponse(status=200)
+#     return HttpResponse(status=200)
 
 
 # PAYSTACK
@@ -179,6 +186,7 @@ def validate_paystack_webhook(request):
         return HttpResponse(status=400)
 
     return (body, event)
+
 
 @require_POST
 @csrf_exempt

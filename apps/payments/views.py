@@ -127,7 +127,7 @@ class InitiatePaymentFLW(APIView):
         # flutterwave_secret_key = config("FLW_SECRET_KEY")
         flutterwave_secret_key = FLW_SECRET_KEY
         
-        redirect_url = "https://88de-169-150-218-73.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
+        redirect_url = "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
         print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave
         payload = {
