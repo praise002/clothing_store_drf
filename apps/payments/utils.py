@@ -1,4 +1,5 @@
 import hashlib, requests, logging
+
 from decouple import config
 
 from apps.orders.choices import (
@@ -9,7 +10,12 @@ from apps.orders.choices import (
     ShippingStatus,
 )
 from apps.orders.models import Order
-from apps.payments.tasks import refund_failed, refund_pending, refund_processed, refund_success
+from apps.payments.tasks import (
+    refund_failed,
+    refund_pending,
+    refund_processed,
+    refund_success,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +48,8 @@ def issue_refund(payment_method, tx_ref, transaction_id=None):
     else:
         raise ValueError("Unsupported payment gateway.")
 
-# PAYSTACK
 
+# PAYSTACK
 def issue_paystack_refund(tx_ref):
     url = "https://api.paystack.co/refund"
     headers = {
@@ -82,69 +88,39 @@ def issue_paystack_refund(tx_ref):
     else:
         raise Exception(f"Error issuing refund: {response}")
 
+
 # FLUTTERWAVE
-def issue_flutterwave_refund(transaction_id, callback_url=None):
+def issue_flutterwave_refund(
+    transaction_id, amount=None, comments="Order cancellation"
+):
+    """
+    Initiate a refund via Flutterwave.
+    Supports both partial and full refunds.
+    """
     url = f"https://api.flutterwave.com/v3/transactions/{transaction_id}/refund"
-    headers = {"Authorization": f"Bearer {config('FLUTTERWAVE_SECRET_KEY')}"}
-    data = {}
+    headers = {
+        "Authorization": f"Bearer {config('FLW_SECRET_KEY')}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "comments": comments,
+        "callbackurl": "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/refund-callback/",
+    }
+    
+    # Add the amount field only if it is provided (for partial refunds)
+    if amount is not None:
+        payload["amount"] = str(int(amount))
 
-    # # Include the callback URL if provided
-    if callback_url:
-        data["callbackurl"] = callback_url
-
-    response = requests.post(url, headers=headers, json=data)
-
-    if response.status_code == 200:
-        response_data = response.json()
-        refund_status = response_data.get("data", {}).get("status")
-        if refund_status == "completed":
-            return {
-                "status": "completed",
-                "message": "Refund successful",
-            }
-        elif refund_status == "failed":
-            return {
-                "status": "failed",
-                "message": "Refund failed",
-            }
-        else:
-            raise Exception(f"Unexpected refund status: {refund_status}")
-
-    else:
-        raise Exception(f"Error issuing refund: {response.text}")
-
-
-# @require_POST
-# @csrf_exempt
-# def flutterwave_refund_callback(request):
-#     try:
-#         payload = json.loads(request.body)
-#     except json.JSONDecodeError:
-#         return HttpResponse(status=400)  # Bad Request
-
-#     # Extract relevant data
-#     refund_status = payload.get("data", {}).get("status")
-#     transaction_id = payload.get("data", {}).get("tx_ref")
-#     refund_id = payload.get("data", {}).get("id")
-
-#     try:
-#         # Find the associated order
-#         order = Order.objects.get(transaction_id=transaction_id)
-
-#         # Update the order's payment status based on the refund status
-#         if refund_status == "SUCCESSFUL":
-#             order.payment_status = PaymentStatus.REVERSED
-#             order.save()
-#         elif refund_status == "FAILED":
-#             order.payment_status = PaymentStatus.SUCCESSFUL  # Revert to successful
-#             order.save()
-#         else:
-#             logger.warning(f"Unhandled refund status: {refund_status}")
-
-#     except Order.DoesNotExist:
-#         logger.error(f"Order not found for transaction ID: {transaction_id}")
-
-#     return HttpResponse(status=200)  # OK
+    try:
+        logger.info(f"Initiating refund for transaction ID: {transaction_id}")
+        logger.info(f"Payload: {payload}")
+        logger.info(f"Headers: {headers}")
+        response = requests.post(url, json=payload, headers=headers)
+        print(response)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Failed to initiate Flutterwave refund: {str(e)}")
 
 
 def handle_refund_pending_paystack(data):
@@ -188,7 +164,7 @@ def handle_refund_processed_paystack(data):
             product = item.product
             product.in_stock += item.quantity
             product.save()
-            
+
         order.paystack_refund_status = PaystackRefundStatus.PROCESSED
         order.payment_status = PaymentStatus.REFUNDED
         order.shipping_status = ShippingStatus.CANCELLED

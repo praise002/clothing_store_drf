@@ -77,10 +77,10 @@ def cancel_expired_orders():
     # AND were created more than 24 hours ago
     expired_orders = Order.objects.filter(
         payment_status="pending",
-        created__lte=expiration_threshold,
+        created__lt=expiration_threshold,
     )
 
-    for order in expired_orders:  
+    for order in expired_orders:
         # Restore stock for each order item
         for item in order.items.all():
             product = item.product
@@ -106,12 +106,13 @@ def delete_expired_orders():
     # AND were created more than 24 hours ago
     expired_orders = Order.objects.filter(
         shipping_status="pending",
-        created__lte=expiration_threshold,
+        created__lt=expiration_threshold,
     )
 
     for order in expired_orders:
         logger.info(f"Deleting expired order {order.id}")
         order.delete()
+
 
 @shared_task
 def check_pending_orders():
@@ -121,15 +122,19 @@ def check_pending_orders():
     try:
         threshold = timezone.now() - timedelta(hours=1)
         pending_orders = Order.objects.filter(
-            created__lte=threshold, payment_status="pending",
-            pending_email_sent=False
+            created__lt=threshold, payment_status="pending", pending_email_sent=False
         )
 
-        for order in pending_orders:
-            logger.info(f"Sending pending cancellation email for order {order.id}")
-            order_pending_cancellation(order.id)
-            order.pending_email_sent = True
-            order.save()
-            
+        order_ids = list(pending_orders.values_list("id", flat=True))
+        logger.info(f"Found {len(order_ids)} pending cancellation orders: {order_ids}")
+
+        if order_ids:
+            logger.info("Sending pending cancellation emails")
+
+        for order_id in order_ids:
+            logger.info(f"Sending pending cancellation email for order {order_id}")
+            order_pending_cancellation(order_id)
+            Order.objects.filter(id__in=order_ids).update(pending_email_sent=True)
+
     except Exception as e:
         logger.error(f"Task failed: {e}")

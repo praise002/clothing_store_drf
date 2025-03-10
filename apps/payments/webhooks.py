@@ -6,10 +6,6 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework import status
-from rest_framework.response import Response
-
-from apps.orders.choices import PaymentStatus
 from apps.orders.models import Order
 from apps.payments.models import PaymentEvent
 from apps.payments.tasks import (
@@ -54,9 +50,14 @@ def flw_payment_webhook(request):
         logger.error("Invalid JSON payload in webhook request.")
         return HttpResponse(status=400)
 
+    # Check the event type
+    event = payload.get("event")
+    if event != "charge.completed":
+        logger.info(f"{event} received. Ignoring.")
+        return HttpResponse(status=200)
+    
     # Step 3: Extract required fields
     data = payload.get("data", {})
-    print(data)
     transaction_id = data.get("id")
     tx_ref = data.get("tx_ref")
 

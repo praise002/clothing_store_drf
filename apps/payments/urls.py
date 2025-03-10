@@ -5,6 +5,7 @@ urlpatterns = [
     path("flw/initiate-payment/", views.InitiatePaymentFLW.as_view()),
     path("flw/payment-callback/", views.payment_callback_flw, name="payment_callback"),
     path("flw-webhook/", fwh),
+    path("flw/refund-callback/", views.FlutterwaveRefundCallbackAPIView.as_view()),
     path("paystack/initialize-transaction/", views.InitiatePaymentPaystack.as_view()),
     # path("paystack/verify-transaction/<uuid:reference>/", views.VerifyTransactionPaystack.as_view()),
     path("paystack-webhook/", pwh),

@@ -27,9 +27,10 @@ logger = logging.getLogger(__name__)
 
 tags = ["Payment"]
 
-FLW_API_KEY="FLWPUBK_TEST-01c56c31131e3c8f8c512b3d245e59fc-X"
-FLW_SECRET_KEY="FLWSECK_TEST-de4f6d02c1748319dc5ff1ff188e4dcd-X"
-FLW_URL="https://api.flutterwave.com/v3/payments"  
+FLW_API_KEY = "FLWPUBK_TEST-01c56c31131e3c8f8c512b3d245e59fc-X"
+FLW_SECRET_KEY = "FLWSECK_TEST-de4f6d02c1748319dc5ff1ff188e4dcd-X"
+FLW_URL = "https://api.flutterwave.com/v3/payments"
+
 
 # FLUTTERWAVE
 @api_view(["GET"])
@@ -81,7 +82,6 @@ def payment_callback_flw(request):
         )
 
 
- 
 class InitiatePaymentFLW(APIView):
     serializer_class = PaymentInitializeSerializer
     permission_classes = [IsAuthenticated]
@@ -126,8 +126,8 @@ class InitiatePaymentFLW(APIView):
         flutterwave_url = FLW_URL
         # flutterwave_secret_key = config("FLW_SECRET_KEY")
         flutterwave_secret_key = FLW_SECRET_KEY
-        
-        redirect_url = "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/payment-callback/"  
+
+        redirect_url = "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/payment-callback/"
         print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave
         payload = {
@@ -297,5 +297,30 @@ class InitiatePaymentPaystack(APIView):
                     "message": "Payment initiation failed",
                     "details": str(err),
                 },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+#TODO: FIX - CHECK ROUGH_VIEWS FOR CODE
+class FlutterwaveRefundCallbackAPIView(APIView):
+    """
+    Callback endpoint for Flutterwave to send refund status updates.
+    """
+
+    def post(self, request):
+        try:
+            # Parse the request body
+            data = request.data
+            logger.info(f"Received refund callback: {data}")
+            refund_status = data["data"]["status"]
+            # transaction_id = data["data"]["tx_ref"]
+            try:
+                pass
+            except:
+                pass
+        except Exception as e:
+            logger.error(f"Error processing refund callback: {str(e)}")
+            return Response(
+                {"status": "error", "message": "An error occurred."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
