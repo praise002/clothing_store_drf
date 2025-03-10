@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 from apps.common.models import BaseModel
 from apps.orders.choices import (
@@ -40,6 +41,16 @@ class TrackingNumber(models.Model):
             if not TrackingNumber.objects.filter(number=tracking_number).exists():
                 return tracking_number
 
+class Return(BaseModel):
+    reason = models.TextField()
+    image = CloudinaryField(
+        "return_image",
+        folder="returns/",
+        # validators=[validate_file_size],
+        null=True,
+        blank=True,
+    )
+    tracking_number = models.CharField(max_length=50, blank=True)
 
 class Order(BaseModel):
     customer = models.ForeignKey(
@@ -77,6 +88,9 @@ class Order(BaseModel):
         blank=True,
         related_name="order",
     )
+    
+    # Return
+    return_request = models.OneToOneField(Return, on_delete=models.PROTECT, null=True, blank=True)
 
     # Shipping address details
     state = models.CharField(max_length=100)

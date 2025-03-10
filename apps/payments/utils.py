@@ -1,7 +1,7 @@
 import hashlib, requests, logging
 
+from decimal import Decimal
 from decouple import config
-
 from apps.orders.choices import (
     FLWRefundStatus,
     PaymentGateway,
@@ -40,9 +40,9 @@ def compute_payload_hash(payload, secret_key):
     return payload_hash
 
 
-def issue_refund(payment_method, tx_ref, transaction_id=None):
+def issue_refund(payment_method, tx_ref, transaction_id=None, amount=None):
     if payment_method == PaymentGateway.PAYSTACK:
-        return issue_paystack_refund(tx_ref)
+        return issue_paystack_refund(tx_ref, amount)
     elif payment_method == PaymentGateway.FLUTTERWAVE:
         return issue_flutterwave_refund(transaction_id)
     else:
@@ -50,12 +50,16 @@ def issue_refund(payment_method, tx_ref, transaction_id=None):
 
 
 # PAYSTACK
-def issue_paystack_refund(tx_ref):
+def issue_paystack_refund(tx_ref, amount=None):
     url = "https://api.paystack.co/refund"
     headers = {
         "Authorization": f"Bearer {config("PAYSTACK_TEST_SECRET_KEY")}"
     }  # TODO: CHANGE IN PRODUCTION
     data = {"transaction": tx_ref}  # full refund since amount isn't passed
+    
+    if amount is not None:
+        data["amount"] = int(amount * Decimal("100")) # partial refund
+        
     response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
