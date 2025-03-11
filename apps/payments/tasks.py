@@ -1,5 +1,4 @@
 from io import BytesIO
-from django.shortcuts import get_object_or_404
 from django.db import transaction
 import weasyprint, logging
 from celery import shared_task

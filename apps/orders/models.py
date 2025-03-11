@@ -7,6 +7,7 @@ from apps.orders.choices import (
     PaymentGateway,
     PaymentStatus,
     PaystackRefundStatus,
+    ReturnMethod,
     ShippingStatus,
 )
 from apps.profiles.models import Profile
@@ -14,6 +15,7 @@ from apps.shop.models import Product
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class TrackingNumber(models.Model):
     """
@@ -41,6 +43,7 @@ class TrackingNumber(models.Model):
             if not TrackingNumber.objects.filter(number=tracking_number).exists():
                 return tracking_number
 
+
 class Return(BaseModel):
     reason = models.TextField()
     image = CloudinaryField(
@@ -50,7 +53,26 @@ class Return(BaseModel):
         null=True,
         blank=True,
     )
+    return_method = models.CharField(
+        max_length=20,
+        choices=ReturnMethod.choices,
+        default=ReturnMethod.PICKUP_BY_COMPANY,
+    )
     tracking_number = models.CharField(max_length=50, blank=True)
+    request_time = models.DateTimeField(auto_now_add=True)
+
+
+class Refund(BaseModel):
+    partial_refund = models.BooleanField(default=False)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Refund status
+    paystack_refund_status = models.CharField(
+        max_length=20, choices=PaystackRefundStatus.choices, blank=True
+    )
+    flw_refund_status = models.CharField(
+        max_length=20, choices=FLWRefundStatus.choices, blank=True
+    )
+
 
 class Order(BaseModel):
     customer = models.ForeignKey(
@@ -68,15 +90,13 @@ class Order(BaseModel):
         max_length=20, choices=ShippingStatus.choices, default=ShippingStatus.PENDING
     )
 
-    # Refund status
-    paystack_refund_status = models.CharField(
-        max_length=20, choices=PaystackRefundStatus.choices, blank=True
+    # Return / Refund details
+    return_request = models.OneToOneField(
+        Return, on_delete=models.PROTECT, null=True, blank=True
     )
-    flw_refund_status = models.CharField(
-        max_length=20, choices=FLWRefundStatus.choices, blank=True
+    refund = models.OneToOneField(
+        Refund, on_delete=models.PROTECT, null=True, blank=True
     )
-
-    date_delivered = models.DateField(null=True, blank=True)
 
     transaction_id = models.CharField(max_length=50, blank=True)
     tx_ref = models.CharField(max_length=50, blank=True)
@@ -88,9 +108,6 @@ class Order(BaseModel):
         blank=True,
         related_name="order",
     )
-    
-    # Return
-    return_request = models.OneToOneField(Return, on_delete=models.PROTECT, null=True, blank=True)
 
     # Shipping address details
     state = models.CharField(max_length=100)
@@ -164,6 +181,7 @@ class OrderItem(BaseModel):
     )
     quantity = models.PositiveSmallIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    returned = models.BooleanField(default=False)  # To track returned status
 
     def get_cost(self):
         return self.price * self.quantity

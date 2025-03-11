@@ -1,5 +1,6 @@
 import hashlib, requests, logging
 
+from django.db import transaction
 from decimal import Decimal
 from decouple import config
 from apps.orders.choices import (
@@ -19,6 +20,7 @@ from apps.payments.tasks import (
 
 logger = logging.getLogger(__name__)
 
+REFUND_PERCENTAGE = 50  # 50% refund for partial refunds
 
 def compute_payload_hash(payload, secret_key):
     """
@@ -56,10 +58,10 @@ def issue_paystack_refund(tx_ref, amount=None):
         "Authorization": f"Bearer {config("PAYSTACK_TEST_SECRET_KEY")}"
     }  # TODO: CHANGE IN PRODUCTION
     data = {"transaction": tx_ref}  # full refund since amount isn't passed
-    
+
     if amount is not None:
-        data["amount"] = int(amount * Decimal("100")) # partial refund
-        
+        data["amount"] = int(amount * Decimal("100"))  # partial refund
+
     response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
@@ -110,7 +112,7 @@ def issue_flutterwave_refund(
         "comments": comments,
         "callbackurl": "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/refund-callback/",
     }
-    
+
     # Add the amount field only if it is provided (for partial refunds)
     if amount is not None:
         payload["amount"] = str(int(amount))
@@ -131,7 +133,7 @@ def handle_refund_pending_paystack(data):
     tx_ref = data.get("transaction_reference")
     try:
         order = Order.objects.get(tx_ref=tx_ref)
-        order.paystack_refund_status = PaystackRefundStatus.PENDING
+        order.refund.paystack_refund_status = PaystackRefundStatus.PENDING
         order.save()
         refund_pending.delay(order_id=order.id)
     except Order.DoesNotExist:
@@ -142,7 +144,7 @@ def handle_refund_processing_paystack(data):
     tx_ref = data.get("transaction_reference")
     try:
         order = Order.objects.get(tx_ref=tx_ref)
-        order.paystack_refund_status = PaystackRefundStatus.PROCESSING
+        order.refund.paystack_refund_status = PaystackRefundStatus.PROCESSING
         order.save()
     except Order.DoesNotExist:
         logger.error(f"Order not found for transaction ID: {tx_ref}")
@@ -152,7 +154,7 @@ def handle_refund_failed_paystack(data):
     tx_ref = data.get("transaction_reference")
     try:
         order = Order.objects.get(tx_ref=tx_ref)
-        order.paystack_refund_status = PaystackRefundStatus.FAILED
+        order.refund.paystack_refund_status = PaystackRefundStatus.FAILED
         order.save()
         refund_failed.delay(order_id=order.id)
     except Order.DoesNotExist:
@@ -168,12 +170,21 @@ def handle_refund_processed_paystack(data):
             product = item.product
             product.in_stock += item.quantity
             product.save()
-
-        order.paystack_refund_status = PaystackRefundStatus.PROCESSED
-        order.payment_status = PaymentStatus.REFUNDED
-        order.shipping_status = ShippingStatus.CANCELLED
-        order.save()
-        refund_processed.delay(order_id=order.id)
+            
+        with transaction.atomic():
+            order.refund.paystack_refund_status = PaystackRefundStatus.PROCESSED
+            order.payment_status = PaymentStatus.REFUNDED
+            order.update_shipping_status(ShippingStatus.CANCELLED)
+            order.refund.refund_amount = order.get_total_cost() * (
+                order.refund.partial_refund_percentage / 100
+                if order.refund.partial_refund_percentage
+                else 1
+            ) # FIXME: BASED ON REFUND ITEMS
+            order.save()
+        
+        # Trigger the Celery task after the transaction is committed
+        transaction.on_commit(lambda: refund_processed.delay(order_id=order.id))
+        
     except Order.DoesNotExist:
         logger.error(f"Order not found for transaction ID: {tx_ref}")
 
@@ -184,7 +195,7 @@ def handle_refund_success_flw(data):
     try:
         order = Order.objects.get(transaction_id=transaction_id)
         order.payment_status = PaymentStatus.REFUNDED
-        order.flw_refund_status = FLWRefundStatus.COMPLETED
+        order.refund.flw_refund_status = FLWRefundStatus.COMPLETED
         order.save()
         refund_success.delay(order_id=order.id)
     except Order.DoesNotExist:
@@ -195,7 +206,7 @@ def handle_refund_failed_flw(data):
     transaction_id = data.get("tx_ref")
     try:
         order = Order.objects.get(transaction_id=transaction_id)
-        order.flw_refund_status = FLWRefundStatus.FAILED
+        order.refund.flw_refund_status = FLWRefundStatus.FAILED
         order.save()
         refund_failed.delay(order_id=order.id)
     except Order.DoesNotExist:

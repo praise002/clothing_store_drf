@@ -37,3 +37,7 @@ class PaystackRefundStatus(models.TextChoices):
 class FLWRefundStatus(models.TextChoices):
     COMPLETED = "completed", "Completed"
     FAILED = "failed", "Failed"
+
+class ReturnMethod(models.TextChoices):
+    SEND_BY_YOURSELF = "send by yourself", "send by yourself"
+    # PICKUP_BY_COMPANY = "pickup by company", "pickup by company"
