@@ -30,9 +30,10 @@ def process_successful_payment(order_id, transaction_id=None):
 
             order.update_shipping_status(ShippingStatus.PROCESSING)
             order.payment_status = PaymentStatus.SUCCESSFUL
-            order.generate_and_assign_tracking_number()
-            order.save()
-            logger.info(f"Order {order.id} {order.shipping_status} {order.payment_status} processed successfully. Tracking number: {order.tracking_number}")
+            order.save() # This triggers the trackingnumber signal
+            logger.info(
+                f"Order {order.id} {order.shipping_status} {order.payment_status} processed successfully. Tracking number: {order.tracking_number}"
+            )
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
         raise
@@ -86,7 +87,7 @@ def payment_successful(order_id):
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
         raise
-    
+
     except Exception as e:
         logger.error(f"Failed to send payment successful: {str(e)}")
         raise

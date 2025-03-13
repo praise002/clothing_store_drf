@@ -25,7 +25,6 @@ from .serializers import (
 )
 
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -50,7 +49,7 @@ class RegisterView(APIView):
         tags=tags,
         responses={
             201: RegisterResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
         },
         auth=[],
     )
@@ -138,7 +137,7 @@ class ResendVerificationEmailView(APIView):
         description="This endpoint sends OTP to a user's email for verification",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,
@@ -183,7 +182,7 @@ class VerifyEmailView(APIView):
         description="This endpoint verifies a user's email",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
@@ -255,7 +254,7 @@ class LogoutView(APIView):
         description="This endpoint logs a user out from our application",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
         tags=tags,
@@ -301,7 +300,7 @@ class PasswordChangeView(APIView):
         description="This endpoint allows authenticated users to update their account password. The user must provide their current password for verification along with the new password they wish to set. If successful, the password will be updated, and a response will confirm the change.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
         tags=tags,
@@ -326,7 +325,7 @@ class PasswordResetRequestView(APIView):
         description="This endpoint sends new password reset otp to the user's email",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,
@@ -365,7 +364,7 @@ class VerifyOtpView(APIView):
         description="This endpoint verifies the password reset OTP.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
@@ -425,7 +424,7 @@ class PasswordResetDoneView(APIView):
         description="This endpoint sets a new password if the OTP is valid.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,

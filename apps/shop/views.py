@@ -13,7 +13,6 @@ from drf_spectacular.utils import extend_schema
 
 from apps.common.pagination import CustomPagination, DefaultPagination
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -133,7 +132,7 @@ class ProductRetrieveView(APIView):
         tags=tags,
         responses={
             200: ProductSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         auth=[],
@@ -163,7 +162,7 @@ class ProductReviewsRetrieveView(APIView):
         tags=review_tags,
         responses={
             200: ProductWithReviewsSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         auth=[],
@@ -221,7 +220,7 @@ class WishlistUpdateDestroyView(APIView):
         tags=tags,
         responses={
             200: WishlistSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
@@ -257,7 +256,7 @@ class WishlistUpdateDestroyView(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
@@ -292,7 +291,7 @@ class ReviewCreateView(APIView):
         tags=review_tags,
         responses={
             201: ReviewCreateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -486,7 +485,7 @@ class ProductRetrieveGenericView(RetrieveAPIView):
         tags=tags,
         responses={
             200: ProductSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
         auth=[],
@@ -604,7 +603,7 @@ class ReviewCreateGenericAPIView(CreateAPIView):
         tags=review_tags,
         responses={
             201: ReviewCreateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },

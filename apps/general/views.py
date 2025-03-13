@@ -4,7 +4,7 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
+    ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
 from .models import SiteDetail, TeamMember
@@ -65,7 +65,7 @@ class MessageCreateView(APIView):
         tags=tags,
         responses={
             201: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
         },
         auth=[],
     )

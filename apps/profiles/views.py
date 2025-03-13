@@ -10,7 +10,6 @@ from rest_framework.generics import (
 from drf_spectacular.utils import extend_schema
 
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -70,7 +69,7 @@ class ShippingAddressCreateView(APIView):
         tags=shipping_tags,
         responses={
             201: ShippingAddressCreateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -140,7 +139,7 @@ class ShippingAddressDetailView(APIView):
         tags=shipping_tags,
         responses={
             200: ShippingAddressUpdateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -164,7 +163,7 @@ class ShippingAddressDetailView(APIView):
         tags=shipping_tags,
         responses={
             204: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -270,7 +269,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         tags=shipping_tags,
         responses={
             200: ShippingAddressUpdateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -284,7 +283,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         tags=shipping_tags,
         responses={
             204: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -321,7 +320,7 @@ class MyProfileView(APIView):
         tags=tags,
         responses={
             200: ProfileUpdateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -370,7 +369,7 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
         tags=tags,
         responses={
             200: ProfileUpdateSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )

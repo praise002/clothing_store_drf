@@ -4,14 +4,13 @@ from rest_framework import serializers
 class SuccessResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="success")
     message = serializers.CharField()
+    data = serializers.DictField(required=False)
 
 
-class ErrorResponseSerializer(SuccessResponseSerializer):
+class ErrorResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="failure")
-
-
-class ErrorDataResponseSerializer(ErrorResponseSerializer):
-    data = serializers.DictField()
+    message = serializers.CharField()
+    errors = serializers.DictField(required=False)
 
 
 class PaginatedResponseDataSerializer(serializers.Serializer):

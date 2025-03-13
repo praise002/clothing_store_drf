@@ -12,7 +12,6 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -92,7 +91,7 @@ class InitiatePaymentFLW(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -205,7 +204,7 @@ class InitiatePaymentPaystack(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -301,7 +300,7 @@ class InitiatePaymentPaystack(APIView):
             )
 
 
-#TODO: FIX - CHECK ROUGH_VIEWS FOR CODE
+# TODO: FIX - CHECK ROUGH_VIEWS FOR CODE
 class FlutterwaveRefundCallbackAPIView(APIView):
     """
     Callback endpoint for Flutterwave to send refund status updates.

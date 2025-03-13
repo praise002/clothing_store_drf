@@ -18,7 +18,10 @@ class ShippingStatus(models.TextChoices):
 class PaymentStatus(models.TextChoices):
     PENDING = "pending", "pending"
     SUCCESSFUL = "successful", "successful"
-    CANCELLED = "cancelled", "cancelled"  # payment cancelled due to payment failure or other reasons
+    CANCELLED = (
+        "cancelled",
+        "cancelled",
+    )  # payment cancelled due to payment failure or other reasons
     REFUNDED = "refunded", "refunded"  # user cancels order and payment is refunded
 
 
@@ -38,6 +41,6 @@ class FLWRefundStatus(models.TextChoices):
     COMPLETED = "completed", "Completed"
     FAILED = "failed", "Failed"
 
+
 class ReturnMethod(models.TextChoices):
     SEND_BY_YOURSELF = "send by yourself", "send by yourself"
-    # PICKUP_BY_COMPANY = "pickup by company", "pickup by company"

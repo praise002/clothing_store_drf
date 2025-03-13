@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from apps.cart.cart import Cart
 from apps.common.serializers import (
-    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -49,7 +48,7 @@ class CartAddUpdateView(APIView):
         tags=tags,
         responses={
             200: CartSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },
@@ -93,7 +92,7 @@ class CartRemoveView(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
+            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
         },

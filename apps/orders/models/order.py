@@ -1,77 +1,19 @@
 from django.db import models
-from cloudinary.models import CloudinaryField
+
 
 from apps.common.models import BaseModel
 from apps.orders.choices import (
-    FLWRefundStatus,
     PaymentGateway,
     PaymentStatus,
-    PaystackRefundStatus,
-    ReturnMethod,
     ShippingStatus,
 )
+
+from apps.orders.models import TrackingNumber, Refund, Return
 from apps.profiles.models import Profile
 from apps.shop.models import Product
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class TrackingNumber(models.Model):
-    """
-    A model to store unique tracking numbers for orders.
-    """
-
-    number = models.CharField(max_length=50, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.number
-
-    @staticmethod
-    def generate_tracking_number():
-        """
-        Generate a unique tracking number in the format: NGYYYYMMDDXXXXXX
-        """
-        from django.utils.timezone import now
-        import uuid
-
-        while True:
-            timestamp = now().strftime("%Y%m%d")  # Current date in YYYYMMDD format
-            random_uuid = uuid.uuid4().hex[:6].upper()
-            tracking_number = f"NG{timestamp}{random_uuid}"
-            if not TrackingNumber.objects.filter(number=tracking_number).exists():
-                return tracking_number
-
-
-class Return(BaseModel):
-    reason = models.TextField()
-    image = CloudinaryField(
-        "return_image",
-        folder="returns/",
-        # validators=[validate_file_size],
-        null=True,
-        blank=True,
-    )
-    return_method = models.CharField(
-        max_length=20,
-        choices=ReturnMethod.choices,
-        default=ReturnMethod.PICKUP_BY_COMPANY,
-    )
-    tracking_number = models.CharField(max_length=50, blank=True)
-    request_time = models.DateTimeField(auto_now_add=True)
-
-
-class Refund(BaseModel):
-    partial_refund = models.BooleanField(default=False)
-    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    # Refund status
-    paystack_refund_status = models.CharField(
-        max_length=20, choices=PaystackRefundStatus.choices, blank=True
-    )
-    flw_refund_status = models.CharField(
-        max_length=20, choices=FLWRefundStatus.choices, blank=True
-    )
 
 
 class Order(BaseModel):
@@ -131,15 +73,14 @@ class Order(BaseModel):
     class Meta:
         ordering = ["-created"]
         indexes = [
-            models.Index(fields=["-created"]),
-            models.Index(fields=["payment_status", "pending_email_sent"]),
+            models.Index(fields=["payment_status", "shipping_status"]),
         ]
 
     def __str__(self):
         return f"Order {self.id} by {self.customer.user.full_name}"
 
-    def get_total_cost(self):
-        """Calculate the total cost."""
+    def get_total_cost(self) -> float:
+        """Calculate the total cost of the order."""
         return sum(item.get_cost() for item in self.items.all()) + self.shipping_fee
 
     def update_shipping_status(self, new_status):
@@ -160,18 +101,6 @@ class Order(BaseModel):
         # Update the payment_status
         self.shipping_status = new_status
         self.save()
-
-    def generate_and_assign_tracking_number(self):
-        """
-        Generate a unique tracking number and assign it to this order.
-        """
-        if not self.tracking_number:
-            tracking_number = TrackingNumber.objects.create(
-                number=TrackingNumber.generate_tracking_number()
-            )
-            self.tracking_number = tracking_number
-            self.save()
-            logger.info(f"Generated tracking number: {tracking_number}")
 
 
 class OrderItem(BaseModel):
