@@ -170,3 +170,4 @@ celerybeat-schedule.dat
 celerybeat-schedule.dir
 notes.txt
 .qodo
+rough.py
