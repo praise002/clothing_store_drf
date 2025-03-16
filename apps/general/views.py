@@ -1,15 +1,18 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
+from apps.common.responses import CustomResponse
 from apps.common.serializers import (
-    ErrorResponseSerializer,
-    SuccessResponseSerializer,
+    ErrorDataResponseSerializer,
 )
+
 from .models import SiteDetail, TeamMember
 from .serializers import (
+    MessageResponseSerializer,
+    SiteDetailResponseSerializer,
     SiteDetailSerializer,
+    TeamMemberResponseSerializer,
     TeamMemberSerializer,
     MessageSerializer,
 )
@@ -26,7 +29,7 @@ class SiteDetailView(APIView):
         description="This endpoint retrieves the single SiteDetail object",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: SiteDetailResponseSerializer,
         },
         auth=[],
     )
@@ -34,7 +37,11 @@ class SiteDetailView(APIView):
         """Retrieve the single SiteDetail object."""
         site_detail, _ = SiteDetail.objects.get_or_create()
         serializer = self.serializer_class(site_detail)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return CustomResponse.success(
+            message="Site detail retrieved successfully",
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+        )
 
 
 class TeamMemberListView(APIView):
@@ -45,7 +52,7 @@ class TeamMemberListView(APIView):
         description="This endpoint lists all TeamMember objects",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: TeamMemberResponseSerializer,
         },
         auth=[],
     )
@@ -53,7 +60,11 @@ class TeamMemberListView(APIView):
         """List all TeamMember objects."""
         team_members = TeamMember.objects.all()
         serializer = self.serializer_class(team_members, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return CustomResponse.success(
+            message="TeamMembers retrieved successfully",
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+        )
 
 
 class MessageCreateView(APIView):
@@ -64,8 +75,8 @@ class MessageCreateView(APIView):
         description="This endpoint creates a new Message object",
         tags=tags,
         responses={
-            201: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            201: MessageResponseSerializer,
+            400: ErrorDataResponseSerializer,
         },
         auth=[],
     )
@@ -75,8 +86,8 @@ class MessageCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        response_data = {
-            "message": "Message sent successfully.",
-            "data": serializer.data,
-        }
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return CustomResponse.success(
+            message="Message sent successfully.",
+            data=serializer.data,
+            status_code=status.HTTP_201_CREATED,
+        )

@@ -11,15 +11,20 @@ from drf_spectacular.views import (
 from drf_spectacular.utils import extend_schema
 
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 
+from apps.common.responses import CustomResponse
 from apps.common.serializers import SuccessResponseSerializer
 
 
 class HealthCheckView(APIView):
+    """
+    API Health Check
+    This endpoint checks the health of the API
+    """
+
     serializer_class = None
-    
+
     @extend_schema(
         "/",
         summary="API Health Check",
@@ -29,17 +34,23 @@ class HealthCheckView(APIView):
         auth=[],
     )
     def get(self, request):
-        return Response({"message": "pong"}, status=status.HTTP_200_OK)
-    
+
+        return CustomResponse.success(message="pong", status_code=status.HTTP_200_OK)
 
 
 def handler404(request, exception=None):
+    """
+    Custom 404 handler
+    """
     response = JsonResponse({"status": "failure", "message": "Not Found"})
     response.status_code = 404
     return response
 
 
 def handler500(request, exception=None):
+    """
+    Custom 500 handler
+    """
     response = JsonResponse({"status": "failure", "message": "Server Error"})
     response.status_code = 500
     return response
@@ -58,9 +69,7 @@ urlpatterns = [
     path("api/v1/cart/", include("apps.cart.urls")),
     path("api/v1/orders/", include("apps.orders.urls")),
     path("api/v1/payments/", include("apps.payments.urls")),
-    
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    
     path(
         "",
         SpectacularSwaggerView.as_view(url_name="schema"),
@@ -71,9 +80,8 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-    
     path("api/v1/healthcheck/", HealthCheckView.as_view()),
-    path('api/v1/social-auth/', include('drf_social_oauth2.urls', namespace='drf'))
+    path("api/v1/social-auth/", include("drf_social_oauth2.urls", namespace="drf")),
 ]
 
 if settings.DEBUG:

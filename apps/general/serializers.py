@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.common.serializers import SuccessResponseSerializer
+
 from .models import Social, SiteDetail, TeamMember, Message
 
 
@@ -48,3 +50,13 @@ class MessageSerializer(serializers.ModelSerializer):
             "text",
             "sent_at",
         ]
+
+# Responses
+class SiteDetailResponseSerializer(SuccessResponseSerializer):
+    data = SiteDetailSerializer()
+    
+class TeamMemberResponseSerializer(SuccessResponseSerializer):
+    data = TeamMemberSerializer()
+    
+class MessageResponseSerializer(SuccessResponseSerializer):
+    data = MessageSerializer()

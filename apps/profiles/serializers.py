@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.common.serializers import SuccessResponseSerializer
+
 
 from .models import Profile, ShippingAddress
 
@@ -88,6 +90,7 @@ class ShippingAddressUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ["id", "email", "first_name", "last_name"]
@@ -120,3 +123,12 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             "user",
             "avatar_url",
         ]
+
+
+# RESPONSES
+class ShippingAddressResponseSerializer(SuccessResponseSerializer):
+    data = ShippingAddressSerializer()
+
+
+class ProfileResponseSerializer(SuccessResponseSerializer):
+    data = ProfileSerializer()

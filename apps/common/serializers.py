@@ -4,10 +4,14 @@ from rest_framework import serializers
 class SuccessResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="success")
     message = serializers.CharField()
-    data = serializers.DictField(required=False)
 
 
 class ErrorResponseSerializer(serializers.Serializer):
+    status = serializers.CharField(default="failure")
+    error = serializers.CharField()
+
+
+class ErrorDataResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="failure")
     message = serializers.CharField()
     errors = serializers.DictField(required=False)

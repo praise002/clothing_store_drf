@@ -11,6 +11,7 @@ from drf_spectacular.utils import extend_schema
 
 from apps.accounts.emails import SendEmail
 from apps.accounts.utils import invalidate_previous_otps
+from apps.common.responses import CustomResponse
 from .serializers import (
     LogoutSerializer,
     PasswordChangeSerializer,
@@ -25,6 +26,7 @@ from .serializers import (
 )
 
 from apps.common.serializers import (
+    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -49,7 +51,7 @@ class RegisterView(APIView):
         tags=tags,
         responses={
             201: RegisterResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
         },
         auth=[],
     )
@@ -62,12 +64,10 @@ class RegisterView(APIView):
         # Send OTP for email verification
         SendEmail.send_email(request, user)
 
-        return Response(
-            {
-                "message": "OTP sent for email verification.",
-                "email": data["email"],
-            },
-            status=status.HTTP_201_CREATED,
+        return CustomResponse.success(
+            message="OTP sent for email verification.",
+            data={"email": data["email"]},
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -91,18 +91,19 @@ class LoginView(TokenObtainPairView):
             # Check if the user's email is verified
             if not user.is_email_verified:
                 # If email is not verified, prompt them to request an OTP
-                return Response(
-                    {
-                        "message": "Email not verified. Please verify your email before logging in.",
-                        "next_action": "send_email",  # Inform the client to call SendVerificationEmailView
-                        "email": user.email,  # Send back the email to pass it to SendVerificationEmailView
+
+                return CustomResponse.error(
+                    message="Email not verified. Please verify your email before logging in.",
+                    data={
+                        "email": user.email,
+                        "next_action": "send_email",
                     },
-                    status=status.HTTP_403_FORBIDDEN,
+                    status_code=status.HTTP_403_FORBIDDEN,
                 )
 
         except User.DoesNotExist:
-            return Response(
-                {"error": "User does not exist."}, status=status.HTTP_404_NOT_FOUND
+            return CustomResponse.error(
+                message="User does not exist.", status_code=status.HTTP_404_NOT_FOUND
             )
 
         # If email is verified, proceed with the normal token generation process
@@ -112,10 +113,13 @@ class LoginView(TokenObtainPairView):
         # refresh_token = response.data.pop("refresh", None)
         # access_token = response.data.get("access")
 
-        # # Set the refresh token as an HTTP-only cookie
-        # response = Response(
-        #     {"message": "Login successful.", "access_token": access_token},
-        #     status=status.HTTP_200_OK,
+        # Set the refresh token as an HTTP-only cookie
+        # response = CustomResponse.success(
+        #     message="Login successful.",
+        #     data={
+        #         "access_token": access_token,
+        #     },
+        #     status_code=status.HTTP_200_OK,
         # )
         # response.set_cookie(
         #     key="refresh_token",
@@ -137,7 +141,7 @@ class ResendVerificationEmailView(APIView):
         description="This endpoint sends OTP to a user's email for verification",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,
@@ -151,15 +155,15 @@ class ResendVerificationEmailView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "No account is associated with this email."},
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="No account is associated with this email.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         if user.is_email_verified:
-            return Response(
-                {"message": "Your email is already verified. No OTP sent."},
-                status=status.HTTP_200_OK,
+            return CustomResponse.success(
+                message="Your email is already verified. No OTP sent.",
+                status_code=status.HTTP_200_OK,
             )
 
         # Invalidate/clear any previous OTPs
@@ -168,8 +172,9 @@ class ResendVerificationEmailView(APIView):
         # Send OTP to user's email
         SendEmail.send_email(request, user)
 
-        return Response(
-            {"message": "OTP sent successfully."}, status=status.HTTP_200_OK
+        return CustomResponse.success(
+            message="OTP sent successfully.",
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -182,7 +187,7 @@ class VerifyEmailView(APIView):
         description="This endpoint verifies a user's email",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
@@ -199,37 +204,38 @@ class VerifyEmailView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "No account is associated with this email."},
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="No account is associated with this email.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Check if the OTP is valid for this user
         try:
             otp_record = Otp.objects.get(user=user, otp=otp)
         except Otp.DoesNotExist:
-            return Response(
-                {"error": "Invalid OTP provided."}, status=status.HTTP_404_NOT_FOUND
+            return CustomResponse.error(
+                message="Invalid OTP provided.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Check if OTP is expired
         if not otp_record.is_valid:
-            return Response(
-                {
-                    "error": "OTP has expired.",
+            return CustomResponse.success(
+                message="OTP has expired.",
+                data={
                     "next_action": "request_new_otp",
                     "request_url": "/api/v1/auth/otp",
                 },
-                status=498,
+                status_code=498,
             )
 
         # Check if user is already verified
         if user.is_email_verified:
             # Clear the OTP
             invalidate_previous_otps(user)
-            return Response(
-                {"message": "Email address already verified!"},
-                status=status.HTTP_200_OK,
+            return CustomResponse.success(
+                message="Email address already verified.",
+                status_code=status.HTTP_200_OK,
             )
 
         user.is_email_verified = True
@@ -240,8 +246,9 @@ class VerifyEmailView(APIView):
 
         SendEmail.welcome(request, user)
 
-        return Response(
-            {"message": "Email verified successfully."}, status=status.HTTP_200_OK
+        return CustomResponse.success(
+            message="Email verified successfully.",
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -254,7 +261,7 @@ class LogoutView(APIView):
         description="This endpoint logs a user out from our application",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
         tags=tags,
@@ -300,7 +307,7 @@ class PasswordChangeView(APIView):
         description="This endpoint allows authenticated users to update their account password. The user must provide their current password for verification along with the new password they wish to set. If successful, the password will be updated, and a response will confirm the change.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
         tags=tags,
@@ -325,7 +332,7 @@ class PasswordResetRequestView(APIView):
         description="This endpoint sends new password reset otp to the user's email",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,
@@ -364,7 +371,7 @@ class VerifyOtpView(APIView):
         description="This endpoint verifies the password reset OTP.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
@@ -424,7 +431,7 @@ class PasswordResetDoneView(APIView):
         description="This endpoint sets a new password if the OTP is valid.",
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
         },
         tags=tags,
@@ -492,3 +499,7 @@ class RefreshTokensView(TokenRefreshView):
         # )
 
         return response
+
+
+# TODO; CREATE CUSTOM RESPONSE FOR SOME OF THE RESPONSES IN EXTEND SCHEMA
+# PUT SOME LOGIC IN SERIALIZERS
