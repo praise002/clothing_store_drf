@@ -97,7 +97,7 @@ class Profile(BaseModel):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False
     )
-    avatar = models.ImageField(upload_to="photos/%Y/%m/%d/", null=True, blank=True)
+    avatar = models.ImageField(upload_to="photos/%Y/%m/%d/", null=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -110,7 +110,7 @@ class Profile(BaseModel):
         return f"{self.user.full_name}"
 
     @property
-    def avatar_url(self) -> Optional[str]:
+    def avatar_url(self):
         try:
             url = self.avatar.url
         except:

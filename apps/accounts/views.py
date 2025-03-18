@@ -1,5 +1,4 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -15,6 +14,7 @@ from apps.common.responses import CustomResponse
 from .serializers import (
     LogoutSerializer,
     PasswordChangeSerializer,
+    RefreshTokenResponseSerializer,
     RegisterSerializer,
     RequestPasswordResetOtpSerializer,
     SendOtpSerializer,
@@ -96,7 +96,6 @@ class LoginView(TokenObtainPairView):
                     message="Email not verified. Please verify your email before logging in.",
                     data={
                         "email": user.email,
-                        "next_action": "send_email",
                     },
                     status_code=status.HTTP_403_FORBIDDEN,
                 )
@@ -220,12 +219,8 @@ class VerifyEmailView(APIView):
 
         # Check if OTP is expired
         if not otp_record.is_valid:
-            return CustomResponse.success(
-                message="OTP has expired.",
-                data={
-                    "next_action": "request_new_otp",
-                    "request_url": "/api/v1/auth/otp",
-                },
+            return CustomResponse.error(
+                message="OTP has expired, please request a new one.",
                 status_code=498,
             )
 
@@ -274,25 +269,25 @@ class LogoutView(APIView):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(
-                {"message": "Logout successful."}, status=status.HTTP_200_OK
+            return CustomResponse.success(
+                message="Logout successful.", status_code=status.HTTP_200_OK
             )
 
         except TokenError as e:
-            return Response(
-                {"error": "Invalid or expired refresh token."},
-                status=status.HTTP_400_BAD_REQUEST,
+            return CustomResponse.error(
+                message="Invalid or expired refresh token.",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             logger.error(f"Unexpected error during logout: {e}")
-            return Response(
-                {"error": "An unexpected error occurred. Please try again later."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return CustomResponse.error(
+                message="An unexpected error occurred. Please try again later.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         # Clear the HTTP-only cookie containing the refresh token
-        # response = Response(
-        #     {"message": "Logout successful."}, status=status.HTTP_200_OK
+        # response = CustomResponse.success(
+        #     message="Logout successful.", status_code=status.HTTP_200_OK
         # )
         # response.delete_cookie("refresh_token")
         # return response
@@ -318,8 +313,8 @@ class PasswordChangeView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(
-            {"message": "Password changed successfully."}, status=status.HTTP_200_OK
+        return CustomResponse.success(
+            message="Password changed successfully.", status_code=status.HTTP_200_OK
         )
 
 
@@ -346,9 +341,9 @@ class PasswordResetRequestView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "User with this email does not exist."},
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="User with this email does not exist.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Clear otps if another otp is requested
@@ -357,8 +352,8 @@ class PasswordResetRequestView(APIView):
         # Send OTP to user's email
         SendEmail.send_password_reset_email(request, user)
 
-        return Response(
-            {"message": "OTP sent successfully."}, status=status.HTTP_200_OK
+        return CustomResponse.success(
+            message="OTP sent successfully.", status_code=status.HTTP_200_OK
         )
 
 
@@ -388,37 +383,32 @@ class VerifyOtpView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "No account is associated with this email."},
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="No account is associated with this email.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Check if the OTP is valid for this user
         try:
             otp_record = Otp.objects.get(user=user, otp=otp)
         except Otp.DoesNotExist:
-            return Response(
-                {
-                    "error": "The OTP could not be found. Please enter a valid OTP or request a new one."
-                },
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="The OTP could not be found. Please enter a valid OTP or request a new one.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Check if OTP is expired
         if not otp_record.is_valid:
-            return Response(
-                {
-                    "error": "OTP has expired. Please request a new one.",
-                },
-                status=498,
+            return CustomResponse.error(
+                message="OTP has expired, please request a new one.", status_code=498
             )
 
         # Clear OTP after verification
         invalidate_previous_otps(user)
 
-        return Response(
-            {"message": "OTP verified, proceed to set new password."},
-            status=status.HTTP_200_OK,
+        return CustomResponse.success(
+            message="OTP verified, proceed to set new password.",
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -447,9 +437,9 @@ class PasswordResetDoneView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "No account is associated with this email."},
-                status=status.HTTP_404_NOT_FOUND,
+            return CustomResponse.error(
+                message="No account is associated with this email.",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         # Update the user's password
@@ -458,9 +448,9 @@ class PasswordResetDoneView(APIView):
 
         SendEmail.password_reset_success(request, user)
 
-        return Response(
-            {"message": "Your password has been reset, proceed to login."},
-            status=status.HTTP_200_OK,
+        return CustomResponse.success(
+            message="Your password has been reset, proceed to login.",
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -471,7 +461,7 @@ class RefreshTokensView(TokenRefreshView):
         description="This endpoint allows users to refresh their access token using a valid refresh token. It returns a new access token, which can be used for further authenticated requests.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,  # response schema for successful token refresh
+            200: RefreshTokenResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -486,10 +476,12 @@ class RefreshTokensView(TokenRefreshView):
         # access_token = response.data.get("access")
 
         # Set the new refresh token as an HTTP-only cookie
-        # response = Response(
-        #     {"message": "Token refreshed successfully.", "access_token": access_token},
-        #     status=status.HTTP_200_OK,
+        # response = CustomResponse.success(
+        #     message="Token refreshed successfully.",
+        #     data={"access_token": access_token},
+        #     status_code=status.HTTP_200_OK,
         # )
+
         # response.set_cookie(
         #     key="refresh_token",
         #     value=refresh_token,
@@ -497,6 +489,12 @@ class RefreshTokensView(TokenRefreshView):
         #     secure=True,    # Only send over HTTPS
         #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
         # )
+
+        response = CustomResponse.success(
+            message="Token refreshed successfully.",
+            data=response.data,
+            status_code=status.HTTP_200_OK,
+        )
 
         return response
 

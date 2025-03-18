@@ -3,15 +3,18 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 
-from apps.common.schema_examples import RESPONSE_TYPE, SUCCESS_RESPONSE_STATUS
+from apps.common.schema_examples import DATETIME_EXAMPLE, RESPONSE_TYPE, SUCCESS_RESPONSE_STATUS, UUID_EXAMPLE
 from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
 
 PROFILE_EXAMPLE = {
     "user": {
-        "first_name": "John",
+        "id": UUID_EXAMPLE,
+        "email": "bob123@example.com",
+        "first_name": "Bob",
         "last_name": "Doe",
     },
-    "avatar_url": "https://johndoeavatar.com",
+    "last_updated": DATETIME_EXAMPLE,
+    "avatar_url": "https://bobdoeavatar.com",
 }
 
 
