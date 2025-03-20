@@ -6,6 +6,7 @@ from apps.profiles.models import Profile
 from apps.common.models import BaseModel
 from django.utils.translation import gettext_lazy as _
 from statistics import mean
+from django.core.validators import MinValueValidator
 
 from apps.common.validators import validate_file_size
 
@@ -37,7 +38,9 @@ class Product(BaseModel):
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.SET_NULL, null=True
     )
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
+    )
     # price_after_discount = models.DecimalField(max_digits=10, decimal_places=2)
     in_stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
@@ -46,9 +49,7 @@ class Product(BaseModel):
     # image = CloudinaryField(
     #     "image", folder="products/", validators=[validate_file_size]
     # ) #TODO: FIX LATER
-    image = CloudinaryField(
-        "image", folder="products/"
-    ) 
+    image = CloudinaryField("image", folder="products/")
 
     objects = ProductManager()
 
@@ -109,9 +110,11 @@ class Review(BaseModel):
 
 
 class Wishlist(models.Model):
+    #TODO: SWITCH TO UUID
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name="wishlists", blank=True)
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.profile.user.full_name} wishlist"
+# 827ad08b-0120-4e1f-90b5-653291bfc82a

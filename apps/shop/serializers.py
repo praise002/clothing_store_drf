@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from apps.common.serializers import SuccessResponseSerializer
 from apps.orders.models import OrderItem
 from .models import Category, Product, Review, Wishlist
 from drf_spectacular.utils import extend_schema_field
@@ -45,9 +46,9 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = [
-            "product",  
+            "product",
             "text",
-            "customer", # customer will be logged in user
+            "customer",  # customer will be logged in user
             "rating",  # 1-5
             "image",
         ]
@@ -89,7 +90,7 @@ class ReviewUpdateSerializer(serializers.ModelSerializer):
         # Ensure the user can only update their own review
         if instance and instance.customer != self.context["request"].user.profile:
             raise PermissionDenied("You do not have permission to update this review.")
-        return attrs #TODO: TEST IF IT WORKS
+        return attrs  # TODO: TEST IF IT WORKS
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -188,3 +189,21 @@ class WishlistSerializer(serializers.ModelSerializer):
             "profile",
             "products",
         ]
+
+
+# RESPONSES
+class CategoryResponseSerializer(SuccessResponseSerializer):
+    data = CategorySerializer()
+
+
+class ProductResponseSerializer(SuccessResponseSerializer):
+    data = ProductSerializer()
+
+class ProductWithReviewsResponseSerializer(SuccessResponseSerializer):
+    data = ProductWithReviewsSerializer()
+    
+class WishlistResponseSerializer(SuccessResponseSerializer):
+    data = WishlistSerializer()
+    
+class ReviewResponseSerializer(SuccessResponseSerializer):
+    data = ReviewSerializer()

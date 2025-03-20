@@ -97,7 +97,7 @@ class Profile(BaseModel):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False
     )
-    avatar = models.ImageField(upload_to="photos/%Y/%m/%d/", null=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:

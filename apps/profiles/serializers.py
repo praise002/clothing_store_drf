@@ -107,7 +107,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "last_updated",
             "avatar_url",
         ]
-        
+
     @extend_schema_field(serializers.URLField)
     def get_avatar_url(self, obj):
         return obj.avatar_url()
@@ -120,20 +120,15 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-    
     user = UserUpdateSerializer()
-    # avatar = serializers.ImageField(required=False, write_only=True)
     
 
     class Meta:
         model = Profile
         fields = [
             "user",
-            "avatar", #FIXME: URI INSTEAD OF BINARY
-            
+            "avatar",  # FIXME: URI INSTEAD OF BINARY
         ]
-    
-    
 
 
 # RESPONSES
