@@ -424,7 +424,27 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
         summary="Update user profile",
         description="This endpoint allows authenticated users to edit their profile details. Users can update their personal information. Only the account owner can modify their profile.",
         tags=tags,
-        request={"multipart/form-data": ProfileUpdateSerializer},
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "user.first_name": {
+                        "type": "string",
+                        "example": "Bob",
+                    },
+                    "user.last_name": {
+                        "type": "string",
+                        "example": "Doe",
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "Profile image file",
+                    },
+                },
+                "required": ["user.first_name", "user.last_name"],
+            }
+        },
         responses=PROFILE_UPDATE_RESPONSE_EXAMPLE,
     )
     def patch(self, request, *args, **kwargs):
