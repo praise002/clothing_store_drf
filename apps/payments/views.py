@@ -11,6 +11,7 @@ from rest_framework import status
 
 from drf_spectacular.utils import extend_schema
 
+from apps.common.responses import CustomResponse
 from apps.common.serializers import (
     ErrorResponseSerializer,
     SuccessResponseSerializer,
@@ -40,44 +41,34 @@ def payment_callback_flw(request):
 
     if not all([payment_status, tx_ref, transaction_id]):
         logger.warning("Missing required query parameters in payment_callback.")
-        return Response(
-            {"status": "error", "message": "Missing required query parameters"},
-            status=status.HTTP_400_BAD_REQUEST,
+        return CustomResponse.error(
+            message="Missing required query parameters",
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
         Order.objects.get(tx_ref=tx_ref)
     except Order.DoesNotExist:
         logger.error(f"Order not found for tx_ref: {tx_ref}.")
-        return Response(
-            {"status": "error", "message": "Order not found"},
-            status=status.HTTP_404_NOT_FOUND,
+        return CustomResponse.error(
+            message="Order not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
     # Provide feedback based on the payment status
     if payment_status.lower() == "successful":
-        return Response(
-            {
-                "status": "success",
-                "message": "Thank you for your payment. We will confirm it shortly.",
-            },
-            status=status.HTTP_200_OK,
+        return CustomResponse.success(
+            message="Thank you for your payment. We will confirm it shortly.",
+            status_code=status.HTTP_200_OK,
         )
     elif payment_status.lower() in ["cancelled", "failed"]:
-        return Response(
-            {
-                "status": "info",
-                "message": "Your payment was not completed. Please try again or contact support if needed.",
-            },
-            status=status.HTTP_200_OK,
+        return CustomResponse.info(
+            message="Your payment was not completed. Please try again or contact support if needed.",
+            status_code=status.HTTP_200_OK,
         )
     else:
-        return Response(
-            {
-                "status": "info",
-                "message": "We are processing your payment. You will receive a confirmation shortly.",
-            },
-            status=status.HTTP_200_OK,
+        return CustomResponse.info(
+            message="We are processing your payment. You will receive a confirmation shortly.",
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -106,12 +97,12 @@ class InitiatePaymentFLW(APIView):
         user = request.user
         payment_method = request.data.get("payment_method")
         if payment_method.lower() != PaymentGateway.FLUTTERWAVE:
-            return Response(
-                {
-                    "error": f"Invalid payment method. Expected {PaymentGateway.FLUTTERWAVE}",
+            return CustomResponse.error(
+                message=f"Invalid payment method. Expected {PaymentGateway.FLUTTERWAVE}",
+                data={
                     "available_methods": dict(PaymentGateway.choices),
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         order.payment_method = payment_method
@@ -166,30 +157,26 @@ class InitiatePaymentFLW(APIView):
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
             logger.info(f"Flutterwave response: {response_data}")
-            return Response(response_data, status=status.HTTP_200_OK)
+            return CustomResponse.success(
+                message="Payment initiated successfully",
+                data=response_data,
+                status_code=status.HTTP_200_OK,
+            )
         except requests.exceptions.RequestException as err:
             logger.error(f"Flutterwave API request failed: {err}", exc_info=True)
             # Handle request exceptions
-            return Response(
-                {
-                    "status": "error",
-                    "message": "Payment initiation failed",
-                    "details": str(err),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return CustomResponse.error(
+                message="Payment initiation failed",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except ValueError as err:
             logger.error(
                 f"JSON decoding error in Flutterwave API response: {err}", exc_info=True
             )
             # Handle JSON decoding error
-            return Response(
-                {
-                    "status": "error",
-                    "message": "Payment initiation failed",
-                    "details": str(err),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return CustomResponse.error(
+                message="Payment initiation failed",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -220,12 +207,12 @@ class InitiatePaymentPaystack(APIView):
         amount = order.get_total_cost() * Decimal("100")
         payment_method = request.data.get("payment_method")
         if payment_method.lower() != PaymentGateway.PAYSTACK:
-            return Response(
-                {
-                    "error": f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
+            return CustomResponse.error(
+                message=f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
+                data={
                     "available_methods": dict(PaymentGateway.choices),
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         order.payment_method = payment_method
@@ -273,30 +260,26 @@ class InitiatePaymentPaystack(APIView):
         try:
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
-            return Response(response_data, status=status.HTTP_200_OK)
+            return CustomResponse.success(
+                messaqge="Payment initiated successfully",
+                data=response_data,
+                status_code=status.HTTP_200_OK,
+            )
         except requests.exceptions.RequestException as err:
             logger.error(f"Paystack API request failed: {err}", exc_info=True)
             # Handle request exceptions
-            return Response(
-                {
-                    "status": "error",
-                    "message": "Payment initiation failed",
-                    "details": str(err),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return CustomResponse.error(
+                message="Payment initiation failed",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except ValueError as err:
             logger.error(
                 f"JSON decoding error in Paystack API response: {err}", exc_info=True
             )
             # Handle JSON decoding error
-            return Response(
-                {
-                    "status": "error",
-                    "message": "Payment initiation failed",
-                    "details": str(err),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            return CustomResponse.error(
+                message="Payment initiation failed",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

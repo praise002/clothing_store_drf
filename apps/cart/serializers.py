@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.common.serializers import SuccessResponseSerializer
 from apps.shop.serializers import ProductAddSerializer
 
 
@@ -24,6 +25,10 @@ class CartSerializer(serializers.Serializer):
 
 
 class CartAddUpdateSerializer(serializers.Serializer):
-    product_id = serializers.UUIDField() #TODO: IF IT RAISES AN ERROR WITH INVALID UUID
+    product_id = serializers.UUIDField() 
     quantity = serializers.IntegerField(min_value=1, default=1)
     override = serializers.BooleanField(default=False)
+
+# Responses
+class CartResponseSerializer(SuccessResponseSerializer):
+    data = CartSerializer()

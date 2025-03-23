@@ -1,6 +1,5 @@
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
@@ -8,9 +7,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 
 
+from apps.common.responses import CustomResponse
 from apps.common.serializers import (
     ErrorResponseSerializer,
-    SuccessResponseSerializer,
 )
 
 
@@ -20,6 +19,7 @@ from apps.orders.serializers import (
     OrderCreateSerializer,
     OrderSerializer,
 )
+from apps.orders.serializers.order import OrderResponseSerializer
 from apps.orders.tasks import order_created
 
 
@@ -38,7 +38,7 @@ class OrderCreateView(APIView):
         ),
         tags=tags,
         responses={
-            201: OrderSerializer,
+            201: OrderResponseSerializer,
             400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
@@ -59,12 +59,10 @@ class OrderCreateView(APIView):
         # launch asynchronous task
         order_created.delay(order.id)
 
-        return Response(
-            {
-                "message": "Order created successfully. Shipping address associated with this order will remain the same even if updated.",
-                "data": order_serializer.data,
-            },
-            status=status.HTTP_201_CREATED,
+        return CustomResponse.success(
+            message="Order created successfully. Shipping address associated with this order will remain the same even if updated.",
+            data=order_serializer.data,
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -77,7 +75,7 @@ class OrderCreateGenericView(CreateAPIView):
         description="This endpoint creates an order from the user's cart and assigns a shipping address.",
         tags=tags,
         responses={
-            201: SuccessResponseSerializer,
+            201: OrderResponseSerializer,
             400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
         },
@@ -97,12 +95,10 @@ class OrderCreateGenericView(CreateAPIView):
         # launch asynchronous task
         order_created.delay(order.id)
 
-        return Response(
-            {
-                "message": "Order created successfully.",
-                "data": order_serializer.data,
-            },
-            status=status.HTTP_201_CREATED,
+        return CustomResponse.success(
+            message="Order created successfully. Shipping address associated with this order will remain the same even if updated.",
+            data=order_serializer.data,
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -115,7 +111,7 @@ class OrderHistoryView(APIView):
         description="This endpoint retrieves all orders placed by the authenticated user.",
         tags=tags,
         responses={
-            200: OrderSerializer,
+            200: OrderResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -130,21 +126,19 @@ class OrderHistoryView(APIView):
         orders = Order.objects.filter(customer=user_profile).order_by("-created")
 
         if not orders.exists():
-            return Response(
-                {"message": "No orders found in your history."},
-                status=status.HTTP_200_OK,
+            return CustomResponse.success(
+                message="No orders found in your history.",
+                status_code=status.HTTP_200_OK,
             )
 
         # Serialize the orders
         serializer = self.serializer_class(orders, many=True)
 
         # Return the serialized data
-        return Response(
-            {
-                "message": "Order history retrieved successfully.",
-                "data": serializer.data,
-            },
-            status=status.HTTP_200_OK,
+        return CustomResponse.success(
+            message="Order history retrieved successfully.",
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -161,26 +155,24 @@ class OrderHistoryGenericAPIView(ListAPIView):
         return Order.objects.filter(customer=self.request.user.profile).order_by(
             "-created"
         )
-        
+
     def list(self, request, *args, **kwargs):
         """
         Override the list method to customize the response format.
         """
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        
+
         if not queryset.exists():
-            return Response(
-                {"message": "No orders found in your history."},
-                status=status.HTTP_200_OK,
+            return CustomResponse.success(
+                message="No orders found in your history.",
+                status_code=status.HTTP_200_OK,
             )
-            
-        return Response(
-            {
-                "message": "Order history retrieved successfully.",
-                "data": serializer.data,
-            },
-            status=status.HTTP_200_OK,
+
+        return CustomResponse.success(
+            message="Order history retrieved successfully.",
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
         )
 
     @extend_schema(
@@ -191,7 +183,7 @@ class OrderHistoryGenericAPIView(ListAPIView):
         ),
         tags=tags,
         responses={
-            200: OrderSerializer,
+            200: OrderResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -200,6 +192,3 @@ class OrderHistoryGenericAPIView(ListAPIView):
         Retrieve the order history of the authenticated user.
         """
         return super().get(request)
-
-
-# TODO: REWORK ON THE SCHEMA DOCS TO SMTIN MORE READABLE AND UNDERSTANDABLE

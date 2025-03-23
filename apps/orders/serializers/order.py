@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.cart.cart import Cart
+from apps.common.serializers import SuccessResponseSerializer
 from apps.orders.cart_service import create_order_from_cart, process_cart_for_order
 
 from apps.profiles.models import ShippingAddress
@@ -120,3 +121,7 @@ class OrderCreateSerializer(
         order = create_order_from_cart(cart, shipping_address, user_profile)
 
         return order
+
+# RESPONSES
+class OrderResponseSerializer(SuccessResponseSerializer):
+    data = OrderSerializer()

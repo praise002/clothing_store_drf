@@ -18,6 +18,16 @@ class CustomResponse:
         if data is not None:
             response["data"] = data
         return Response(data=response, status=status_code)
+    
+    @staticmethod
+    def info(message, data=None, status_code=200):
+        response = {
+            "status": "info",
+            "message": message,
+        }
+        if data is not None:
+            response["data"] = data
+        return Response(data=response, status=status_code)
 
     @staticmethod
     def error(message, status_code=400):

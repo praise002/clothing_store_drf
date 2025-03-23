@@ -6,15 +6,14 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework.permissions import IsAuthenticated
 from apps.cart.cart import Cart
+from apps.common.responses import CustomResponse
 from apps.common.serializers import (
     ErrorResponseSerializer,
-    SuccessResponseSerializer,
 )
-from apps.common.validators import validate_uuid
 from drf_spectacular.utils import extend_schema
 from apps.shop.models import Product
 
-from .serializers import CartSerializer, CartAddUpdateSerializer
+from .serializers import CartResponseSerializer, CartSerializer, CartAddUpdateSerializer
 
 tags = ["cart"]
 
@@ -28,14 +27,18 @@ class CartDetailView(APIView):
         description="This endpoint retrieves the cart.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: CartResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
     def get(self, request):
         cart = Cart(request)
         serializer = self.serializer_class(cart)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return CustomResponse.success(
+            message="Cart retrieved successfully",
+            data=serializer.data,
+            status_code=status.HTTP_200_OK,
+        )
 
 
 class CartAddUpdateView(APIView):
@@ -47,7 +50,7 @@ class CartAddUpdateView(APIView):
         description="This endpoint adds or updates a product to the cart.",
         tags=tags,
         responses={
-            200: CartSerializer,
+            200: CartResponseSerializer,
             400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
@@ -76,9 +79,10 @@ class CartAddUpdateView(APIView):
 
         # Serialize response with CartSerializer
         cart_serializer = CartSerializer(cart)
-        return Response(
-            cart_serializer.data,
-            status=status.HTTP_200_OK,
+        return CustomResponse.success(
+            message="Product added to cart",
+            data=cart_serializer.data,
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -91,7 +95,7 @@ class CartRemoveView(APIView):
         description="This endpoint removes a product from the cart.",
         tags=tags,
         responses={
-            200: SuccessResponseSerializer,
+            200: CartResponseSerializer,
             400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             404: ErrorResponseSerializer,
@@ -100,14 +104,11 @@ class CartRemoveView(APIView):
     def delete(self, request, product_id):
         cart = Cart(request)
 
-        if not validate_uuid(product_id):
-            return Response(
-                {"error": "Invalid product ID."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
         product = get_object_or_404(Product, id=product_id)
         cart.remove(product)
         cart_serializer = self.serializer_class(cart)
-        return Response(
-            {"message": "Product removed from cart", "data": cart_serializer.data}
+        return CustomResponse.success(
+            message="Product removed from cart",
+            data=cart_serializer.data,
+            status_code=status.HTTP_200_OK,
         )

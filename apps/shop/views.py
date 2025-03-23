@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.generics import (
@@ -390,10 +391,8 @@ class ReviewUpdateDestroyView(APIView):
         # Delete the review
         review.delete()
 
-        return CustomResponse.error(
-            message="Review deleted successfully.",
-            status_code=status.HTTP_204_NO_CONTENT,
-        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
 
 
 # Generic version
