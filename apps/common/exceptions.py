@@ -7,6 +7,8 @@ from rest_framework.exceptions import (
 
 
 class RequestError(APIException):
+    default_detail = "An error occured"
+    
     def __init__(self, err_msg: str, err_code: str, status_code: int=400, data: dict = None):
         """
         Initialize a RequestError instance.
