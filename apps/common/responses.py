@@ -30,18 +30,18 @@ class CustomResponse:
         return Response(data=response, status=status_code)
 
     @staticmethod
-    def error(message, status_code=400):
+    def error(message, err_code, status_code=400):
         """
         Returns a standardized error response.
         :param message: A human-readable error message.
-        :param error_code: Optional error code for machine-readable identification.
+        :param error_code: Error code for machine-readable identification.
         :param status: HTTP status code (default: 400).
         :return: DRF Response object.
         """
         response = {
             "status": "failure",
             "message": message,
-            # "code": err_code, #TODO: LATER
+            "code": err_code, 
         }
 
         return Response(data=response, status=status_code)

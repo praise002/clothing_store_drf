@@ -102,7 +102,7 @@ class LoginView(TokenObtainPairView):
 
         except User.DoesNotExist:
             return CustomResponse.error(
-                message="User does not exist.", status_code=status.HTTP_404_NOT_FOUND
+                message="Invalid email or password.", status_code=status.HTTP_400_BAD_REQUEST
             )
 
         # If email is verified, proceed with the normal token generation process
@@ -205,7 +205,7 @@ class VerifyEmailView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if the OTP is valid for this user
@@ -214,7 +214,7 @@ class VerifyEmailView(APIView):
         except Otp.DoesNotExist:
             return CustomResponse.error(
                 message="Invalid OTP provided.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if OTP is expired
@@ -385,7 +385,7 @@ class VerifyOtpView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if the OTP is valid for this user
@@ -394,7 +394,7 @@ class VerifyOtpView(APIView):
         except Otp.DoesNotExist:
             return CustomResponse.error(
                 message="The OTP could not be found. Please enter a valid OTP or request a new one.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if OTP is expired
