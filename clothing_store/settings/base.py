@@ -219,6 +219,7 @@ REST_FRAMEWORK = {
         "anon": "100/day",
         "user": "1000/day",
     },
+    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler'
 }
 
 AUTHENTICATION_BACKENDS = (

@@ -9,7 +9,7 @@ class ErrorCode:
     TOKEN_EXPIRED = "token_expired"
     
     # Resource States
-    NOT_FOUND = "not_found"
+    NON_EXISTENT = "non_existent"
     ALREADY_EXISTS = "already_exists"
     ALREADY_VERIFIED = "already_verified"
     OUT_OF_STOCK = "out_of_stock"
