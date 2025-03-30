@@ -219,7 +219,7 @@ REST_FRAMEWORK = {
         "anon": "100/day",
         "user": "1000/day",
     },
-    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler'
+    "EXCEPTION_HANDLER": "apps.common.exceptions.custom_exception_handler",
 }
 
 AUTHENTICATION_BACKENDS = (
@@ -253,6 +253,27 @@ SPECTACULAR_SETTINGS = {
     """,
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "oauth2": {  # For OAuth2
+                "type": "oauth2",
+                "flows": {
+                    "authorizationCode": {
+                        "authorizationUrl": "https://example.com/oauth/authorize",
+                        "tokenUrl": "https://example.com/oauth/token",
+                        "scopes": {
+                            "read": "Read access",
+                            "write": "Write access",
+                        },
+                    },
+                },
+            },
+        },
+    },
+    "SECURITY": [
+        {"bearerAuth": []},
+        {"oauth2": ["read", "write"]},
+    ],
 }
 
 

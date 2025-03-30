@@ -16,6 +16,7 @@ from apps.common.serializers import (
     SuccessResponseSerializer,
 )
 from apps.profiles.schema_examples import (
+    PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
     PROFILE_UPDATE_RESPONSE_EXAMPLE,
 )
 
@@ -400,10 +401,11 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
         summary="View a user profile",
         description="This endpoint allows authenticated users to view their profile details. Users can retrieve their account information. Only the account owner can access their profile.",
         tags=tags,
-        responses={
-            200: ProfileResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: ProfileResponseSerializer,
+        #     401: ErrorResponseSerializer,
+        # },
+        responses=PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
         """

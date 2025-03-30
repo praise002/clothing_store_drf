@@ -5,8 +5,8 @@ class ErrorCode:
     # Authentication & Authorization
     UNAUTHORIZED = "unauthorized"
     FORBIDDEN = "forbidden"
-    TOKEN_INVALID = "token_invalid"
-    TOKEN_EXPIRED = "token_expired"
+    INVALID_TOKEN = "invalid_token"
+    EXPIRED_TOKEN = "expired_token"
     
     # Resource States
     NON_EXISTENT = "non_existent"

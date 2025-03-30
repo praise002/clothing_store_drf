@@ -143,9 +143,27 @@ def handle_validation_error(exc):
     )
 
 
+def handle_invalid_token(exc):
+    """
+    Handle cases where the JWT token is invalid or expired.
+    """
+    logger.debug(f"Invalid token error: {exc}")
+    return CustomResponse.error(
+        message="Access Token is Invalid or Expired!",
+        err_code=ErrorCode.INVALID_TOKEN,
+        status_code=HTTPStatus.UNAUTHORIZED,
+    )
+
+
 def custom_exception_handler(exc, context):
     try:
         if isinstance(exc, AuthenticationFailed):
+            if hasattr(exc, "detail") and (
+                "token_not_valid" in str(exc.detail)
+                or "Token is invalid or expired" in str(exc.detail)
+            ):
+                return handle_invalid_token(exc)
+
             return handle_authentication_failed(exc)
         elif isinstance(exc, NotAuthenticated):
             return handle_not_authenticated(exc)

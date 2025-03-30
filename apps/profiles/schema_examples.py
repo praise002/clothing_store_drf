@@ -3,8 +3,14 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 
-from apps.common.schema_examples import DATETIME_EXAMPLE, RESPONSE_TYPE, SUCCESS_RESPONSE_STATUS, UUID_EXAMPLE
-from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
+from apps.accounts.schema_examples import UNAUTHORIZED_USER_RESPONSE
+from apps.common.schema_examples import (
+    DATETIME_EXAMPLE,
+    RESPONSE_TYPE,
+    SUCCESS_RESPONSE_STATUS,
+    UUID_EXAMPLE,
+)
+from apps.common.serializers import ErrorDataResponseSerializer
 
 PROFILE_EXAMPLE = {
     "user": {
@@ -27,12 +33,42 @@ PROFILE_UPDATE_RESPONSE_EXAMPLE = {
                 name="Profile Update Successful",
                 value={
                     "status": SUCCESS_RESPONSE_STATUS,
-                    "message": "Profile updated successfully",
+                    "message": "Profile updated successfully.",
                     "data": PROFILE_EXAMPLE,
                 },
             ),
         ],
     ),
     400: ErrorDataResponseSerializer,
-    401: ErrorResponseSerializer,
+    401: UNAUTHORIZED_USER_RESPONSE,
 }
+
+PROFILE_RETRIEVE_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        description="Profile Retrieve Successful",
+        response=RESPONSE_TYPE,
+        examples=[
+            OpenApiExample(
+                name="Profile Retrieve Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Profile retrieved successfully.",
+                    "data": PROFILE_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    401: UNAUTHORIZED_USER_RESPONSE,
+}
+
+# {
+#   "status": "failure",
+#   "message": "Authentication credentials were not provided.",
+#   "code": "unauthorized"
+# }
+
+# {
+#   "status": "failure",
+#   "message": "Access Token is Invalid or Expired!",
+#   "code": "invalid_token"
+# }
