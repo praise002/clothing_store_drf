@@ -65,7 +65,6 @@ class ValidationErr(RequestError):
 
 def handle_authentication_failed(exc):
     exc_list = str(exc).split("DETAIL: ")
-    print(exc_list)
     return CustomResponse.error(
         message=exc_list[-1],
         err_code=ErrorCode.UNAUTHORIZED,
@@ -75,7 +74,6 @@ def handle_authentication_failed(exc):
 
 def handle_not_authenticated(exc):
     exc_list = str(exc).split("DETAIL: ")
-    print(exc_list)
     return CustomResponse.error(
         message=exc_list[-1],
         err_code=ErrorCode.UNAUTHORIZED,
@@ -94,7 +92,6 @@ def handle_request_error(exc):
 
 def handle_permission_error(exc):
     exc_list = str(exc).split("DETAIL: ")
-    print(exc_list)
     return CustomResponse.error(
         message=exc_list[-1],
         err_code=ErrorCode.UNAUTHORIZED,
@@ -104,7 +101,6 @@ def handle_permission_error(exc):
 
 def handle_not_found_error(exc):
     exc_list = str(exc).split("DETAIL: ")
-    print(exc_list)
     return CustomResponse.error(
         message=exc_list[-1],
         err_code=ErrorCode.NON_EXISTENT,
@@ -175,6 +171,15 @@ def custom_exception_handler(exc, context):
             return handle_validation_error(exc)
         else:
             status_code = 500 if not hasattr(exc, "status_code") else exc.status_code
+            error_data = {
+                "error_type": exc.__class__.__name__,
+                "error_detail": str(exc)
+            }
+            logger.error(
+                    f"Exception occurred: {exc.__class__.__name__}",
+                    exc_info=True,
+                    extra={"error_data": error_data}
+                )
             return CustomResponse.error(
                 message="Something went wrong!",
                 status_code=status_code,

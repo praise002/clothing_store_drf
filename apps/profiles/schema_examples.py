@@ -61,14 +61,3 @@ PROFILE_RETRIEVE_RESPONSE_EXAMPLE = {
     401: UNAUTHORIZED_USER_RESPONSE,
 }
 
-# {
-#   "status": "failure",
-#   "message": "Authentication credentials were not provided.",
-#   "code": "unauthorized"
-# }
-
-# {
-#   "status": "failure",
-#   "message": "Access Token is Invalid or Expired!",
-#   "code": "invalid_token"
-# }

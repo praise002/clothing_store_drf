@@ -81,7 +81,7 @@ urlpatterns = [
         name="redoc",
     ),
     path("api/v1/healthcheck/", HealthCheckView.as_view()),
-    path("api/v1/social-auth/", include("drf_social_oauth2.urls", namespace="drf")),
+    # path("api/v1/social-auth/", include("drf_social_oauth2.urls", namespace="drf")),
 ]
 
 if settings.DEBUG:

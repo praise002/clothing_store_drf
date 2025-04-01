@@ -401,10 +401,6 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
         summary="View a user profile",
         description="This endpoint allows authenticated users to view their profile details. Users can retrieve their account information. Only the account owner can access their profile.",
         tags=tags,
-        # responses={
-        #     200: ProfileResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        # },
         responses=PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
@@ -422,54 +418,54 @@ class MyProfileViewGeneric(RetrieveUpdateAPIView):
             status_code=status.HTTP_200_OK,
         )
 
-    @extend_schema(
-        summary="Update user profile",
-        description="This endpoint allows authenticated users to edit their profile details. Users can update their personal information. Only the account owner can modify their profile.",
-        tags=tags,
-        request={
-            "multipart/form-data": {
-                "type": "object",
-                "properties": {
-                    "user.first_name": {
-                        "type": "string",
-                        "example": "Bob",
+        @extend_schema(
+            summary="Update user profile",
+            description="This endpoint allows authenticated users to edit their profile details. Users can update their personal information. Only the account owner can modify their profile.",
+            tags=tags,
+            request={
+                "multipart/form-data": {
+                    "type": "object",
+                    "properties": {
+                        "user.first_name": {
+                            "type": "string",
+                            "example": "Bob",
+                        },
+                        "user.last_name": {
+                            "type": "string",
+                            "example": "Doe",
+                        },
+                        "avatar": {
+                            "type": "string",
+                            "format": "binary",
+                            "description": "Profile image file",
+                        },
                     },
-                    "user.last_name": {
-                        "type": "string",
-                        "example": "Doe",
-                    },
-                    "avatar": {
-                        "type": "string",
-                        "format": "binary",
-                        "description": "Profile image file",
-                    },
-                },
-                "required": ["user.first_name", "user.last_name"],
-            }
-        },
-        responses=PROFILE_UPDATE_RESPONSE_EXAMPLE,
-    )
-    def patch(self, request, *args, **kwargs):
-        """
-        Partially update the authenticated user's profile.
-        """
-        return self.partial_update(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        """
-        Override the update method to customize the response format.
-        """
-
-        serializer = ProfileUpdateSerializer(
-            self.get_object(), data=request.data, partial=True
+                    "required": ["user.first_name", "user.last_name"],
+                }
+            },
+            responses=PROFILE_UPDATE_RESPONSE_EXAMPLE,
         )
+        def patch(self, request, *args, **kwargs):
+            """
+            Partially update the authenticated user's profile.
+            """
+            return self.partial_update(request, *args, **kwargs)
 
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        profile = serializer.instance
-        profile_serializer = ProfileSerializer(profile)
-        return CustomResponse.success(
-            message="Profile updated successfully.",
-            data=profile_serializer.data,
-            status_code=status.HTTP_200_OK,
-        )
+        def update(self, request, *args, **kwargs):
+            """
+            Override the update method to customize the response format.
+            """
+
+            serializer = ProfileUpdateSerializer(
+                self.get_object(), data=request.data, partial=True
+            )
+
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            profile = serializer.instance
+            profile_serializer = ProfileSerializer(profile)
+            return CustomResponse.success(
+                message="Profile updated successfully.",
+                data=profile_serializer.data,
+                status_code=status.HTTP_200_OK,
+            )

@@ -95,7 +95,7 @@ class ShippingAddress(BaseModel):
 
 class Profile(BaseModel):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False,
     )
     avatar = models.ImageField(upload_to="avatars/", null=True)
     last_updated = models.DateTimeField(auto_now=True)
