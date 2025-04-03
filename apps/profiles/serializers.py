@@ -84,7 +84,7 @@ class ShippingAddressUpdateSerializer(serializers.ModelSerializer):
 
         # Update the shipping address
         for attr, value in validated_data.items():
-            setattr(attr, instance, value)
+            setattr(instance, attr, value)
         instance.save()
         return instance
 
@@ -94,10 +94,14 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "email", "first_name", "last_name"]
+        extra_kwargs = {
+            "id": {"read_only": True},
+            "email": {"read_only": True},
+        }
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserSerializer()
     avatar_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -113,21 +117,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         return obj.avatar_url
 
 
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["first_name", "last_name"]
-
-
-class ProfileUpdateSerializer(serializers.ModelSerializer):
-    user = UserUpdateSerializer()
-    
+class AvatarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
         fields = [
-            "user",
-            "avatar",  
+            "avatar",
         ]
 
 
