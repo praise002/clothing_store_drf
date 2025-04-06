@@ -13,11 +13,11 @@ urlpatterns = [
     # List all shipping addresses for the authenticated user
     path(
         "shipping-addresses/",
-        views.ShippingAddressListView.as_view(),
+        views.ShippingAddressListGenericView.as_view(),
     ),
     # Retrieve, update, or delete a specific shipping address
     path(
         "shipping-addresses/<uuid:pk>/",
-        views.ShippingAddressDetailView.as_view(),
+        views.ShippingAddressDetailGenericView.as_view(),
     ),
 ]

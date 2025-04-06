@@ -250,10 +250,11 @@ class ShippingAddressListGenericView(ListAPIView):
         summary="List shipping address for the authenticated user",
         description="This endpoint retrieves all shipping addresses for the authenticated user.",
         tags=shipping_tags,
-        responses={
-            200: ShippingAddressResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: ShippingAddressResponseSerializer,
+        #     401: ErrorResponseSerializer,
+        # },
+        responses=SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
         """List shipping addresses for the authenticated user."""
@@ -263,9 +264,16 @@ class ShippingAddressListGenericView(ListAPIView):
 class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
     queryset = ShippingAddress.objects.all()
     permission_classes = [IsAuthenticated]
+    http_method_names = [
+        "get",
+        "patch",
+        "delete",
+        "head",
+        "options",
+    ]  # to remove the put method inherited from RetrieveUpdateDestroy
 
     def get_serializer_class(self):
-        if self.request.method == "PUT" or self.request.method == "PATCH":
+        if self.request.method == "PATCH":
             return ShippingAddressUpdateSerializer
 
     def get_queryset(self):
@@ -294,11 +302,12 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Get a shipping address",
         description="This endpoint retrieves a single shipping address for the authenticated user.",
         tags=shipping_tags,
-        responses={
-            200: ShippingAddressResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: ShippingAddressResponseSerializer,
+        #     401: ErrorResponseSerializer,
+        #     404: ErrorResponseSerializer,
+        # },
+        responses=SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE ,
     )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -316,12 +325,13 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Update a shipping address",
         description="This endpoint updates a shipping address for the authenticated user.",
         tags=shipping_tags,
-        responses={
-            200: ShippingAddressUpdateSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: ShippingAddressUpdateSerializer,
+        #     400: ErrorDataResponseSerializer,
+        #     401: ErrorResponseSerializer,
+        #     404: ErrorResponseSerializer,
+        # },
+        responses=SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE,
     )
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
@@ -344,12 +354,13 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Delete a shipping address",
         description="This endpoint deletes a shipping address for the authenticated user.",
         tags=shipping_tags,
-        responses={
-            204: SuccessResponseSerializer,
-            401: ErrorResponseSerializer,
-            403: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        # responses={
+        #     204: None,
+        #     401: ErrorResponseSerializer,
+        #     403: ErrorResponseSerializer,
+        #     404: ErrorResponseSerializer,
+        # },
+        responses=SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE,
     )
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
