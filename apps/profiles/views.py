@@ -13,11 +13,7 @@ from drf_spectacular.utils import extend_schema
 from apps.common.errors import ErrorCode
 from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
-from apps.common.serializers import (
-    ErrorDataResponseSerializer,
-    ErrorResponseSerializer,
-    SuccessResponseSerializer,
-)
+
 from apps.profiles.schema_examples import (
     PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
     PROFILE_UPDATE_RESPONSE_EXAMPLE,
@@ -34,7 +30,6 @@ from .serializers import (
     AvatarSerializer,
     ProfileSerializer,
     ShippingAddressCreateSerializer,
-    ShippingAddressResponseSerializer,
     ShippingAddressSerializer,
     ShippingAddressUpdateSerializer,
 )
@@ -213,7 +208,7 @@ class ShippingAddressDetailView(APIView):
             return CustomResponse.error(
                 message="Cannot delete default shipping address",
                 status_code=status.HTTP_403_FORBIDDEN,
-                err_code=ErrorCode.FORBIDDEN
+                err_code=ErrorCode.FORBIDDEN,
             )
 
         shipping_address.delete()
@@ -275,6 +270,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
         if self.request.method == "PATCH":
             return ShippingAddressUpdateSerializer
+        return ShippingAddressSerializer
 
     def get_queryset(self):
         # Ensure users can only access their own shipping addresses
@@ -307,7 +303,7 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         #     401: ErrorResponseSerializer,
         #     404: ErrorResponseSerializer,
         # },
-        responses=SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE ,
+        responses=SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)

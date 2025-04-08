@@ -6,6 +6,7 @@ from drf_spectacular.utils import (
 from apps.accounts.schema_examples import UNAUTHORIZED_USER_RESPONSE
 from apps.common.errors import ErrorCode
 from apps.common.schema_examples import (
+    AVATAR_URL,
     DATETIME_EXAMPLE,
     ERR_RESPONSE_STATUS,
     SUCCESS_RESPONSE_STATUS,
@@ -22,7 +23,7 @@ PROFILE_EXAMPLE = {
         "last_name": "Doe",
     },
     "last_updated": DATETIME_EXAMPLE,
-    "avatar_url": "https://bobdoeavatar.com",
+    "avatar_url": AVATAR_URL,
 }
 
 SHIPPING_ADDRESS_EXAMPLE_1 = [
@@ -309,3 +310,8 @@ SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE = {
         ],
     ),
 }
+
+# {
+#   "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTc0NjY5MCwiaWF0IjoxNzQzOTcwNjkwLCJqdGkiOiJiMzc2YWM4NGZlMTM0MzQ5OGM4MTg4ODhlY2E4ZDIxYSIsInVzZXJfaWQiOiI3ZTc3YmJkMS01MmI0LTQzMzMtYjRhYi04NzVjYjA4MzkxYzQiLCJmdWxsX25hbWUiOiJQcmFpc2UgSUQifQ.sF5n0uNyXVQAzd661axaE2QPzcvwhI7BjgxdxzcDtxY",
+#   "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ0MDU3MDkwLCJpYXQiOjE3NDM5NzA2OTAsImp0aSI6IjdmOGY5MGY5NjRmYzQxMTdhZjIxNzhjYTU4MWVhYTBkIiwidXNlcl9pZCI6IjdlNzdiYmQxLTUyYjQtNDMzMy1iNGFiLTg3NWNiMDgzOTFjNCIsImZ1bGxfbmFtZSI6IlByYWlzZSBJRCJ9.ydcC1Op4wdq7UJzQlCV8zO0COyT2anEC-S9wep5lo1k"
+# }

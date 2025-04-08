@@ -3,16 +3,16 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 
 from apps.common.responses import CustomResponse
-from apps.common.serializers import (
-    ErrorDataResponseSerializer,
+
+from apps.general.schema_examples import (
+    MESSAGE_RESPONSE_EXAMPLE,
+    SITE_DETAIL_RESPONSE_EXAMPLE,
+    TEAM_MEMBER_RESPONSE_EXAMPLE,
 )
 
 from .models import SiteDetail, TeamMember
 from .serializers import (
-    MessageResponseSerializer,
-    SiteDetailResponseSerializer,
     SiteDetailSerializer,
-    TeamMemberResponseSerializer,
     TeamMemberSerializer,
     MessageSerializer,
 )
@@ -28,9 +28,10 @@ class SiteDetailView(APIView):
         summary="Retrieve the single SiteDetail object",
         description="This endpoint retrieves the single SiteDetail object",
         tags=tags,
-        responses={
-            200: SiteDetailResponseSerializer,
-        },
+        # responses={
+        #     200: SiteDetailResponseSerializer,
+        # },
+        responses=SITE_DETAIL_RESPONSE_EXAMPLE,
         auth=[],
     )
     def get(self, request):
@@ -38,7 +39,7 @@ class SiteDetailView(APIView):
         site_detail, _ = SiteDetail.objects.get_or_create()
         serializer = self.serializer_class(site_detail)
         return CustomResponse.success(
-            message="Site detail retrieved successfully",
+            message="Site detail retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -51,9 +52,10 @@ class TeamMemberListView(APIView):
         summary="List all TeamMember objects",
         description="This endpoint lists all TeamMember objects",
         tags=tags,
-        responses={
-            200: TeamMemberResponseSerializer,
-        },
+        # responses={
+        #     200: TeamMemberResponseSerializer,
+        # },
+        responses=TEAM_MEMBER_RESPONSE_EXAMPLE,
         auth=[],
     )
     def get(self, request):
@@ -61,7 +63,7 @@ class TeamMemberListView(APIView):
         team_members = TeamMember.objects.all()
         serializer = self.serializer_class(team_members, many=True)
         return CustomResponse.success(
-            message="TeamMembers retrieved successfully",
+            message="Team members retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -74,10 +76,11 @@ class MessageCreateView(APIView):
         summary="Create a new Message object",
         description="This endpoint creates a new Message object",
         tags=tags,
-        responses={
-            201: MessageResponseSerializer,
-            400: ErrorDataResponseSerializer,
-        },
+        # responses={
+        #     201: MessageResponseSerializer,
+        #     400: ErrorDataResponseSerializer,
+        # },
+        responses=MESSAGE_RESPONSE_EXAMPLE,
         auth=[],
     )
     def post(self, request):
