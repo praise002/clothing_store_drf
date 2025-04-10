@@ -9,14 +9,14 @@ class SuccessResponseSerializer(serializers.Serializer):
 class ErrorResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="failure")
     message = serializers.CharField()
-    err_code = serializers.CharField()
+    code = serializers.CharField()
 
 
 class ErrorDataResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="failure")
     message = serializers.CharField()
-    errors = serializers.DictField(required=False)
-    err_code = serializers.CharField()
+    code = serializers.CharField()
+    data = serializers.DictField(required=False)
 
 
 class PaginatedResponseDataSerializer(serializers.Serializer):

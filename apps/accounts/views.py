@@ -10,6 +10,7 @@ from drf_spectacular.utils import extend_schema
 
 from apps.accounts.emails import SendEmail
 from apps.accounts.utils import invalidate_previous_otps
+from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
 from .serializers import (
     LogoutSerializer,
@@ -79,8 +80,9 @@ class LoginView(TokenObtainPairView):
         description="This endpoint generates new access and refresh tokens for authentication",
         responses={
             200: LoginResponseSerializer,
-            404: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             403: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
         tags=tags,
     )
@@ -102,11 +104,19 @@ class LoginView(TokenObtainPairView):
 
         except User.DoesNotExist:
             return CustomResponse.error(
-                message="Invalid email or password.", status_code=status.HTTP_400_BAD_REQUEST
+                message="Invalid email or password.", status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.NON_EXISTENT,
             )
 
         # If email is verified, proceed with the normal token generation process
-        response = super().post(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        response = CustomResponse.success(
+            message="Login successful.",
+            data=serializer.validated_data,
+            status_code=status.HTTP_200_OK,
+        )
 
         # Extract the refresh token from the response
         # refresh_token = response.data.pop("refresh", None)

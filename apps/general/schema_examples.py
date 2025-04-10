@@ -7,6 +7,7 @@ from drf_spectacular.utils import (
 from apps.common.schema_examples import (
     AVATAR_URL,
     DATETIME_EXAMPLE,
+    EMAIL_EXAMPLE,
     SUCCESS_RESPONSE_STATUS,
 )
 from apps.common.serializers import ErrorDataResponseSerializer
@@ -80,7 +81,7 @@ TEAM_MEMBER_EXAMPLE = [
 
 MESSAGE_CREATE_EXAMPLE = {
     "name": "Bobby Johnson",
-    "email": "bobby@example.com",
+    "email": EMAIL_EXAMPLE,
     "subject": "Test subject",
     "text": "Test text",
     "sent_at": DATETIME_EXAMPLE,
@@ -130,7 +131,7 @@ MESSAGE_RESPONSE_EXAMPLE = {
                 value={
                     "status": SUCCESS_RESPONSE_STATUS,
                     "message": "Message sent successfully.",
-                    "data": SITE_DETAIL_EXAMPLE,
+                    "data": MESSAGE_CREATE_EXAMPLE,
                 },
             ),
         ],

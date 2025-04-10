@@ -8,6 +8,7 @@ from apps.common.errors import ErrorCode
 from apps.common.schema_examples import (
     AVATAR_URL,
     DATETIME_EXAMPLE,
+    EMAIL_EXAMPLE,
     ERR_RESPONSE_STATUS,
     SUCCESS_RESPONSE_STATUS,
     UUID_EXAMPLE,
@@ -18,7 +19,7 @@ from apps.profiles.serializers import ProfileSerializer, ShippingAddressSerializ
 PROFILE_EXAMPLE = {
     "user": {
         "id": UUID_EXAMPLE,
-        "email": "bob123@example.com",
+        "email": EMAIL_EXAMPLE,
         "first_name": "Bob",
         "last_name": "Doe",
     },
@@ -238,7 +239,7 @@ SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE = {
                 value={
                     "status": ERR_RESPONSE_STATUS,
                     "message": "Shipping address not found",
-                    "err_code": ErrorCode.NON_EXISTENT,
+                    "code": ErrorCode.NON_EXISTENT,
                 },
             ),
         ],
@@ -271,7 +272,7 @@ SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE = {
                 value={
                     "status": ERR_RESPONSE_STATUS,
                     "message": "Shipping address not found",
-                    "err_code": ErrorCode.NON_EXISTENT,
+                    "code": ErrorCode.NON_EXISTENT,
                 },
             ),
         ],
@@ -290,7 +291,7 @@ SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE = {
                 value={
                     "status": ERR_RESPONSE_STATUS,
                     "message": "Cannot delete default shipping address",
-                    "err_code": ErrorCode.FORBIDDEN,
+                    "code": ErrorCode.FORBIDDEN,
                 },
             ),
         ],
@@ -304,14 +305,14 @@ SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE = {
                 value={
                     "status": ERR_RESPONSE_STATUS,
                     "message": "Shipping address not found.",
-                    "err_code": ErrorCode.NON_EXISTENT,
+                    "code": ErrorCode.NON_EXISTENT,
                 },
             ),
         ],
     ),
 }
 
-# {
-#   "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTc0NjY5MCwiaWF0IjoxNzQzOTcwNjkwLCJqdGkiOiJiMzc2YWM4NGZlMTM0MzQ5OGM4MTg4ODhlY2E4ZDIxYSIsInVzZXJfaWQiOiI3ZTc3YmJkMS01MmI0LTQzMzMtYjRhYi04NzVjYjA4MzkxYzQiLCJmdWxsX25hbWUiOiJQcmFpc2UgSUQifQ.sF5n0uNyXVQAzd661axaE2QPzcvwhI7BjgxdxzcDtxY",
-#   "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ0MDU3MDkwLCJpYXQiOjE3NDM5NzA2OTAsImp0aSI6IjdmOGY5MGY5NjRmYzQxMTdhZjIxNzhjYTU4MWVhYTBkIiwidXNlcl9pZCI6IjdlNzdiYmQxLTUyYjQtNDMzMy1iNGFiLTg3NWNiMDgzOTFjNCIsImZ1bGxfbmFtZSI6IlByYWlzZSBJRCJ9.ydcC1Op4wdq7UJzQlCV8zO0COyT2anEC-S9wep5lo1k"
-# }
+# "data": {
+#     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ0MzkzNzkwLCJpYXQiOjE3NDM5NzA2OTAsImp0aSI6IjE0YzU0YTc0ODBmOTRlOTg4MzMzZTExMGYzMjQwNWQyIiwidXNlcl9pZCI6IjdlNzdiYmQxLTUyYjQtNDMzMy1iNGFiLTg3NWNiMDgzOTFjNCIsImZ1bGxfbmFtZSI6IlByYWlzZSBJRCJ9.3tVolPto7Nvdh5f-lrp1RgrHlHr8VVl89coiLn_ScEk",
+#     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MjA4MzM5MCwiaWF0IjoxNzQ0MzA3MzkwLCJqdGkiOiIwZTE2N2MyYzk4ZDg0NmI0YTExM2ZiYWNkNTQzNzNkYSIsInVzZXJfaWQiOiI3ZTc3YmJkMS01MmI0LTQzMzMtYjRhYi04NzVjYjA4MzkxYzQiLCJmdWxsX25hbWUiOiJQcmFpc2UgSUQifQ.vNxcJO4LAi8wHEn_nP4uH8d7SemElD7_V_HWnxvtXrE"
+#   }
