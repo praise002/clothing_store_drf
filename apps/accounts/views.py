@@ -81,10 +81,10 @@ class LoginView(TokenObtainPairView):
         responses={
             200: LoginResponseSerializer,
             400: ErrorDataResponseSerializer,
-            403: ErrorResponseSerializer,
             422: ErrorDataResponseSerializer,
         },
         tags=tags,
+        auth=[],
     )
     def post(self, request, *args, **kwargs):
         try:
@@ -104,14 +104,15 @@ class LoginView(TokenObtainPairView):
 
         except User.DoesNotExist:
             return CustomResponse.error(
-                message="Invalid email or password.", status_code=status.HTTP_400_BAD_REQUEST,
+                message="Invalid email or password.",
+                status_code=status.HTTP_400_BAD_REQUEST,
                 err_code=ErrorCode.NON_EXISTENT,
             )
 
         # If email is verified, proceed with the normal token generation process
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         response = CustomResponse.success(
             message="Login successful.",
             data=serializer.validated_data,
@@ -151,7 +152,6 @@ class ResendVerificationEmailView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
         },
         tags=tags,
         auth=[],
@@ -166,7 +166,7 @@ class ResendVerificationEmailView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         if user.is_email_verified:
@@ -197,7 +197,6 @@ class VerifyEmailView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
         tags=tags,
@@ -287,6 +286,7 @@ class LogoutView(APIView):
             return CustomResponse.error(
                 message="Invalid or expired refresh token.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.INVALID_TOKEN,
             )
         except Exception as e:
             logger.error(f"Unexpected error during logout: {e}")
@@ -338,7 +338,6 @@ class PasswordResetRequestView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
         },
         tags=tags,
         auth=[],
@@ -353,7 +352,7 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="User with this email does not exist.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Clear otps if another otp is requested
@@ -377,7 +376,6 @@ class VerifyOtpView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
             498: ErrorResponseSerializer,
         },
         tags=tags,
@@ -432,7 +430,6 @@ class PasswordResetDoneView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
         },
         tags=tags,
         auth=[],
@@ -449,7 +446,7 @@ class PasswordResetDoneView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Update the user's password
@@ -463,8 +460,9 @@ class PasswordResetDoneView(APIView):
             status_code=status.HTTP_200_OK,
         )
 
-
+# FIX: NOT WORKING AS EXPECTED TOKENERROR CLASHING
 class RefreshTokensView(TokenRefreshView):
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Refresh user access token",
@@ -473,13 +471,29 @@ class RefreshTokensView(TokenRefreshView):
         responses={
             200: RefreshTokenResponseSerializer,
             401: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
     )
     def post(self, request, *args, **kwargs):
         """
         Handle POST request to refresh the JWT token
         """
-        response = super().post(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        
+        try:
+            serializer.is_valid(raise_exception=True)
+            response = CustomResponse.success(
+                message="Token refreshed successfully.",
+                data=response.data,
+                status_code=status.HTTP_200_OK,
+            )
+
+        except TokenError as e:
+            return CustomResponse.error(
+                message="Invalid or expired refresh token.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.INVALID_TOKEN
+            )
 
         # Extract the new refresh token from the response
         # refresh_token = response.data.pop("refresh", None)
@@ -500,14 +514,4 @@ class RefreshTokensView(TokenRefreshView):
         #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
         # )
 
-        response = CustomResponse.success(
-            message="Token refreshed successfully.",
-            data=response.data,
-            status_code=status.HTTP_200_OK,
-        )
-
         return response
-
-
-# TODO; CREATE CUSTOM RESPONSE FOR SOME OF THE RESPONSES IN EXTEND SCHEMA
-# PUT SOME LOGIC IN SERIALIZERS

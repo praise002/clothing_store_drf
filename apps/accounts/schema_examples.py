@@ -3,19 +3,59 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 
-from apps.accounts.serializers import CustomTokenObtainPairSerializer, RegisterSerializer
+from apps.accounts.serializers import (
+    CustomTokenObtainPairSerializer,
+    PasswordChangeSerializer,
+    RefreshTokenResponseSerializer,
+    RegisterSerializer,
+    RequestPasswordResetOtpSerializer,
+    SendOtpSerializer,
+    SetNewPasswordSerializer,
+    VerifyOtpSerializer,
+)
 from apps.common.errors import ErrorCode
-from apps.common.schema_examples import ACCESS_TOKEN, ERR_RESPONSE_STATUS, REFRESH_TOKEN, SUCCESS_RESPONSE_STATUS
+from apps.common.schema_examples import (
+    ACCESS_TOKEN,
+    ERR_RESPONSE_STATUS,
+    REFRESH_TOKEN,
+    SUCCESS_RESPONSE_STATUS,
+)
 from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
 
-REGISTER_EXAMPLE = {
-  "email": "bob123@example.com"
-}
+REGISTER_EXAMPLE = {"email": "bob123@example.com"}
 
 LOGIN_EXAMPLE = {
     "refresh": REFRESH_TOKEN,
     "access": ACCESS_TOKEN,
 }
+
+REFRESH_TOKEN_EXAMPLE = {
+    "access": ACCESS_TOKEN,
+    "refresh": REFRESH_TOKEN,
+}
+
+UNAUTHORIZED_USER_RESPONSE = OpenApiResponse(
+    response=ErrorResponseSerializer,
+    description="Unauthorized User or Invalid Access Token",
+    examples=[
+        OpenApiExample(
+            name="Unauthorized User",
+            value={
+                "status": ERR_RESPONSE_STATUS,
+                "message": "Authentication credentials were not provided.",
+                "err_code": ErrorCode.UNAUTHORIZED,
+            },
+        ),
+        OpenApiExample(
+            name="Invalid Access Token",
+            value={
+                "status": ERR_RESPONSE_STATUS,
+                "message": "Access Token is Invalid or Expired!",
+                "err_code": ErrorCode.INVALID_TOKEN,
+            },
+        ),
+    ],
+)
 
 REGISTER_RESPONSE_EXAMPLE = {
     201: OpenApiResponse(
@@ -51,30 +91,164 @@ LOGIN_RESPONSE_EXAMPLE = {
         ],
     ),
     400: ErrorDataResponseSerializer,
+    422: ErrorDataResponseSerializer,
 }
 
-UNAUTHORIZED_USER_RESPONSE = OpenApiResponse(
-    response=ErrorResponseSerializer,
-    description="Unauthorized User or Invalid Access Token",
-    examples=[
-        OpenApiExample(
-            name="Unauthorized User",
-            value={
-                "status": ERR_RESPONSE_STATUS,
-                "message": "Authentication credentials were not provided.",
-                "err_code": ErrorCode.UNAUTHORIZED,
-            },
-        ),
-        OpenApiExample(
-            name="Invalid Access Token",
-            value={
-                "status": ERR_RESPONSE_STATUS,
-                "message": "Access Token is Invalid or Expired!",
-                "err_code": ErrorCode.INVALID_TOKEN,
-            },
-        ),
-    ],
-)
+RESEND_OTP_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=SendOtpSerializer,
+        description="OTP Resent Successful",
+        examples=[
+            OpenApiExample(
+                name="OTP Resent Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "OTP sent successfully.",
+                },
+            ),
+            OpenApiExample(
+                name="Email already verified",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Your email is already verified. No OTP sent.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+}
+
+VERIFY_EMAIL_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=VerifyOtpSerializer,
+        description="Email Verification Successful",
+        examples=[
+            OpenApiExample(
+                name="Email Verification Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Email verified successfully.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: UNAUTHORIZED_USER_RESPONSE,
+    498: OpenApiResponse(
+        response=VerifyOtpSerializer,
+        description="OTP Expired",
+        examples=[
+            OpenApiExample(
+                name="OTP Expired",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "OTP has expired, please request a new one.",
+                },
+            ),
+        ],
+    ),
+}
+
+PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=PasswordChangeSerializer,
+        description="Password Change Successful",
+        examples=[
+            OpenApiExample(
+                name="Password Change Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Password changed successfully.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: UNAUTHORIZED_USER_RESPONSE,
+}
+
+PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=RequestPasswordResetOtpSerializer,
+        description="Password Reset Request Successful",
+        examples=[
+            OpenApiExample(
+                name="Password Reset Request Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "OTP sent successfully.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+}
+
+VERIFY_OTP_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=VerifyOtpSerializer,
+        description="OTP Verification Successful",
+        examples=[
+            OpenApiExample(
+                name="OTP Verification Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "OTP verified, proceed to set new password.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    498: OpenApiResponse(
+        response=VerifyOtpSerializer,
+        description="OTP Expired",
+        examples=[
+            OpenApiExample(
+                name="OTP Expired",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "OTP has expired, please request a new one.",
+                },
+            ),
+        ],
+    ),
+}
+
+PASSWORD_RESET_DONE_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=SetNewPasswordSerializer,
+        description="Password Reset Successful",
+        examples=[
+            OpenApiExample(
+                name="Password Reset Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Your password has been reset, proceed to login.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+}
+
+REFRESH_TOKEN_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        response=RefreshTokenResponseSerializer,
+        description="Refresh Token Successful",
+        examples=[
+            OpenApiExample(
+                name="Refresh Token Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Token refreshed successfully.",
+                    "data": REFRESH_TOKEN_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    401: UNAUTHORIZED_USER_RESPONSE,
+    422: ErrorDataResponseSerializer,
+}
 
 # {
 #   "status": "failure",
