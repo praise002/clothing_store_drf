@@ -58,6 +58,7 @@ UNAUTHORIZED_USER_RESPONSE = OpenApiResponse(
 )
 
 REGISTER_RESPONSE_EXAMPLE = {
+    # 201: RegisterResponseSerializer,
     201: OpenApiResponse(
         response=RegisterSerializer,
         description="OTP Sent Successful",
@@ -76,6 +77,7 @@ REGISTER_RESPONSE_EXAMPLE = {
 }
 
 LOGIN_RESPONSE_EXAMPLE = {
+    # 200: LoginResponseSerializer,
     200: OpenApiResponse(
         response=CustomTokenObtainPairSerializer,
         description="Login Successful",
@@ -94,7 +96,8 @@ LOGIN_RESPONSE_EXAMPLE = {
     422: ErrorDataResponseSerializer,
 }
 
-RESEND_OTP_RESPONSE_EXAMPLE = {
+RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
     200: OpenApiResponse(
         response=SendOtpSerializer,
         description="OTP Resent Successful",
@@ -119,6 +122,7 @@ RESEND_OTP_RESPONSE_EXAMPLE = {
 }
 
 VERIFY_EMAIL_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
     200: OpenApiResponse(
         response=VerifyOtpSerializer,
         description="Email Verification Successful",
@@ -133,7 +137,6 @@ VERIFY_EMAIL_RESPONSE_EXAMPLE = {
         ],
     ),
     400: ErrorDataResponseSerializer,
-    401: UNAUTHORIZED_USER_RESPONSE,
     498: OpenApiResponse(
         response=VerifyOtpSerializer,
         description="OTP Expired",
@@ -147,6 +150,25 @@ VERIFY_EMAIL_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
+}
+
+LOGOUT_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    200: OpenApiResponse(
+        response=PasswordChangeSerializer,
+        description="Logout Successful",
+        examples=[
+            OpenApiExample(
+                name="Logout Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Logged out successfully.",
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: UNAUTHORIZED_USER_RESPONSE,
 }
 
 PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
@@ -246,7 +268,6 @@ REFRESH_TOKEN_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    401: UNAUTHORIZED_USER_RESPONSE,
     422: ErrorDataResponseSerializer,
 }
 

@@ -1,6 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenBlacklistView,
+)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
@@ -9,6 +13,13 @@ from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import extend_schema
 
 from apps.accounts.emails import SendEmail
+from apps.accounts.schema_examples import (
+    LOGIN_RESPONSE_EXAMPLE,
+    LOGOUT_RESPONSE_EXAMPLE,
+    REGISTER_RESPONSE_EXAMPLE,
+    RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE,
+    VERIFY_EMAIL_RESPONSE_EXAMPLE,
+)
 from apps.accounts.utils import invalidate_previous_otps
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
@@ -50,10 +61,7 @@ class RegisterView(APIView):
         summary="Register a new user",
         description="This endpoint registers new users into our application",
         tags=tags,
-        responses={
-            201: RegisterResponseSerializer,
-            400: ErrorDataResponseSerializer,
-        },
+        responses=REGISTER_RESPONSE_EXAMPLE,
         auth=[],
     )
     def post(self, request):
@@ -71,18 +79,14 @@ class RegisterView(APIView):
             status_code=status.HTTP_201_CREATED,
         )
 
-
+#TODO: REWORK ON THIS
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     @extend_schema(
         summary="Login a user",
         description="This endpoint generates new access and refresh tokens for authentication",
-        responses={
-            200: LoginResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            422: ErrorDataResponseSerializer,
-        },
+        responses=LOGIN_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -149,10 +153,7 @@ class ResendVerificationEmailView(APIView):
     @extend_schema(
         summary="Send OTP to a user's email",
         description="This endpoint sends OTP to a user's email for verification",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-        },
+        responses=RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -194,11 +195,7 @@ class VerifyEmailView(APIView):
     @extend_schema(
         summary="Verify a user's email",
         description="This endpoint verifies a user's email",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            498: ErrorResponseSerializer,
-        },
+        responses=VERIFY_EMAIL_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -255,50 +252,29 @@ class VerifyEmailView(APIView):
             status_code=status.HTTP_200_OK,
         )
 
-
-class LogoutView(APIView):
+# TODO: REWORK ON IT READING THE DOCS
+class LogoutView(TokenBlacklistView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = LogoutSerializer
 
     @extend_schema(
         summary="Logout a user",
         description="This endpoint logs a user out from our application",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        responses=LOGOUT_RESPONSE_EXAMPLE,
         tags=tags,
     )
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer = self.get_serializer(data=request.data)
 
-        refresh_token = serializer.validated_data["refresh"]
         try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return CustomResponse.success(
-                message="Logout successful.", status_code=status.HTTP_200_OK
-            )
-
+            serializer.is_valid(raise_exception=True)
         except TokenError as e:
-            return CustomResponse.error(
-                message="Invalid or expired refresh token.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.INVALID_TOKEN,
-            )
-        except Exception as e:
-            logger.error(f"Unexpected error during logout: {e}")
-            return CustomResponse.error(
-                message="An unexpected error occurred. Please try again later.",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            raise InvalidToken(e.args[0])
+
+        return CustomResponse.success(
+            message="Logged out successfully.", status_code=status.HTTP_200_OK
+        )
 
         # Clear the HTTP-only cookie containing the refresh token
-        # response = CustomResponse.success(
-        #     message="Logout successful.", status_code=status.HTTP_200_OK
-        # )
         # response.delete_cookie("refresh_token")
         # return response
 
@@ -460,9 +436,8 @@ class PasswordResetDoneView(APIView):
             status_code=status.HTTP_200_OK,
         )
 
-# FIX: NOT WORKING AS EXPECTED TOKENERROR CLASHING
+
 class RefreshTokensView(TokenRefreshView):
-    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Refresh user access token",
@@ -470,16 +445,17 @@ class RefreshTokensView(TokenRefreshView):
         tags=tags,
         responses={
             200: RefreshTokenResponseSerializer,
-            401: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             422: ErrorDataResponseSerializer,
         },
+        auth=[],
     )
     def post(self, request, *args, **kwargs):
         """
         Handle POST request to refresh the JWT token
         """
         serializer = self.get_serializer(data=request.data)
-        
+
         try:
             serializer.is_valid(raise_exception=True)
             response = CustomResponse.success(
@@ -492,7 +468,7 @@ class RefreshTokensView(TokenRefreshView):
             return CustomResponse.error(
                 message="Invalid or expired refresh token.",
                 status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.INVALID_TOKEN
+                err_code=ErrorCode.INVALID_TOKEN,
             )
 
         # Extract the new refresh token from the response

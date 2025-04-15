@@ -54,10 +54,6 @@ class VerifyOtpSerializer(serializers.Serializer):
     )
 
 
-class LogoutSerializer(serializers.Serializer):
-    refresh = serializers.CharField()
-
-
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
