@@ -152,7 +152,7 @@ def handle_invalid_token(exc):
     """
     logger.debug(f"Invalid token error: {exc}")
     return CustomResponse.error(
-        message="Access Token is Invalid or Expired!",
+        message="Token is Invalid or Expired.",
         err_code=ErrorCode.INVALID_TOKEN,
         status_code=HTTPStatus.UNAUTHORIZED,
     )

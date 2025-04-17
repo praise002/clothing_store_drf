@@ -6,15 +6,16 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView,
 )
 
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from drf_spectacular.utils import extend_schema
 
 from apps.accounts.emails import SendEmail
 from apps.accounts.schema_examples import (
     LOGIN_RESPONSE_EXAMPLE,
+    LOGOUT_ALL_RESPONSE_EXAMPLE,
     LOGOUT_RESPONSE_EXAMPLE,
     REGISTER_RESPONSE_EXAMPLE,
     RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE,
@@ -24,7 +25,6 @@ from apps.accounts.utils import invalidate_previous_otps
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
 from .serializers import (
-    LogoutSerializer,
     PasswordChangeSerializer,
     RefreshTokenResponseSerializer,
     RegisterSerializer,
@@ -33,8 +33,6 @@ from .serializers import (
     SetNewPasswordSerializer,
     VerifyOtpSerializer,
     CustomTokenObtainPairSerializer,
-    RegisterResponseSerializer,
-    LoginResponseSerializer,
 )
 
 from apps.common.serializers import (
@@ -79,7 +77,7 @@ class RegisterView(APIView):
             status_code=status.HTTP_201_CREATED,
         )
 
-#TODO: REWORK ON THIS
+
 class LoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -91,57 +89,49 @@ class LoginView(TokenObtainPairView):
         auth=[],
     )
     def post(self, request, *args, **kwargs):
-        try:
-            user = User.objects.get(email=request.data.get("email"))
+        serializer = self.get_serializer(data=request.data)
 
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            user = User.objects.get(email=request.data.get("email"))
             # Check if the user's email is verified
             if not user.is_email_verified:
                 # If email is not verified, prompt them to request an OTP
 
                 return CustomResponse.error(
                     message="Email not verified. Please verify your email before logging in.",
-                    data={
-                        "email": user.email,
-                    },
                     status_code=status.HTTP_403_FORBIDDEN,
+                    err_code=ErrorCode.FORBIDDEN,
                 )
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
 
-        except User.DoesNotExist:
-            return CustomResponse.error(
-                message="Invalid email or password.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.NON_EXISTENT,
-            )
+        # Extract the refresh token from the response
+        # refresh = response.data.pop("refresh", None)
+        # access = response.data.get("access")
 
-        # If email is verified, proceed with the normal token generation process
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        # Set the refresh token as an HTTP-only cookie
+        # response = CustomResponse.success(
+        #     message="Login successful.",
+        #     data={
+        #         "access": access_token,
+        #     },
+        #     status_code=status.HTTP_200_OK,
+        # )
+        # response.set_cookie(
+        #     key="refresh",
+        #     value=refresh,
+        #     httponly=True,  # Prevent JavaScript access
+        #     secure=True,    # Only send over HTTPS
+        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+        # )
 
         response = CustomResponse.success(
             message="Login successful.",
             data=serializer.validated_data,
             status_code=status.HTTP_200_OK,
         )
-
-        # Extract the refresh token from the response
-        # refresh_token = response.data.pop("refresh", None)
-        # access_token = response.data.get("access")
-
-        # Set the refresh token as an HTTP-only cookie
-        # response = CustomResponse.success(
-        #     message="Login successful.",
-        #     data={
-        #         "access_token": access_token,
-        #     },
-        #     status_code=status.HTTP_200_OK,
-        # )
-        # response.set_cookie(
-        #     key="refresh_token",
-        #     value=refresh_token,
-        #     httponly=True,  # Prevent JavaScript access
-        #     secure=True,    # Only send over HTTPS
-        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
-        # )
 
         return response
 
@@ -252,9 +242,8 @@ class VerifyEmailView(APIView):
             status_code=status.HTTP_200_OK,
         )
 
-# TODO: REWORK ON IT READING THE DOCS
+
 class LogoutView(TokenBlacklistView):
-    permission_classes = (IsAuthenticated,)
 
     @extend_schema(
         summary="Logout a user",
@@ -270,14 +259,51 @@ class LogoutView(TokenBlacklistView):
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
-        return CustomResponse.success(
+        response = CustomResponse.success(
             message="Logged out successfully.", status_code=status.HTTP_200_OK
         )
+        return response
 
         # Clear the HTTP-only cookie containing the refresh token
-        # response.delete_cookie("refresh_token")
+        # response.delete_cookie("refresh")
         # return response
 
+
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from django.utils import timezone
+
+
+class LogoutAllView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Logout from all devices",
+        description="Blacklists all refresh tokens for the user",
+        tags=tags,
+        responses=LOGOUT_ALL_RESPONSE_EXAMPLE,
+    )
+    def post(self, request):
+        try:
+            # Get all valid tokens for the user
+            tokens = OutstandingToken.objects.filter(
+                user=request.user, expires_at__gt=timezone.now(), blacklistedtoken=None
+            )
+
+            # Blacklist all tokens
+            for token in tokens:
+                RefreshToken(token.token).blacklist()
+
+            return CustomResponse.success(
+                message="Successfully logged out from all devices.",
+                status_code=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(f"Logout error: {str(e)}")
+            return CustomResponse.error(
+                message="Error during logout",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                err_code=ErrorCode.SERVER_ERROR,
+            )
 
 class PasswordChangeView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -458,36 +484,32 @@ class RefreshTokensView(TokenRefreshView):
 
         try:
             serializer.is_valid(raise_exception=True)
-            response = CustomResponse.success(
-                message="Token refreshed successfully.",
-                data=response.data,
-                status_code=status.HTTP_200_OK,
-            )
-
         except TokenError as e:
-            return CustomResponse.error(
-                message="Invalid or expired refresh token.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.INVALID_TOKEN,
-            )
+            raise InvalidToken(e.args[0])
 
         # Extract the new refresh token from the response
-        # refresh_token = response.data.pop("refresh", None)
-        # access_token = response.data.get("access")
+        # refresh = response.data.pop("refresh", None)
+        # access = response.data.get("access")
 
         # Set the new refresh token as an HTTP-only cookie
         # response = CustomResponse.success(
         #     message="Token refreshed successfully.",
-        #     data={"access_token": access_token},
+        #     data={"access": access},
         #     status_code=status.HTTP_200_OK,
         # )
 
         # response.set_cookie(
-        #     key="refresh_token",
-        #     value=refresh_token,
+        #     key="refresh",
+        #     value=refresh,
         #     httponly=True,  # Prevent JavaScript access
         #     secure=True,    # Only send over HTTPS
         #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
         # )
+
+        response = CustomResponse.success(
+            message="Token refreshed successfully.",
+            data=serializer.validated_data,
+            status_code=status.HTTP_200_OK,
+        )
 
         return response

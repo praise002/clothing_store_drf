@@ -50,7 +50,7 @@ UNAUTHORIZED_USER_RESPONSE = OpenApiResponse(
             name="Invalid Access Token",
             value={
                 "status": ERR_RESPONSE_STATUS,
-                "message": "Access Token is Invalid or Expired!",
+                "message": "Token is Invalid or Expired.",
                 "err_code": ErrorCode.INVALID_TOKEN,
             },
         ),
@@ -92,7 +92,21 @@ LOGIN_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    401: OpenApiResponse(
+        response=CustomTokenObtainPairSerializer,
+        description="Unauthorized",
+        examples=[
+            OpenApiExample(
+                name="Unauthorized",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "No active account found with the given credentials.",
+                    "code": ErrorCode.UNAUTHORIZED,
+                },
+            ),
+        ],
+    ),
+    403: ErrorDataResponseSerializer,
     422: ErrorDataResponseSerializer,
 }
 
@@ -167,8 +181,39 @@ LOGOUT_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
-    401: UNAUTHORIZED_USER_RESPONSE,
+    401: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Unauthorized User or Invalid Refresh Token",
+        examples=[
+            OpenApiExample(
+                name="Invalid Refresh Token",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Token is Invalid or Expired.",
+                    "err_code": ErrorCode.INVALID_TOKEN,
+                },
+            ),
+        ],
+    ),
+    422: ErrorDataResponseSerializer,
+}
+
+LOGOUT_ALL_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    200: OpenApiResponse(
+        response=PasswordChangeSerializer,
+        description="Logout Successful",
+        examples=[
+            OpenApiExample(
+                name="Logout Successful",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Successfully logged out from all devices.",
+                },
+            ),
+        ],
+    ),
+    403: ErrorResponseSerializer,
 }
 
 PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
@@ -264,6 +309,20 @@ REFRESH_TOKEN_RESPONSE_EXAMPLE = {
                     "status": SUCCESS_RESPONSE_STATUS,
                     "message": "Token refreshed successfully.",
                     "data": REFRESH_TOKEN_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    401: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Unauthorized User or Invalid Refresh Token",
+        examples=[
+            OpenApiExample(
+                name="Invalid Refresh Token",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Token is Invalid or Expired.",
+                    "err_code": ErrorCode.INVALID_TOKEN,
                 },
             ),
         ],
