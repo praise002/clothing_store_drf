@@ -1,3 +1,7 @@
+from math import e
+from tkinter import E
+from django.utils import timezone
+
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework_simplejwt.views import (
@@ -9,6 +13,8 @@ from rest_framework_simplejwt.views import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+
 
 from drf_spectacular.utils import extend_schema
 
@@ -17,9 +23,12 @@ from apps.accounts.schema_examples import (
     LOGIN_RESPONSE_EXAMPLE,
     LOGOUT_ALL_RESPONSE_EXAMPLE,
     LOGOUT_RESPONSE_EXAMPLE,
+    PASSWORD_CHANGE_RESPONSE_EXAMPLE,
+    PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE,
     REGISTER_RESPONSE_EXAMPLE,
     RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE,
     VERIFY_EMAIL_RESPONSE_EXAMPLE,
+    VERIFY_OTP_RESPONSE_EXAMPLE,
 )
 from apps.accounts.utils import invalidate_previous_otps
 from apps.common.errors import ErrorCode
@@ -158,6 +167,7 @@ class ResendVerificationEmailView(APIView):
             return CustomResponse.error(
                 message="No account is associated with this email.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         if user.is_email_verified:
@@ -202,6 +212,7 @@ class VerifyEmailView(APIView):
             return CustomResponse.error(
                 message="No account is associated with this email.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Check if the OTP is valid for this user
@@ -211,6 +222,7 @@ class VerifyEmailView(APIView):
             return CustomResponse.error(
                 message="Invalid OTP provided.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Check if OTP is expired
@@ -218,6 +230,7 @@ class VerifyEmailView(APIView):
             return CustomResponse.error(
                 message="OTP has expired, please request a new one.",
                 status_code=498,
+                err_code=ErrorCode.EXPIRED,
             )
 
         # Check if user is already verified
@@ -225,7 +238,7 @@ class VerifyEmailView(APIView):
             # Clear the OTP
             invalidate_previous_otps(user)
             return CustomResponse.success(
-                message="Email address already verified.",
+                message="Email address already verified. No OTP sent.",
                 status_code=status.HTTP_200_OK,
             )
 
@@ -244,7 +257,6 @@ class VerifyEmailView(APIView):
 
 
 class LogoutView(TokenBlacklistView):
-
     @extend_schema(
         summary="Logout a user",
         description="This endpoint logs a user out from our application",
@@ -267,10 +279,6 @@ class LogoutView(TokenBlacklistView):
         # Clear the HTTP-only cookie containing the refresh token
         # response.delete_cookie("refresh")
         # return response
-
-
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
-from django.utils import timezone
 
 
 class LogoutAllView(APIView):
@@ -305,6 +313,7 @@ class LogoutAllView(APIView):
                 err_code=ErrorCode.SERVER_ERROR,
             )
 
+
 class PasswordChangeView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PasswordChangeSerializer
@@ -312,11 +321,12 @@ class PasswordChangeView(APIView):
     @extend_schema(
         summary="Change user password",
         description="This endpoint allows authenticated users to update their account password. The user must provide their current password for verification along with the new password they wish to set. If successful, the password will be updated, and a response will confirm the change.",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: SuccessResponseSerializer,
+        #     401: ErrorResponseSerializer,
+        #     422: ErrorDataResponseSerializer,
+        # },
+        responses=PASSWORD_CHANGE_RESPONSE_EXAMPLE,
         tags=tags,
     )
     def post(self, request):
@@ -337,10 +347,12 @@ class PasswordResetRequestView(APIView):
     @extend_schema(
         summary="Send Password Reset Otp",
         description="This endpoint sends new password reset otp to the user's email",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-        },
+        # responses={
+        #     200: SuccessResponseSerializer,
+        #     400: ErrorDataResponseSerializer,
+        #     422: ErrorDataResponseSerializer,
+        # },
+        responses=PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -355,6 +367,7 @@ class PasswordResetRequestView(APIView):
             return CustomResponse.error(
                 message="User with this email does not exist.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Clear otps if another otp is requested
@@ -375,11 +388,13 @@ class VerifyOtpView(APIView):
     @extend_schema(
         summary="Verify password reset otp",
         description="This endpoint verifies the password reset OTP.",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            498: ErrorResponseSerializer,
-        },
+        # responses={
+        #     200: SuccessResponseSerializer,
+        #     400: ErrorDataResponseSerializer,
+        #     422: ErrorDataResponseSerializer,
+        #     498: ErrorResponseSerializer,
+        # },
+        responses=VERIFY_OTP_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -396,6 +411,7 @@ class VerifyOtpView(APIView):
             return CustomResponse.error(
                 message="No account is associated with this email.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Check if the OTP is valid for this user
@@ -405,19 +421,21 @@ class VerifyOtpView(APIView):
             return CustomResponse.error(
                 message="The OTP could not be found. Please enter a valid OTP or request a new one.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Check if OTP is expired
         if not otp_record.is_valid:
             return CustomResponse.error(
-                message="OTP has expired, please request a new one.", status_code=498
+                message="OTP has expired, please request a new one.", status_code=498,
+                err_code=ErrorCode.EXPIRED,
             )
 
         # Clear OTP after verification
         invalidate_previous_otps(user)
 
         return CustomResponse.success(
-            message="OTP verified, proceed to set new password.",
+            message="OTP verified, proceed to set a new password.",
             status_code=status.HTTP_200_OK,
         )
 
@@ -432,6 +450,7 @@ class PasswordResetDoneView(APIView):
         responses={
             200: SuccessResponseSerializer,
             400: ErrorDataResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
         tags=tags,
         auth=[],
@@ -449,6 +468,7 @@ class PasswordResetDoneView(APIView):
             return CustomResponse.error(
                 message="No account is associated with this email.",
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         # Update the user's password
