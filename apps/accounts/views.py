@@ -24,7 +24,9 @@ from apps.accounts.schema_examples import (
     LOGOUT_ALL_RESPONSE_EXAMPLE,
     LOGOUT_RESPONSE_EXAMPLE,
     PASSWORD_CHANGE_RESPONSE_EXAMPLE,
+    PASSWORD_RESET_DONE_RESPONSE_EXAMPLE,
     PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE,
+    REFRESH_TOKEN_RESPONSE_EXAMPLE,
     REGISTER_RESPONSE_EXAMPLE,
     RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE,
     VERIFY_EMAIL_RESPONSE_EXAMPLE,
@@ -262,6 +264,7 @@ class LogoutView(TokenBlacklistView):
         description="This endpoint logs a user out from our application",
         responses=LOGOUT_RESPONSE_EXAMPLE,
         tags=tags,
+        auth=[],
     )
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -321,11 +324,6 @@ class PasswordChangeView(APIView):
     @extend_schema(
         summary="Change user password",
         description="This endpoint allows authenticated users to update their account password. The user must provide their current password for verification along with the new password they wish to set. If successful, the password will be updated, and a response will confirm the change.",
-        # responses={
-        #     200: SuccessResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     422: ErrorDataResponseSerializer,
-        # },
         responses=PASSWORD_CHANGE_RESPONSE_EXAMPLE,
         tags=tags,
     )
@@ -347,11 +345,6 @@ class PasswordResetRequestView(APIView):
     @extend_schema(
         summary="Send Password Reset Otp",
         description="This endpoint sends new password reset otp to the user's email",
-        # responses={
-        #     200: SuccessResponseSerializer,
-        #     400: ErrorDataResponseSerializer,
-        #     422: ErrorDataResponseSerializer,
-        # },
         responses=PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
@@ -388,12 +381,6 @@ class VerifyOtpView(APIView):
     @extend_schema(
         summary="Verify password reset otp",
         description="This endpoint verifies the password reset OTP.",
-        # responses={
-        #     200: SuccessResponseSerializer,
-        #     400: ErrorDataResponseSerializer,
-        #     422: ErrorDataResponseSerializer,
-        #     498: ErrorResponseSerializer,
-        # },
         responses=VERIFY_OTP_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
@@ -427,7 +414,8 @@ class VerifyOtpView(APIView):
         # Check if OTP is expired
         if not otp_record.is_valid:
             return CustomResponse.error(
-                message="OTP has expired, please request a new one.", status_code=498,
+                message="OTP has expired, please request a new one.",
+                status_code=498,
                 err_code=ErrorCode.EXPIRED,
             )
 
@@ -447,11 +435,7 @@ class PasswordResetDoneView(APIView):
     @extend_schema(
         summary="Set New Password",
         description="This endpoint sets a new password if the OTP is valid.",
-        responses={
-            200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            422: ErrorDataResponseSerializer,
-        },
+        responses=PASSWORD_RESET_DONE_RESPONSE_EXAMPLE,
         tags=tags,
         auth=[],
     )
@@ -489,11 +473,7 @@ class RefreshTokensView(TokenRefreshView):
         summary="Refresh user access token",
         description="This endpoint allows users to refresh their access token using a valid refresh token. It returns a new access token, which can be used for further authenticated requests.",
         tags=tags,
-        responses={
-            200: RefreshTokenResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            422: ErrorDataResponseSerializer,
-        },
+        responses=REFRESH_TOKEN_RESPONSE_EXAMPLE,
         auth=[],
     )
     def post(self, request, *args, **kwargs):

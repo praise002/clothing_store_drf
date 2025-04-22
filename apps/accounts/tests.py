@@ -1,4 +1,5 @@
 from rest_framework.test import APITestCase
+from apps.common.schema_examples import ERR_RESPONSE_STATUS, SUCCESS_RESPONSE_STATUS
 from apps.common.utils import TestUtil
 from apps.accounts.models import Otp
 from unittest import mock
@@ -20,6 +21,8 @@ invalid_data = {
     "password": "short",
 }
 
+BAD_REQUEST = "bad_request"
+EXPIRED = "expired"
 
 class TestAccounts(APITestCase):
     register_url = "/api/v1/auth/register/"
@@ -45,12 +48,12 @@ class TestAccounts(APITestCase):
 
         # Valid Registration
         response = self.client.post(self.register_url, valid_data)
-        print(response.json())
+        
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "OTP sent for email verification.",
                 "data": {"email": valid_data["email"]},
             },
@@ -58,12 +61,11 @@ class TestAccounts(APITestCase):
 
         # Invalid Registration - 422
         response = self.client.post(self.register_url, invalid_data)
-        print(response.json())
+        
         self.assertEqual(response.status_code, 422)
 
     def test_login(self):
         # Valid Login
-        print(self.verified_user)
         response = self.client.post(
             self.login_url,
             {
@@ -71,7 +73,7 @@ class TestAccounts(APITestCase):
                 "password": "Verified2001#",
             },
         )
-        print(response.json())
+        
 
         self.assertEqual(response.status_code, 200)
 
@@ -83,7 +85,7 @@ class TestAccounts(APITestCase):
                 "password": "wrongpassword",
             },
         )
-        print(response.json())
+        
         self.assertEqual(response.status_code, 401)
 
         # Invalid Login - empty Password
@@ -94,7 +96,7 @@ class TestAccounts(APITestCase):
                 "password": "",
             },
         )
-        print(response.json())
+        
         self.assertEqual(response.status_code, 422)
 
         # invalid login - email not verified
@@ -105,7 +107,7 @@ class TestAccounts(APITestCase):
                 "password": "Testpassword2008@",
             },
         )
-        print(response.json())
+        
         self.assertEqual(response.status_code, 403)
 
     def test_resend_verification_email(self):
@@ -117,7 +119,7 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "OTP sent successfully.",
             },
         )
@@ -125,19 +127,19 @@ class TestAccounts(APITestCase):
         # Non-existent User
         response = self.client.post(self.send_email_url, {"email": "user@gmail.com"})
         self.assertEqual(response.status_code, 400)
-        print(response.json())
+        
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
         # Invalid email
         response = self.client.post(self.send_email_url, {"email": "user"})
-        print(response.json())
+        
         self.assertEqual(response.status_code, 422)
 
         # email already verified
@@ -148,7 +150,7 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "Your email is already verified. No OTP sent.",
             },
         )
@@ -172,9 +174,9 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "Invalid OTP provided.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
@@ -192,7 +194,7 @@ class TestAccounts(APITestCase):
         self.assertTrue(otp_cleared, "OTP should be cleared after verification.")
         self.assertEqual(
             response.json(),
-            {"status": "success", "message": "Email verified successfully."},
+            {"status": SUCCESS_RESPONSE_STATUS, "message": "Email verified successfully."},
         )
 
         # Expired OTP
@@ -209,9 +211,9 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "OTP has expired, please request a new one.",
-                "code": "expired",
+                "code": EXPIRED,
             },
         )
 
@@ -225,7 +227,7 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "Email address already verified. No OTP sent.",
             },
         )
@@ -244,7 +246,6 @@ class TestAccounts(APITestCase):
         # Check login response and extract access token
         self.assertEqual(login_response.status_code, 200)
         refresh_token = login_response.json().get("data").get("refresh")
-        print(login_response.json())
         self.assertIsNotNone(
             refresh_token, "Refresh token should be provided upon login"
         )
@@ -256,12 +257,11 @@ class TestAccounts(APITestCase):
                 "refresh": refresh_token,
             },
         )
-        print(response.json())
-
+        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"status": "success", "message": "Logged out successfully."},
+            {"status": SUCCESS_RESPONSE_STATUS, "message": "Logged out successfully."},
         )
 
         # Invalid Refresh Token
@@ -271,7 +271,7 @@ class TestAccounts(APITestCase):
                 "refresh": f"{refresh_token}_invalid_refresh_token",
             },
         )
-        print(response.json())
+        
 
         self.assertEqual(response.status_code, 401)
 
@@ -282,15 +282,13 @@ class TestAccounts(APITestCase):
                 "refresh": "",
             },
         )
-        print(response.json())
-
+        
         self.assertEqual(response.status_code, 422)
 
     def test_logout_all(self):
         # Test unauthorized access
         unauthorized_response = self.client.post(self.logout_all_url)
-        print(unauthorized_response.json())
-        print(unauthorized_response.status_code)
+        
         self.assertEqual(unauthorized_response.status_code, 401)
 
         # First login to get tokens
@@ -310,14 +308,14 @@ class TestAccounts(APITestCase):
 
         # Make logout all request
         response = self.client.post(self.logout_all_url)
-        print(response.json())
+        
 
         # Assert response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "Successfully logged out from all devices.",
             },
         )
@@ -327,7 +325,7 @@ class TestAccounts(APITestCase):
         refresh_response = self.client.post(
             self.token_refresh_url, {"refresh": refresh_token}
         )
-        print(refresh_response.json())
+        
         self.assertEqual(refresh_response.status_code, 401)
 
     def test_password_change(self):
@@ -347,7 +345,6 @@ class TestAccounts(APITestCase):
             {"email": verified_user.email, "password": "Verified2001#"},
         )
 
-        # print(login_response.json())
         access_token = login_response.json().get("data").get("access")
         bearer_headers = {"HTTP_AUTHORIZATION": f"Bearer {access_token}"}
         response = self.client.post(
@@ -359,12 +356,12 @@ class TestAccounts(APITestCase):
             },
             **bearer_headers,
         )
-        print(response.json())
+        
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"status": "success", "message": "Password changed successfully."},
+            {"status": SUCCESS_RESPONSE_STATUS, "message": "Password changed successfully."},
         )
 
         # Incorrect Current Password
@@ -377,8 +374,6 @@ class TestAccounts(APITestCase):
             },
             **bearer_headers,
         )
-        print(response.json())
-        print(response.status_code)
 
         self.assertEqual(response.status_code, 422)
 
@@ -392,7 +387,7 @@ class TestAccounts(APITestCase):
             },
             **bearer_headers,
         )
-        print(response.json())
+        
 
         self.assertEqual(response.status_code, 422)
 
@@ -406,7 +401,7 @@ class TestAccounts(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json(), {"status": "success", "message": "OTP sent successfully."}
+            response.json(), {"status": SUCCESS_RESPONSE_STATUS, "message": "OTP sent successfully."}
         )
 
         # Non-existent Email
@@ -417,9 +412,9 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "User with this email does not exist.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
@@ -437,9 +432,9 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
@@ -449,13 +444,13 @@ class TestAccounts(APITestCase):
             {"email": verified_user.email, "otp": int("123457")},
         )
         self.assertEqual(response.status_code, 400)
-        print(response.json())
+        
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "The OTP could not be found. Please enter a valid OTP or request a new one.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
@@ -466,14 +461,14 @@ class TestAccounts(APITestCase):
             self.password_reset_verify_otp_url,
             {"email": verified_user.email, "otp": int(otp)},
         )
-        print(response.json())
+        
         self.assertEqual(response.status_code, 498)
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "OTP has expired, please request a new one.",
-                "code": "expired",
+                "code": EXPIRED,
             },
         )
 
@@ -491,7 +486,7 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "OTP verified, proceed to set a new password.",
             },
         )
@@ -525,9 +520,9 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "failure",
+                "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": "bad_request",
+                "code": BAD_REQUEST,
             },
         )
 
@@ -544,7 +539,7 @@ class TestAccounts(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "status": "success",
+                "status": SUCCESS_RESPONSE_STATUS,
                 "message": "Your password has been reset, proceed to login.",
             },
         )
@@ -554,7 +549,7 @@ class TestAccounts(APITestCase):
             self.password_reset_done_url,
             {"email": verified_user.email, "new_password": "weak"},
         )
-        print(response.json())
+        
         self.assertEqual(response.status_code, 422)
 
 

@@ -220,6 +220,9 @@ LOGOUT_ALL_RESPONSE_EXAMPLE = {
 }
 
 PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    # 401: ErrorResponseSerializer,
+    # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=PasswordChangeSerializer,
         description="Password Change Successful",
@@ -238,6 +241,9 @@ PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
 }
 
 PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    # 400: ErrorDataResponseSerializer,
+    # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=RequestPasswordResetOtpSerializer,
         description="Password Reset Request Successful",
@@ -256,6 +262,10 @@ PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
 }
 
 VERIFY_OTP_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    # 400: ErrorDataResponseSerializer,
+    # 422: ErrorDataResponseSerializer,
+    # 498: ErrorResponseSerializer,
     200: OpenApiResponse(
         response=VerifyOtpSerializer,
         description="OTP Verification Successful",
@@ -287,6 +297,9 @@ VERIFY_OTP_RESPONSE_EXAMPLE = {
 }
 
 PASSWORD_RESET_DONE_RESPONSE_EXAMPLE = {
+    # 200: SuccessResponseSerializer,
+    # 400: ErrorDataResponseSerializer,
+    # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=SetNewPasswordSerializer,
         description="Password Reset Successful",
@@ -305,6 +318,9 @@ PASSWORD_RESET_DONE_RESPONSE_EXAMPLE = {
 }
 
 REFRESH_TOKEN_RESPONSE_EXAMPLE = {
+    # 200: RefreshTokenResponseSerializer,
+    # 401: ErrorResponseSerializer,
+    # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=RefreshTokenResponseSerializer,
         description="Refresh Token Successful",
@@ -336,23 +352,3 @@ REFRESH_TOKEN_RESPONSE_EXAMPLE = {
     422: ErrorDataResponseSerializer,
 }
 
-# {
-#   "status": "failure",
-#   "message": "No active account found with the given credentials",
-#   "code": "unauthorized"
-# }
-
-# {
-#   "status": "failure",
-#   "message": "Validation error",
-#   "code": "validation_error",
-#   "data": {
-#     "password": "This field may not be blank."
-#   }
-# }
-
-# {
-#   "status": "failure",
-#   "message": "Invalid email or password.",
-#   "code": "non_existent"
-# }
