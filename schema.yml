@@ -1,0 +1,2923 @@
+openapi: 3.0.3
+info:
+  title: CLOTHING STORE API
+  version: 1.0.0
+  description: "\n        The Clothing Store API provides endpoints for managing an\
+    \ e-commerce platform. \n        It supports user authentication, product management,\
+    \ order processing, and more. \n        Designed for seamless integration with\
+    \ front-end applications, this API ensures \n        secure and efficient communication\
+    \ between the client and server.\n    "
+paths:
+  /api/v1/account/:
+    get:
+      operationId: api_v1_account_retrieve
+      description: This endpoint allows authenticated users to view their profile
+        details. Users can retrieve their account information. Only the account owner
+        can access their profile.
+      summary: View a user profile
+      tags:
+      - Profiles
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    put:
+      operationId: api_v1_account_update
+      description: View to retrieve and update the authenticated user's profile.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Profile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+    patch:
+      operationId: api_v1_account_partial_update
+      description: This endpoint allows authenticated users to edit their profile
+        details. Users can update their personal information. Only the account owner
+        can modify their profile.
+      summary: Update user profile
+      tags:
+      - Profiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                user.first_name:
+                  type: string
+                  example: Bob
+                user.last_name:
+                  type: string
+                  example: Doe
+                avatar:
+                  type: string
+                  format: binary
+                  description: Profile image file
+              required:
+              - user.first_name
+              - user.last_name
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+              examples:
+                ProfileUpdateSuccessful:
+                  value:
+                    status: success
+                    message: Profile updated successfully
+                    data:
+                      user:
+                        id: 123e4567-e89b-12d3-a456-426614174000
+                        email: bob123@example.com
+                        first_name: Bob
+                        last_name: Doe
+                      last_updated: '2024-08-11T09:00:00'
+                      avatar_url: https://bobdoeavatar.com
+                  summary: Profile Update Successful
+          description: Profile Update Successful
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/otp/:
+    post:
+      operationId: api_v1_auth_otp_create
+      description: This endpoint sends OTP to a user's email for verification
+      summary: Send OTP to a user's email
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOtp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendOtp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendOtp'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/otp/verify/:
+    post:
+      operationId: api_v1_auth_otp_verify_create
+      description: This endpoint verifies a user's email
+      summary: Verify a user's email
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '498':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/password-change/:
+    post:
+      operationId: api_v1_auth_password_change_create
+      description: This endpoint allows authenticated users to update their account
+        password. The user must provide their current password for verification along
+        with the new password they wish to set. If successful, the password will be
+        updated, and a response will confirm the change.
+      summary: Change user password
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/password-reset/done/:
+    post:
+      operationId: api_v1_auth_password_reset_done_create
+      description: This endpoint sets a new password if the OTP is valid.
+      summary: Set New Password
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetNewPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SetNewPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SetNewPassword'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/password-reset/otp/:
+    post:
+      operationId: api_v1_auth_password_reset_otp_create
+      description: This endpoint sends new password reset otp to the user's email
+      summary: Send Password Reset Otp
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestPasswordResetOtp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestPasswordResetOtp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RequestPasswordResetOtp'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/password-reset/otp/verify/:
+    post:
+      operationId: api_v1_auth_password_reset_otp_verify_create
+      description: This endpoint verifies the password reset OTP.
+      summary: Verify password reset otp
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOtp'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '498':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: api_v1_auth_register_create
+      description: This endpoint registers new users into our application
+      summary: Register a new user
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+  /api/v1/auth/token/:
+    post:
+      operationId: api_v1_auth_token_create
+      description: This endpoint generates new access and refresh tokens for authentication
+      summary: Login a user
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: api_v1_auth_token_refresh_create
+      description: This endpoint allows users to refresh their access token using
+        a valid refresh token. It returns a new access token, which can be used for
+        further authenticated requests.
+      summary: Refresh user access token
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/auth/token/revoke/:
+    post:
+      operationId: api_v1_auth_token_revoke_create
+      description: This endpoint logs a user out from our application
+      summary: Logout a user
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/cart/:
+    get:
+      operationId: api_v1_cart_retrieve
+      description: This endpoint retrieves the cart.
+      summary: Retrieve the cart
+      tags:
+      - cart
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/cart/add/:
+    post:
+      operationId: api_v1_cart_add_create
+      description: This endpoint adds or updates a product to the cart.
+      summary: Add or update a product to the cart
+      tags:
+      - cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartAddUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartAddUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartAddUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/cart/remove/{product_id}/:
+    delete:
+      operationId: api_v1_cart_remove_destroy
+      description: This endpoint removes a product from the cart.
+      summary: Remove a product from the cart
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - cart
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/categories/:
+    get:
+      operationId: api_v1_categories_list
+      description: This endpoint retrieves a list of all product categories.
+      summary: List all categories
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Shop
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryResponseList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/categories/{slug}/products/:
+    get:
+      operationId: api_v1_categories_products_retrieve
+      description: This endpoint retrieves all products belonging to a specific category.
+      summary: List products in a category
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Shop
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/contact/:
+    post:
+      operationId: api_v1_contact_create
+      description: This endpoint creates a new Message object
+      summary: Create a new Message object
+      tags:
+      - General
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Message'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Message'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+  /api/v1/healthcheck/:
+    get:
+      operationId: /
+      description: This endpoint checks the health of the API
+      summary: API Health Check
+      tags:
+      - HealthCheck
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+  /api/v1/orders/create/:
+    post:
+      operationId: api_v1_orders_create_create
+      description: Creates a new order from the authenticated user's cart. A shipping
+        address must be selected, and its details will remain immutable once the order
+        is placed.
+      summary: Create an order
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/orders/history/:
+    get:
+      operationId: api_v1_orders_history_list
+      description: Retrieves all orders placed by the authenticated user, sorted by
+        creation date in descending order. Supports filtering by shipping status.
+      summary: Retrieve Order History
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/payments/flw/initiate-payment/:
+    post:
+      operationId: api_v1_payments_flw_initiate_payment_create
+      description: This endpoint allows users to initiate a payment in flutterwave.
+      summary: Initiate a payment in flutterwave
+      tags:
+      - Payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/payments/flw/payment-callback/:
+    get:
+      operationId: api_v1_payments_flw_payment_callback_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/payments/flw/refund-callback/:
+    post:
+      operationId: api_v1_payments_flw_refund_callback_create
+      description: Callback endpoint for Flutterwave to send refund status updates.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/payments/paystack/initialize-transaction/:
+    post:
+      operationId: api_v1_payments_paystack_initialize_transaction_create
+      description: This endpoint allows users to initiate a payment in paystack.
+      summary: Initiate a payment in paystack
+      tags:
+      - Payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentInitialize'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/products/:
+    get:
+      operationId: list_all_products
+      description: This endpoint retrieves a list of all available products.
+      summary: List all available products
+      parameters:
+      - in: query
+        name: category__name
+        schema:
+          type: string
+      - in: query
+        name: flash_deals
+        schema:
+          type: boolean
+      - in: query
+        name: is_featured
+        schema:
+          type: boolean
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: price__gte
+        schema:
+          type: number
+      - in: query
+        name: price__lte
+        schema:
+          type: number
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Shop
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductResponseList'
+          description: ''
+  /api/v1/products/{id}/{slug}/:
+    get:
+      operationId: api_v1_products_retrieve
+      description: This endpoint retrieves a specific product using its ID and slug.
+      summary: Retrieve a specific product by ID and slug
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Shop
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/products/{id}/{slug}/reviews/:
+    get:
+      operationId: api_v1_products_reviews_retrieve
+      description: This endpoint retrieves a specific product using its ID and slug
+        with its reviews.
+      summary: Retrieve a specific product by ID and slug with reviews
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductWithReviewsResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/reviews/{id}/:
+    patch:
+      operationId: api_v1_reviews_partial_update
+      description: This endpoint allows authenticated users to update their own product
+        reviews.
+      summary: Update a product review
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    delete:
+      operationId: api_v1_reviews_destroy
+      description: This endpoint allows authenticated users to delete their own product
+        reviews.
+      summary: Delete a product review
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/reviews/create/:
+    post:
+      operationId: api_v1_reviews_create_create
+      description: This endpoint allows authenticated users to create product reviews.
+      summary: Create a product review
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/shipping-addresses/:
+    get:
+      operationId: api_v1_shipping_addresses_retrieve
+      description: This endpoint retrieves all shipping addresses for the authenticated
+        user.
+      summary: List shipping address for the authenticated user
+      tags:
+      - Shipping Addresses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingAddressResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/shipping-addresses/{id}/:
+    get:
+      operationId: api_v1_shipping_addresses_retrieve_2
+      description: This endpoint retrieves a single shipping address for the authenticated
+        user.
+      summary: Get a shipping address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Shipping Addresses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingAddressResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    patch:
+      operationId: api_v1_shipping_addresses_partial_update
+      description: This endpoint updates a shipping address for the authenticated
+        user.
+      summary: Update a shipping address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Shipping Addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShippingAddress'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShippingAddress'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShippingAddress'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingAddressResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    delete:
+      operationId: api_v1_shipping_addresses_destroy
+      description: This endpoint deletes a shipping address for the authenticated
+        user.
+      summary: Delete a shipping address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Shipping Addresses
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/shipping-addresses/add/:
+    post:
+      operationId: api_v1_shipping_addresses_add_create
+      description: This endpoint creates an address for shipping orders.
+      summary: Create shipping address
+      tags:
+      - Shipping Addresses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingAddressCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShippingAddressCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShippingAddressCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingAddressResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/site-detail/:
+    get:
+      operationId: api_v1_site_detail_retrieve
+      description: This endpoint retrieves the single SiteDetail object
+      summary: Retrieve the single SiteDetail object
+      tags:
+      - General
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteDetailResponse'
+          description: ''
+  /api/v1/social-auth/convert-token/:
+    post:
+      operationId: api_v1_social_auth_convert_token_create
+      description: |-
+        Implements an endpoint to convert a provider token to an access token
+
+        The endpoint is used in the following flows:
+
+        * Authorization code
+        * Client credentials
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/social-auth/disconnect-backend/:
+    post:
+      operationId: api_v1_social_auth_disconnect_backend_create
+      description: An endpoint for disconnect social auth backend providers such as
+        Facebook.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/social-auth/invalidate-refresh-tokens/:
+    post:
+      operationId: api_v1_social_auth_invalidate_refresh_tokens_create
+      description: Invalidate all refresh tokens associated with a client id.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/social-auth/invalidate-sessions/:
+    post:
+      operationId: api_v1_social_auth_invalidate_sessions_create
+      description: Delete all access tokens associated with a client id.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/social-auth/revoke-token/:
+    post:
+      operationId: api_v1_social_auth_revoke_token_create
+      description: Implements an endpoint to revoke access or refresh tokens
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/social-auth/token/:
+    post:
+      operationId: api_v1_social_auth_token_create
+      description: |-
+        Implements an endpoint to provide access tokens
+
+        The endpoint is used in the following flows:
+
+        * Authorization code
+        * Password
+        * Client credentials
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/teams/:
+    get:
+      operationId: api_v1_teams_retrieve
+      description: This endpoint lists all TeamMember objects
+      summary: List all TeamMember objects
+      tags:
+      - General
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+          description: ''
+  /api/v1/wishlist/:
+    get:
+      operationId: api_v1_wishlist_retrieve
+      description: This endpoint retrieves the wishlist of the authenticated user.
+      summary: List wishlist
+      tags:
+      - Shop
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WishlistResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/wishlist/{product_id}/:
+    post:
+      operationId: api_v1_wishlist_create
+      description: This endpoint adds a product to the wishlist of the authenticated
+        user.
+      summary: Add to wishlist
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Shop
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+              examples:
+                AddToWishlist:
+                  value:
+                    status: success
+                    message: Product added to wishlist
+                    data:
+                      data:
+                        id: 123e4567-e89b-12d3-a456-426614174000
+                        profile: 827ad08b-0120-4e1f-90b5-653291bfc82a
+                        products:
+                        - id: 2fa85f64-5717-4562-b3fc-2c963f66afa6
+                          name: Product 1
+                          slug: blue-gown
+                          description: A description of product 1
+                          category:
+                            id: 827ad08b-0120-4e1f-90b5-653291bfc81a
+                            name: Category 1
+                            slug: female-wears
+                          price: '30.00'
+                          in_stock: 5
+                          is_available: true
+                          featured: true
+                          flash_deals: true
+                          avg_rating: 0
+                          image_url: http://res.cloudinary.com/dq0ow9lxw/image/upload/v1739892397/products/s2afqlfaacpt9gpu1xdt.jpg
+                          cropped_image_url: http://res.cloudinary.com/dq0ow9lxw/image/upload/c_fill,g_auto,h_250,w_250/v1/products/s2afqlfaacpt9gpu1xdt
+                  summary: Add to Wishlist
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    delete:
+      operationId: api_v1_wishlist_destroy
+      description: This endpoint removes a product from the wishlist of the authenticated
+        user.
+      summary: Remove from wishlist
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Shop
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+              examples:
+                RemoveFromWishlist:
+                  value:
+                    status: success
+                    message: Product removed from wishlist
+                  summary: Remove from Wishlist
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDataResponse'
+          description: ''
+components:
+  schemas:
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total_items:
+          type: integer
+        total_price:
+          type: string
+          readOnly: true
+      required:
+      - items
+      - total_items
+      - total_price
+    CartAddUpdate:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+        override:
+          type: boolean
+          default: false
+      required:
+      - product_id
+    CartItem:
+      type: object
+      properties:
+        product:
+          allOf:
+          - $ref: '#/components/schemas/ProductAdd'
+          readOnly: true
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - price
+      - product
+      - quantity
+      - total_price
+    CartResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Cart'
+      required:
+      - data
+      - message
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - id
+      - name
+      - slug
+    CategoryResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Category'
+      required:
+      - data
+      - message
+    CustomTokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    ErrorDataResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: failure
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: {}
+      required:
+      - message
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: failure
+        error:
+          type: string
+      required:
+      - error
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: {}
+          default:
+            refresh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczODc1OTMxMiwiaWF0IjoxNzMwOTgzMzEyLCJqdGkiOiI5NjBkZmE2NTFhYjk0YWYzYTU4MjgzMTcwYjIxODEwYiIsInVzZXJfaWQiOiIzYWMxZTMyYi01MzlmLTQ2ZGItOTg2ZS1kYmQxZGQ0MmJlMzAiLCJ1c2VybmFtZSI6ImRhdmlkLWJhZG11cyJ9.A5shgQ-SI891PRS6nDs4-LA6ZNBoVXmLF2L9VMXoPC4
+            access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxMDY5NzEyLCJpYXQiOjE3MzA5ODMzMTIsImp0aSI6ImIzYTM2NmEwMDZkZTQxZTg4YzRlNDhmNzZmYmYyNWQ0IiwidXNlcl9pZCI6IjNhYzFlMzJiLTUzOWYtNDZkYi05ODZlLWRiZDFkZDQyYmUzMCIsInVzZXJuYW1lIjoiZGF2aWQtYmFkbXVzIn0.YuhFA2m47oDiwkOUd359hcumhN6lX5QfvXd92ES8vSQ
+      required:
+      - message
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+      required:
+      - refresh
+    Message:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        subject:
+          type: string
+          maxLength: 100
+        text:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - email
+      - name
+      - sent_at
+      - subject
+      - text
+    MessageResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Message'
+      required:
+      - data
+      - message
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        shipping_status:
+          $ref: '#/components/schemas/ShippingStatusEnum'
+        transaction_id:
+          type: string
+          maxLength: 50
+        tx_ref:
+          type: string
+          maxLength: 50
+        tracking_number:
+          allOf:
+          - $ref: '#/components/schemas/TrackingNumber'
+          readOnly: true
+        state:
+          type: string
+          maxLength: 100
+        city:
+          type: string
+          maxLength: 100
+        street_address:
+          type: string
+          maxLength: 100
+        shipping_fee:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        shipping_time:
+          type: string
+          maxLength: 50
+        phone_number:
+          type: string
+          maxLength: 20
+        postal_code:
+          type: string
+          maxLength: 20
+        pending_email_sent:
+          type: boolean
+        processing_at:
+          type: string
+          format: date-time
+          nullable: true
+        in_transit_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+        total_cost:
+          type: string
+          readOnly: true
+      required:
+      - city
+      - created
+      - customer
+      - id
+      - items
+      - payment_method
+      - phone_number
+      - postal_code
+      - state
+      - street_address
+      - total_cost
+      - tracking_number
+    OrderCreate:
+      type: object
+      properties:
+        shipping_id:
+          type: string
+          format: uuid
+      required:
+      - shipping_id
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          allOf:
+          - $ref: '#/components/schemas/Product'
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        total:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - price
+      - product
+      - total
+    OrderResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Order'
+      required:
+      - data
+      - message
+    PaginatedCategoryResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryResponse'
+    PaginatedProductResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+    PasswordChange:
+      type: object
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+        confirm_password:
+          type: string
+          writeOnly: true
+      required:
+      - confirm_password
+      - new_password
+      - old_password
+    PatchedReviewUpdate:
+      type: object
+      properties:
+        text:
+          type: string
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          minimum: -32768
+          maximum: 32767
+        image:
+          type: string
+          nullable: true
+          title: Review_image
+    PatchedShippingAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        phone_number:
+          type: string
+          maxLength: 100
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        postal_code:
+          type: string
+          maxLength: 20
+        city:
+          type: string
+          maxLength: 100
+        street_address:
+          type: string
+          maxLength: 100
+        shipping_fee:
+          type: integer
+          readOnly: true
+        shipping_time:
+          type: string
+          readOnly: true
+        default:
+          type: boolean
+    PaymentInitialize:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+      required:
+      - order_id
+      - payment_method
+    PaymentMethodEnum:
+      enum:
+      - paystack
+      - flutterwave
+      type: string
+      description: |-
+        * `paystack` - paystack
+        * `flutterwave` - flutterwave
+    PaymentStatusEnum:
+      enum:
+      - pending
+      - successful
+      - cancelled
+      - refunded
+      type: string
+      description: |-
+        * `pending` - pending
+        * `successful` - successful
+        * `cancelled` - cancelled
+        * `refunded` - refunded
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 19
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 255
+        category:
+          allOf:
+          - $ref: '#/components/schemas/Category'
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        in_stock:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_available:
+          type: boolean
+        featured:
+          type: boolean
+        flash_deals:
+          type: boolean
+        avg_rating:
+          type: number
+          format: double
+          nullable: true
+          readOnly: true
+        image_url:
+          type: string
+          nullable: true
+          readOnly: true
+        cropped_image_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - avg_rating
+      - category
+      - cropped_image_url
+      - description
+      - id
+      - image_url
+      - in_stock
+      - name
+      - price
+      - slug
+    ProductAdd:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 19
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 255
+        category:
+          allOf:
+          - $ref: '#/components/schemas/Category'
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        in_stock:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_available:
+          type: boolean
+        image_url:
+          type: string
+          nullable: true
+          readOnly: true
+        cropped_image_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - category
+      - cropped_image_url
+      - description
+      - id
+      - image_url
+      - in_stock
+      - name
+      - price
+      - slug
+    ProductResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Product'
+      required:
+      - data
+      - message
+    ProductWithReviews:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 19
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 255
+        category:
+          allOf:
+          - $ref: '#/components/schemas/Category'
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        in_stock:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_available:
+          type: boolean
+        featured:
+          type: boolean
+        flash_deals:
+          type: boolean
+        avg_rating:
+          type: number
+          format: double
+          nullable: true
+          readOnly: true
+        num_of_reviews:
+          type: integer
+          nullable: true
+          readOnly: true
+        image_url:
+          type: string
+          nullable: true
+          readOnly: true
+        cropped_image_url:
+          type: string
+          format: uri
+          readOnly: true
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+          readOnly: true
+      required:
+      - avg_rating
+      - category
+      - cropped_image_url
+      - description
+      - id
+      - image_url
+      - in_stock
+      - name
+      - num_of_reviews
+      - price
+      - reviews
+      - slug
+    ProductWithReviewsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProductWithReviews'
+      required:
+      - data
+      - message
+    Profile:
+      type: object
+      properties:
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        last_updated:
+          type: string
+          format: date-time
+          readOnly: true
+        avatar_url:
+          type: string
+          format: uri
+          readOnly: true
+      required:
+      - avatar_url
+      - last_updated
+      - user
+    ProfileResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Profile'
+      required:
+      - data
+      - message
+    RatingEnum:
+      enum:
+      - 5
+      - 4
+      - 3
+      - 2
+      - 1
+      type: integer
+      description: |-
+        * `5` - 5
+        * `4` - 4
+        * `3` - 3
+        * `2` - 2
+        * `1` - 1
+    RefreshTokenResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: {}
+          default:
+            access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzMxMDY5NzEyLCJpYXQiOjE3MzA5ODMzMTIsImp0aSI6ImIzYTM2NmEwMDZkZTQxZTg4YzRlNDhmNzZmYmYyNWQ0IiwidXNlcl9pZCI6IjNhYzFlMzJiLTUzOWYtNDZkYi05ODZlLWRiZDFkZDQyYmUzMCIsInVzZXJuYW1lIjoiZGF2aWQtYmFkbXVzIn0.YuhFA2m47oDiwkOUd359hcumhN6lX5QfvXd92ES8vSQ
+            refresh: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczODc1OTMxMiwiaWF0IjoxNzMwOTgzMzEyLCJqdGkiOiI5NjBkZmE2NTFhYjk0YWYzYTU4MjgzMTcwYjIxODEwYiIsInVzZXJfaWQiOiIzYWMxZTMyYi01MzlmLTQ2ZGItOTg2ZS1kYmQxZGQ0MmJlMzAiLCJ1c2VybmFtZSI6ImRhdmlkLWJhZG11cyJ9.A5shgQ-SI891PRS6nDs4-LA6ZNBoVXmLF2L9VMXoPC4
+      required:
+      - message
+    Register:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+      required:
+      - email
+      - first_name
+      - last_name
+      - password
+    RegisterResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        email:
+          type: string
+          format: email
+          default: bob123@example.com
+      required:
+      - message
+    RequestPasswordResetOtp:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    Review:
+      type: object
+      description: Serializer for the Review model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          type: string
+          format: uuid
+        customer:
+          type: string
+          format: uuid
+        text:
+          type: string
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          minimum: -32768
+          maximum: 32767
+        image:
+          type: string
+          nullable: true
+          title: Review_image
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created
+      - customer
+      - id
+      - product
+      - rating
+      - text
+    ReviewCreate:
+      type: object
+      description: Serializer for the Review model.
+      properties:
+        product:
+          type: string
+          format: uuid
+        text:
+          type: string
+        customer:
+          type: string
+          format: uuid
+          readOnly: true
+        rating:
+          allOf:
+          - $ref: '#/components/schemas/RatingEnum'
+          minimum: -32768
+          maximum: 32767
+        image:
+          type: string
+          nullable: true
+          title: Review_image
+      required:
+      - customer
+      - product
+      - rating
+      - text
+    ReviewResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Review'
+      required:
+      - data
+      - message
+    RoleEnum:
+      enum:
+      - CO-Founder
+      - Product Expert
+      - Chief Marketing
+      - Product Specialist
+      - Product Photographer
+      - General Manager
+      type: string
+      description: |-
+        * `CO-Founder` - CO-Founder
+        * `Product Expert` - Product Expert
+        * `Chief Marketing` - Chief Marketing
+        * `Product Specialist` - Product Specialist
+        * `Product Photographer` - Product Photographer
+        * `General Manager` - General Manager
+    SendOtp:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    SetNewPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        new_password:
+          type: string
+          writeOnly: true
+        confirm_password:
+          type: string
+          writeOnly: true
+      required:
+      - confirm_password
+      - email
+      - new_password
+    ShippingAddress:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        phone_number:
+          type: string
+          maxLength: 100
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        postal_code:
+          type: string
+          maxLength: 20
+        city:
+          type: string
+          maxLength: 100
+        street_address:
+          type: string
+          maxLength: 100
+        shipping_fee:
+          type: integer
+          readOnly: true
+        shipping_time:
+          type: string
+          readOnly: true
+        default:
+          type: boolean
+      required:
+      - city
+      - id
+      - phone_number
+      - postal_code
+      - shipping_fee
+      - shipping_time
+      - state
+      - street_address
+      - user
+    ShippingAddressCreate:
+      type: object
+      properties:
+        phone_number:
+          type: string
+          maxLength: 100
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        postal_code:
+          type: string
+          maxLength: 20
+        city:
+          type: string
+          maxLength: 100
+        street_address:
+          type: string
+          maxLength: 100
+        default:
+          type: boolean
+      required:
+      - city
+      - phone_number
+      - postal_code
+      - state
+      - street_address
+    ShippingAddressResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ShippingAddress'
+      required:
+      - data
+      - message
+    ShippingStatusEnum:
+      enum:
+      - pending
+      - processing
+      - in_transit
+      - delivered
+      - cancelled
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `processing` - Processing
+        * `in_transit` - In Transit
+        * `delivered` - Delivered
+        * `cancelled` - Cancelled
+    SiteDetail:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+          maxLength: 500
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        company_socials:
+          allOf:
+          - $ref: '#/components/schemas/Social'
+          readOnly: true
+      required:
+      - company_socials
+    SiteDetailResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SiteDetail'
+      required:
+      - data
+      - message
+    Social:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        fb:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        tw:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        ln:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        ig:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        name:
+          type: string
+          maxLength: 255
+      required:
+      - id
+      - name
+    StateEnum:
+      enum:
+      - Abia
+      - Adamawa
+      - Akwa Ibom
+      - Anambra
+      - Bauchi
+      - Bayelsa
+      - Benue
+      - Borno
+      - Cross River
+      - Delta
+      - Ebonyi
+      - Edo
+      - Ekiti
+      - Enugu
+      - Gombe
+      - Imo
+      - Jigawa
+      - Kaduna
+      - Kano
+      - Katsina
+      - Kebbi
+      - Kogi
+      - Kwara
+      - Lagos
+      - Nasarawa
+      - Niger
+      - Ogun
+      - Ondo
+      - Osun
+      - Oyo
+      - Plateau
+      - Rivers
+      - Sokoto
+      - Taraba
+      - Yobe
+      - Zamfara
+      - FCT
+      type: string
+      description: |-
+        * `Abia` - Abia
+        * `Adamawa` - Adamawa
+        * `Akwa Ibom` - Akwa Ibom
+        * `Anambra` - Anambra
+        * `Bauchi` - Bauchi
+        * `Bayelsa` - Bayelsa
+        * `Benue` - Benue
+        * `Borno` - Borno
+        * `Cross River` - Cross River
+        * `Delta` - Delta
+        * `Ebonyi` - Ebonyi
+        * `Edo` - Edo
+        * `Ekiti` - Ekiti
+        * `Enugu` - Enugu
+        * `Gombe` - Gombe
+        * `Imo` - Imo
+        * `Jigawa` - Jigawa
+        * `Kaduna` - Kaduna
+        * `Kano` - Kano
+        * `Katsina` - Katsina
+        * `Kebbi` - Kebbi
+        * `Kogi` - Kogi
+        * `Kwara` - Kwara
+        * `Lagos` - Lagos
+        * `Nasarawa` - Nasarawa
+        * `Niger` - Niger
+        * `Ogun` - Ogun
+        * `Ondo` - Ondo
+        * `Osun` - Osun
+        * `Oyo` - Oyo
+        * `Plateau` - Plateau
+        * `Rivers` - Rivers
+        * `Sokoto` - Sokoto
+        * `Taraba` - Taraba
+        * `Yobe` - Yobe
+        * `Zamfara` - Zamfara
+        * `FCT` - FCT
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+      required:
+      - message
+    TeamMember:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        description:
+          type: string
+        avatar_url:
+          type: string
+          readOnly: true
+        social_links:
+          allOf:
+          - $ref: '#/components/schemas/Social'
+          readOnly: true
+      required:
+      - avatar_url
+      - description
+      - name
+      - role
+      - social_links
+    TeamMemberResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeamMember'
+      required:
+      - data
+      - message
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TrackingNumber:
+      type: object
+      properties:
+        number:
+          type: string
+          maxLength: 50
+      required:
+      - number
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+      required:
+      - email
+      - first_name
+      - last_name
+    VerifyOtp:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: integer
+          minimum: 100000
+          maximum: 999999
+      required:
+      - email
+      - otp
+    Wishlist:
+      type: object
+      description: Serializer for the Wishlist model.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        profile:
+          type: string
+          format: uuid
+          readOnly: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+          readOnly: true
+      required:
+      - id
+      - products
+      - profile
+    WishlistResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          default: success
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Wishlist'
+      required:
+      - data
+      - message
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    oauth2:
+      type: oauth2
+      flows: {}

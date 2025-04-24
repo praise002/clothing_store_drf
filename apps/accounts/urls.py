@@ -22,5 +22,19 @@ urlpatterns = [
     path("password-reset/otp/", views.PasswordResetRequestView.as_view()),
     path("password-reset/otp/verify/", views.VerifyOtpView.as_view()),
     path("password-reset/done/", views.PasswordResetDoneView.as_view()),
+    # Oauth
+    path(
+        "signup/google/", views.GoogleOAuth2SignUpView.as_view(), name="google_signup"
+    ),
+    path(
+        "google/callback/signup",
+        views.GoogleOAuth2SignUpCallbackView.as_view(),
+        name="google_signup_callback",
+    ),
+    path("login/google/", views.GoogleOAuth2LoginView.as_view(), name="google_login"),
+    path(
+        "google/callback/login",
+        views.GoogleOAuth2LoginCallbackView.as_view(),
+        name="google_login_callback",
+    ),
 ]
-

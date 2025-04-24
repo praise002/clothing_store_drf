@@ -171,3 +171,5 @@ celerybeat-schedule.dir
 notes.txt
 .qodo
 rough.py
+cert.crt
+cert.key

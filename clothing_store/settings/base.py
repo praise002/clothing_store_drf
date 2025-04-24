@@ -52,6 +52,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "django_filters",
     "corsheaders",
+    'django_extensions',
     # "oauth2_provider",
     # "social_django",
     # "drf_social_oauth2",

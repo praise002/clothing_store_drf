@@ -1,5 +1,3 @@
-from math import e
-from tkinter import E
 from django.utils import timezone
 
 from rest_framework.views import APIView
@@ -35,9 +33,8 @@ from apps.accounts.schema_examples import (
 from apps.accounts.utils import invalidate_previous_otps
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
-from .serializers import (
+from apps.accounts.serializers import (
     PasswordChangeSerializer,
-    RefreshTokenResponseSerializer,
     RegisterSerializer,
     RequestPasswordResetOtpSerializer,
     SendOtpSerializer,
@@ -46,13 +43,9 @@ from .serializers import (
     CustomTokenObtainPairSerializer,
 )
 
-from apps.common.serializers import (
-    ErrorDataResponseSerializer,
-    ErrorResponseSerializer,
-    SuccessResponseSerializer,
-)
-from .models import User, Otp
-from .permissions import IsUnauthenticated
+
+from apps.accounts.models import User, Otp
+from apps.accounts.permissions import IsUnauthenticated
 
 import logging
 
@@ -513,3 +506,48 @@ class RefreshTokensView(TokenRefreshView):
         )
 
         return response
+
+
+# TODO: TEST THE COOKIE STUFF
+
+# import os
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Add this at the top of the file
+
+# from decouple import config
+# client_id = config('GOOGLE_CLIENT_ID')
+# client_secret = config('GOOGLE_CLIENT_SECRET')
+# redirect_uri = 'http://127.0.0.1:8000/google/callback/signup'
+
+# authorization_base_url = config('GOOGLE_AUTH_URL')
+# token_url = config('GOOGLE_TOKEN_URL')
+# scope = [
+#     "openid",
+#     "https://www.googleapis.com/auth/userinfo.email",
+#     "https://www.googleapis.com/auth/userinfo.profile"
+# ]
+
+# from requests_oauthlib import OAuth2Session
+# google = OAuth2Session(client_id, scope=scope, redirect_uri=redirect_uri)
+
+# # Redirect user to Google for authorization
+# authorization_url, state = google.authorization_url(authorization_base_url,
+#     # offline for refresh token
+#     # force to always make user click authorize
+#     access_type="offline", prompt="select_account")
+# print('Please go here and authorize:', authorization_url)
+
+# # Get the authorization verifier code from the callback url
+# redirect_response = input('Paste the full redirect URL here: ')
+
+# # Fetch the access token
+# google.fetch_token(token_url, client_secret=client_secret,
+#         authorization_response=redirect_response)
+
+# # Fetch a protected resource, i.e. user profile
+# r = google.get('https://www.googleapis.com/oauth2/v1/userinfo')
+# print(r.content)
+
+# http://127.0.0.1:8000/google/callback/signup?state=1aK0aAakbIOh1fd3IZxnQ4jkB5x3k7&code=4%2F0Ab_5qlk5JZGVEAI_Rya_Wx2wrVOkZ27CpYUhV-4UdIKOFhd1lINHCFgyPtLhP3KhpxV5rA&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=0&prompt=consent
+# https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=725113392766-5fd01j0lkh67v5qfolli2ihtrlgbdlhj.apps.googleusercontent.com&redirect_uri=http%3A%2F%2F127.0.0.1%3A8000%2Fgoogle%2Fcallback%2Fsignup&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile&state=1aK0aAakbIOh1fd3IZxnQ4jkB5x3k7&access_type=offline&prompt=select_account
+# b'{\n  "id": "104652954164547380135",\n  "email": "ifeoluwapraise02@gmail.com",\n  "verified_email": true,\n  "name": "Praise Idowu",\n  "given_name": "Praise",\n  "family_name": "Idowu",\n  "picture": "https://lh3.googleusercontent.com/a/ACg8ocJl-uFIznNDVQ7Q3nKp40-hkTvwWUTZ4LbEqDr2rzHTYtm6N4sj=s96-c"\n}\n'
+#  python manage.py runserver_plus --cert-file cert.crt
