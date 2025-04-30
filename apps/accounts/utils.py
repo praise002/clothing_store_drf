@@ -1,9 +1,11 @@
 from decouple import config
+
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from requests_oauthlib import OAuth2Session
+
 
 from apps.accounts.models import Otp
 
@@ -40,7 +42,7 @@ def google_setup(redirect_uri: str):
     )
 
     # Redirect user to Google for authorization
-    authorization_url, state = google.authorization_url(
+    authorization_url = google.authorization_url(
         authorization_base_url,
         # offline for refresh token
         # force to always make user click authorize
@@ -48,19 +50,19 @@ def google_setup(redirect_uri: str):
         prompt="select_account",
     )
 
-    return authorization_url, state
+    return authorization_url
 
 
-def google_callback(redirect_uri: str, auth_uri: str):
+def google_callback(redirect_uri: str, auth_uri: str, state: str):
     google = OAuth2Session(
-        client_id=client_id,
-        scope=scope,
-        redirect_uri=redirect_uri,
+        client_id=client_id, scope=scope, redirect_uri=redirect_uri, state=state
     )
 
     google.fetch_token(
-        token_url, client_secret=client_secret, authorization_response=auth_uri
+        token_url,
+        client_secret=client_secret,
+        authorization_response=auth_uri,
     )
-    
-    user_data = google.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
+
+    user_data = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
     return user_data

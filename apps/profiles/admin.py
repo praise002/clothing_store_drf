@@ -14,8 +14,10 @@ class ShippingFeeAdmin(admin.ModelAdmin):
     list_display = ("state", "fee")
     search_fields = ("state",)
 
+
 class ShippingAddressAdmin(admin.ModelAdmin):
     pass
+
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("user",)

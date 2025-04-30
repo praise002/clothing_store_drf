@@ -52,7 +52,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "django_filters",
     "corsheaders",
-    'django_extensions',
+    "django_extensions",
     # "oauth2_provider",
     # "social_django",
     # "drf_social_oauth2",
@@ -254,27 +254,6 @@ SPECTACULAR_SETTINGS = {
     """,
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "APPEND_COMPONENTS": {
-        "securitySchemes": {
-            "oauth2": {  # For OAuth2
-                "type": "oauth2",
-                "flows": {
-                    "authorizationCode": {
-                        "authorizationUrl": "https://example.com/oauth/authorize",
-                        "tokenUrl": "https://example.com/oauth/token",
-                        "scopes": {
-                            "read": "Read access",
-                            "write": "Write access",
-                        },
-                    },
-                },
-            },
-        },
-    },
-    "SECURITY": [
-        {"bearerAuth": []},
-        {"oauth2": ["read", "write"]},
-    ],
 }
 
 

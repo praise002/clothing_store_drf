@@ -16,7 +16,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (_("Login Credentials"), {"fields": ("email", "password")}),
-        (_("Personal Information"), {"fields": ("first_name", "last_name", "id")}),
+        (_("Personal Information"), {"fields": ("first_name", "last_name", "id", "google_id")}),
         (
             _("Permissions and Groups"),
             {
@@ -41,6 +41,7 @@ class UserAdmin(BaseUserAdmin):
                 "classes": ("wide",),
                 "fields": (
                     "id",
+                    "google_id",
                     "first_name",
                     "last_name",
                     "email",
@@ -55,7 +56,7 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
 
-    readonly_fields = ("created_at", "updated_at", "id")
+    readonly_fields = ("created_at", "updated_at", "id", "google_id")
     search_fields = ("first_name", "last_name", "email")
 
 
