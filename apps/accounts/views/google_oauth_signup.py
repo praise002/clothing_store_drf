@@ -18,7 +18,7 @@ class GoogleOAuth2SignUpView(APIView):
 
     @extend_schema(
         summary="Google OAuth2 Sign Up",
-        description="This endpoint is the sign up URL for Google OAuth2. It redirects the user to the Google authentication page.",
+        description="This endpoint is the sign up URL for Google OAuth2. It returns an authorization URL that should be used to redirect the user to Google.",
         tags=tags,
         auth=[],
     )

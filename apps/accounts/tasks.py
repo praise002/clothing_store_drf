@@ -3,6 +3,7 @@ from celery import shared_task
 import requests, logging, uuid
 
 from apps.accounts.models import User
+from apps.profiles.models import Profile
 
 
 logger = logging.getLogger(__name__)
@@ -20,18 +21,20 @@ def download_and_upload_avatar(url: str, user_id: str):
     extension_map = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
     try:
         user = User.objects.get(id=user_id)
+        profile = Profile.objects.get(user=user)
         response = requests.get(url)
         response.raise_for_status()
 
         content_type = response.headers.get("Content-Type", "")
         print(f"Content Type: {content_type}")
         ext = extension_map.get(content_type, ".jpg")
-        image_name = f"{user.full_name}_{uuid.uuid()}{ext}"
+        image_name = f"{user.full_name}_{uuid.uuid4()}{ext}"
         print(f"Image name: {image_name}")
         image_content = ContentFile(response.content, name=image_name)
         print(f"Image content: {image_content}")
-        user.avatar = image_content
-        user.save(update_fields=["avatar"])
+        
+        profile.avatar = image_content
+        profile.save(update_fields=["avatar"])
         logger.info(f"Successfully uploaded profile picture for user {user.full_name}")
     except User.DoesNotExist:
         logger.error(f"User with id {user_id} not found")

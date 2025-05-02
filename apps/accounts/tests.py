@@ -1,10 +1,12 @@
+import os
 from rest_framework.test import APITestCase
 from apps.common.schema_examples import ERR_RESPONSE_STATUS, SUCCESS_RESPONSE_STATUS
 from apps.common.utils import TestUtil
 from apps.accounts.models import Otp
-from unittest import mock
+from unittest.mock import patch
 from datetime import timedelta
 from django.utils import timezone
+from django.urls import reverse
 
 
 valid_data = {
@@ -23,6 +25,7 @@ invalid_data = {
 
 BAD_REQUEST = "bad_request"
 EXPIRED = "expired"
+
 
 class TestAccounts(APITestCase):
     register_url = "/api/v1/auth/register/"
@@ -43,12 +46,13 @@ class TestAccounts(APITestCase):
         self.new_user = TestUtil.new_user()
         self.verified_user = TestUtil.verified_user()
 
-    def test_register(self):
-        mock.patch("apps.accounts.emails.SendEmail", new="")
-
+    @patch("apps.accounts.emails.SendEmail.send_email")
+    def test_register(self, mock_send_email):
         # Valid Registration
         response = self.client.post(self.register_url, valid_data)
-        
+
+        mock_send_email.assert_called_once()
+
         self.assertEqual(response.status_code, 201)
         self.assertEqual(
             response.json(),
@@ -61,7 +65,7 @@ class TestAccounts(APITestCase):
 
         # Invalid Registration - 422
         response = self.client.post(self.register_url, invalid_data)
-        
+
         self.assertEqual(response.status_code, 422)
 
     def test_login(self):
@@ -73,7 +77,6 @@ class TestAccounts(APITestCase):
                 "password": "Verified2001#",
             },
         )
-        
 
         self.assertEqual(response.status_code, 200)
 
@@ -85,7 +88,7 @@ class TestAccounts(APITestCase):
                 "password": "wrongpassword",
             },
         )
-        
+
         self.assertEqual(response.status_code, 401)
 
         # Invalid Login - empty Password
@@ -96,7 +99,7 @@ class TestAccounts(APITestCase):
                 "password": "",
             },
         )
-        
+
         self.assertEqual(response.status_code, 422)
 
         # invalid login - email not verified
@@ -107,14 +110,14 @@ class TestAccounts(APITestCase):
                 "password": "Testpassword2008@",
             },
         )
-        
+
         self.assertEqual(response.status_code, 403)
 
-    def test_resend_verification_email(self):
-        mock.patch("apps.accounts.emails.SendEmail", new="")
-
+    @patch("apps.accounts.emails.SendEmail.send_email")
+    def test_resend_verification_email(self, mock_send_email):
         # OTP Sent for Existing User
         response = self.client.post(self.send_email_url, {"email": self.new_user.email})
+        mock_send_email.assert_called_once()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
@@ -127,7 +130,7 @@ class TestAccounts(APITestCase):
         # Non-existent User
         response = self.client.post(self.send_email_url, {"email": "user@gmail.com"})
         self.assertEqual(response.status_code, 400)
-        
+
         self.assertEqual(
             response.json(),
             {
@@ -139,7 +142,7 @@ class TestAccounts(APITestCase):
 
         # Invalid email
         response = self.client.post(self.send_email_url, {"email": "user"})
-        
+
         self.assertEqual(response.status_code, 422)
 
         # email already verified
@@ -155,10 +158,10 @@ class TestAccounts(APITestCase):
             },
         )
 
-    def test_verify_email(self):
+    @patch("apps.accounts.emails.SendEmail.welcome")
+    def test_verify_email(self, mock_send_email):
         new_user = self.new_user
         otp = "111111"
-        mock.patch("apps.accounts.emails.SendEmail", new="")
 
         # Invalid OTP
         response = self.client.post(
@@ -186,6 +189,7 @@ class TestAccounts(APITestCase):
             self.verify_email_url,
             {"email": new_user.email, "otp": otp.otp},
         )
+        mock_send_email.assert_called_once()
         self.assertEqual(response.status_code, 200)
 
         # Clear OTP After Verification
@@ -194,7 +198,10 @@ class TestAccounts(APITestCase):
         self.assertTrue(otp_cleared, "OTP should be cleared after verification.")
         self.assertEqual(
             response.json(),
-            {"status": SUCCESS_RESPONSE_STATUS, "message": "Email verified successfully."},
+            {
+                "status": SUCCESS_RESPONSE_STATUS,
+                "message": "Email verified successfully.",
+            },
         )
 
         # Expired OTP
@@ -257,7 +264,7 @@ class TestAccounts(APITestCase):
                 "refresh": refresh_token,
             },
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
@@ -271,7 +278,6 @@ class TestAccounts(APITestCase):
                 "refresh": f"{refresh_token}_invalid_refresh_token",
             },
         )
-        
 
         self.assertEqual(response.status_code, 401)
 
@@ -282,13 +288,13 @@ class TestAccounts(APITestCase):
                 "refresh": "",
             },
         )
-        
+
         self.assertEqual(response.status_code, 422)
 
     def test_logout_all(self):
         # Test unauthorized access
         unauthorized_response = self.client.post(self.logout_all_url)
-        
+
         self.assertEqual(unauthorized_response.status_code, 401)
 
         # First login to get tokens
@@ -308,7 +314,6 @@ class TestAccounts(APITestCase):
 
         # Make logout all request
         response = self.client.post(self.logout_all_url)
-        
 
         # Assert response
         self.assertEqual(response.status_code, 200)
@@ -325,7 +330,7 @@ class TestAccounts(APITestCase):
         refresh_response = self.client.post(
             self.token_refresh_url, {"refresh": refresh_token}
         )
-        
+
         self.assertEqual(refresh_response.status_code, 401)
 
     def test_password_change(self):
@@ -356,12 +361,14 @@ class TestAccounts(APITestCase):
             },
             **bearer_headers,
         )
-        
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"status": SUCCESS_RESPONSE_STATUS, "message": "Password changed successfully."},
+            {
+                "status": SUCCESS_RESPONSE_STATUS,
+                "message": "Password changed successfully.",
+            },
         )
 
         # Incorrect Current Password
@@ -387,21 +394,22 @@ class TestAccounts(APITestCase):
             },
             **bearer_headers,
         )
-        
 
         self.assertEqual(response.status_code, 422)
 
-    def test_password_reset_request(self):
+    @patch("apps.accounts.emails.SendEmail.send_password_reset_email")
+    def test_password_reset_request(self, mock_send_email):
         verified_user = self.verified_user
-        mock.patch("apps.accounts.emails.SendEmail", new="")
 
         # Send OTP to Registered Email
         response = self.client.post(
             self.password_reset_request_url, {"email": verified_user.email}
         )
+        mock_send_email.assert_called_once()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json(), {"status": SUCCESS_RESPONSE_STATUS, "message": "OTP sent successfully."}
+            response.json(),
+            {"status": SUCCESS_RESPONSE_STATUS, "message": "OTP sent successfully."},
         )
 
         # Non-existent Email
@@ -444,7 +452,7 @@ class TestAccounts(APITestCase):
             {"email": verified_user.email, "otp": int("123457")},
         )
         self.assertEqual(response.status_code, 400)
-        
+
         self.assertEqual(
             response.json(),
             {
@@ -461,7 +469,7 @@ class TestAccounts(APITestCase):
             self.password_reset_verify_otp_url,
             {"email": verified_user.email, "otp": int(otp)},
         )
-        
+
         self.assertEqual(response.status_code, 498)
         self.assertEqual(
             response.json(),
@@ -549,8 +557,33 @@ class TestAccounts(APITestCase):
             self.password_reset_done_url,
             {"email": verified_user.email, "new_password": "weak"},
         )
-        
+
         self.assertEqual(response.status_code, 422)
+
+
+class TestGoogleOAuth(APITestCase):
+    def setUp(self):
+        self.signup_url = reverse("google_signup")
+        self.login_url = reverse("google_login")
+        
+
+    def test_google_signup(self):
+        # Test successful redirect URL generation
+        response = self.client.get(self.signup_url)
+        print(response)
+        print(response.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], SUCCESS_RESPONSE_STATUS)
+        self.assertIn("authorization_url", response.json()["data"])
+
+    def test_google_login(self):
+        # Test successful redirect URL generation
+        response = self.client.get(self.login_url)
+        print(response)
+        print(response.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], SUCCESS_RESPONSE_STATUS)
+        self.assertIn("authorization_url", response.json()["data"])
 
 
 # python manage.py test apps.accounts.tests.TestAccounts.test_register

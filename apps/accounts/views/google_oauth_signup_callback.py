@@ -3,6 +3,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework import status
 
+from drf_spectacular.utils import extend_schema
 
 from apps.accounts.emails import SendEmail
 from apps.accounts.models import User
@@ -14,6 +15,7 @@ from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
 
 
+@extend_schema(exclude=True)
 class GoogleOAuth2SignUpCallbackView(APIView):
 
     def get(self, request):
