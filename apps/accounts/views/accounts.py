@@ -279,6 +279,7 @@ class LogoutView(TokenBlacklistView):
 
 class LogoutAllView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = None
 
     @extend_schema(
         summary="Logout from all devices",

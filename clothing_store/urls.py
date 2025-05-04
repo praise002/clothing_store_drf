@@ -9,9 +9,11 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from drf_spectacular.utils import extend_schema
+from decouple import config
 
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.response import Response
 
 from apps.common.responses import CustomResponse
 from apps.common.serializers import SuccessResponseSerializer
@@ -81,7 +83,6 @@ urlpatterns = [
         name="redoc",
     ),
     path("api/v1/healthcheck/", HealthCheckView.as_view()),
-    # path("api/v1/social-auth/", include("drf_social_oauth2.urls", namespace="drf")),
 ]
 
 if settings.DEBUG:

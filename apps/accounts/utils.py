@@ -66,3 +66,4 @@ def google_callback(redirect_uri: str, auth_uri: str, state: str):
 
     user_data = google.get("https://www.googleapis.com/oauth2/v1/userinfo").json()
     return user_data
+

@@ -11,6 +11,7 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 
+from apps.common.errors import ErrorCode
 from apps.common.pagination import CustomPagination, DefaultPagination
 from apps.common.responses import CustomResponse
 from apps.common.serializers import (
@@ -20,7 +21,7 @@ from apps.common.serializers import (
 )
 
 from apps.shop.filters import ProductFilter
-from apps.shop.schema_examples import WISHLIST_ADD_PRODUCT_RESPONSE, WISHLIST_REMOVE_PRODUCT_RESPONSE
+from apps.shop.schema_examples import CATEGORY_LIST_RESPONSE, CATEGORY_PRODUCT_LIST_RESPONSE, PRODUCT_LIST_RESPONSE, PRODUCT_RETRIEVE_RESPONSE, PRODUCT_REVIEW_RETRIEVE_RESPONSE, WISHLIST_ADD_PRODUCT_RESPONSE, WISHLIST_REMOVE_PRODUCT_RESPONSE
 from .models import Category, Product, Review, Wishlist
 from .serializers import (
     CategoryResponseSerializer,
@@ -55,9 +56,7 @@ class CategoryListView(APIView):
         summary="List all categories",
         description="This endpoint retrieves a list of all product categories.",
         tags=tags,
-        responses={
-            200: CategoryResponseSerializer,
-        },
+        responses=CATEGORY_LIST_RESPONSE,
         auth=[],
     )
     def get(self, request):
@@ -83,10 +82,7 @@ class CategoryProductsView(APIView):
         summary="List products in a category",
         description="This endpoint retrieves all products belonging to a specific category.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=CATEGORY_PRODUCT_LIST_RESPONSE,
         auth=[],
     )
     def get(self, request, slug):
@@ -94,7 +90,8 @@ class CategoryProductsView(APIView):
             category = Category.objects.get(slug=slug)
         except Category.DoesNotExist:
             return CustomResponse.error(
-                message="Category not found", status_code=status.HTTP_404_NOT_FOUND
+                message="Category does not exist.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT,
             )
         # products = category.products.all()
         products = Product.objects.available().filter(category=category)
@@ -115,9 +112,7 @@ class ProductListView(APIView):
         summary="List all available products",
         description="This endpoint retrieves a list of all available products.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-        },
+        responses=PRODUCT_LIST_RESPONSE,
         operation_id="list_all_products",  # Unique operationId
         auth=[],
     )
@@ -142,11 +137,7 @@ class ProductRetrieveView(APIView):
         summary="Retrieve a specific product by ID and slug",
         description="This endpoint retrieves a specific product using its ID and slug.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=PRODUCT_RETRIEVE_RESPONSE,
         auth=[],
     )
     def get(self, request, pk, slug):
@@ -159,11 +150,12 @@ class ProductRetrieveView(APIView):
             )
         except Product.DoesNotExist:
             return CustomResponse.error(
-                message="Product not found", status_code=status.HTTP_404_NOT_FOUND
+                message="Product not found.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT
             )
         serializer = self.serializer_class(product)
         return CustomResponse.success(
-            message="Product retrieved successfully",
+            message="Product retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -176,11 +168,7 @@ class ProductReviewsRetrieveView(APIView):
         summary="Retrieve a specific product by ID and slug with reviews",
         description="This endpoint retrieves a specific product using its ID and slug with its reviews.",
         tags=review_tags,
-        responses={
-            200: ProductWithReviewsResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=PRODUCT_REVIEW_RETRIEVE_RESPONSE,
         auth=[],
     )
     def get(self, request, pk, slug):
@@ -197,11 +185,12 @@ class ProductReviewsRetrieveView(APIView):
             )
         except Product.DoesNotExist:
             return CustomResponse.error(
-                message="Product not found", status_code=status.HTTP_404_NOT_FOUND
+                message="Product not found.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT
             )
         serializer = self.serializer_class(product)
         return CustomResponse.success(
-            message="Product retrieved successfully",
+            message="Product retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -409,10 +398,7 @@ class CategoryListGenericView(ListAPIView):
         summary="List all categories",
         description="This endpoint retrieves a list of all product categories.",
         tags=tags,
-        responses={
-            200: CategoryResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        responses=CATEGORY_LIST_RESPONSE,
         auth=[],
     )
     def get(self, request):
@@ -433,7 +419,8 @@ class CategoryProductsGenericView(RetrieveAPIView):
             category_instance = Category.objects.get(slug=category)
         except Category.DoesNotExist:
             return CustomResponse.error(
-                message="Category not found", status_code=status.HTTP_404_NOT_FOUND
+                message="Category does not exist.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT,
             )
         products = (
             Product.objects.available()
@@ -446,10 +433,7 @@ class CategoryProductsGenericView(RetrieveAPIView):
         summary="List products in a category",
         description="This endpoint retrieves all products belonging to a specific category.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=CATEGORY_PRODUCT_LIST_RESPONSE,
         auth=[],
     )
     def get(self, request, *args, **kwargs):
@@ -481,9 +465,7 @@ class ProductListGenericView(ListAPIView):
         summary="List all available products",
         description="This endpoint retrieves a list of all available products.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-        },
+        responses=PRODUCT_LIST_RESPONSE,
         operation_id="list_all_products",  # Unique operationId
         auth=[],
     )
@@ -500,7 +482,7 @@ class ProductListGenericView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return CustomResponse.success(
-            message="Products retrieved successfully",
+            message="Products retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -516,11 +498,7 @@ class ProductRetrieveGenericView(RetrieveAPIView):
         summary="Retrieve a specific product by ID and slug",
         description="This endpoint retrieves a specific product using its ID and slug.",
         tags=tags,
-        responses={
-            200: ProductResponseSerializer,
-            400: ErrorDataResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=PRODUCT_RETRIEVE_RESPONSE,
         auth=[],
     )
     def get(self, request, *args, **kwargs):
@@ -545,7 +523,8 @@ class ProductRetrieveGenericView(RetrieveAPIView):
             obj = queryset.get(id=pk, slug=slug)
         except Product.DoesNotExist:
             return CustomResponse.error(
-                message="Product not found", status_code=status.HTTP_404_NOT_FOUND
+                message="Product not found.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT
             )
 
         # Return the retrieved object
@@ -574,10 +553,7 @@ class ProductReviewsRetrieveGenericView(RetrieveAPIView):
         summary="Retrieve a specific product by ID and slug with reviews",
         description="This endpoint retrieves a specific product using its ID and slug with its reviews.",
         tags=review_tags,
-        responses={
-            200: ProductWithReviewsResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=PRODUCT_REVIEW_RETRIEVE_RESPONSE,
         auth=[],
     )
     def get(self, request, *args, **kwargs):
@@ -602,7 +578,8 @@ class ProductReviewsRetrieveGenericView(RetrieveAPIView):
             obj = queryset.get(id=pk, slug=slug)
         except Product.DoesNotExist:
             return CustomResponse.error(
-                message="Product not found.", status_code=status.HTTP_404_NOT_FOUND
+                message="Product not found.", status_code=status.HTTP_404_NOT_FOUND,
+                err_code=ErrorCode.NON_EXISTENT
             )
 
         # Return the retrieved object
@@ -613,7 +590,7 @@ class ProductReviewsRetrieveGenericView(RetrieveAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return CustomResponse.success(
-            message="Product retrieved successfully",
+            message="Product retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )

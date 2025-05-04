@@ -1,6 +1,7 @@
 from .base import *
 from decouple import config
 from django.utils.log import DEFAULT_LOGGING
+from datetime import timedelta
 import logging
 import logging.config
 
