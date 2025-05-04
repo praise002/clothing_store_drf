@@ -94,7 +94,7 @@ def handle_permission_error(exc):
     exc_list = str(exc).split("DETAIL: ")
     return CustomResponse.error(
         message=exc_list[-1],
-        err_code=ErrorCode.UNAUTHORIZED,
+        err_code=ErrorCode.FORBIDDEN,
         status_code=HTTPStatus.FORBIDDEN,
     )
 

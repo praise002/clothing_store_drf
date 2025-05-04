@@ -130,8 +130,6 @@ class ShippingAddressDetailView(APIView):
         except ShippingAddress.DoesNotExist:
             raise NotFoundError(
                 err_msg="Shipping address not found.",
-                err_code=ErrorCode.NON_EXISTENT,
-                status_code=status.HTTP_404_NOT_FOUND,
             )
             # from rest_framework.exceptions import NotFound
             # raise NotFound()
@@ -307,6 +305,38 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
     )
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+    def get_object(self):
+        """
+        Retrieve object and handle custom 404 response
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Get lookup field and value
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+        
+        assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        try:
+            # {'pk': UUID('5fe1da59-52cd-4f69-802d-b59acb757f21')} - returns this without unpacking
+            # Becomes:
+            # queryset.get(pk=UUID('5fe1da59-52cd-4f69-802d-b59acb757f21'))
+            obj = queryset.get(**{self.lookup_field: lookup_value})
+        except ShippingAddress.DoesNotExist:
+            raise NotFoundError(
+                err_msg="Shipping address not found.",
+            )
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

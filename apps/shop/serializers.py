@@ -89,8 +89,8 @@ class ReviewUpdateSerializer(serializers.ModelSerializer):
         instance = self.instance
         # Ensure the user can only update their own review
         if instance and instance.customer != self.context["request"].user.profile:
-            raise PermissionDenied("You do not have permission to update this review.")
-        return attrs  
+            raise PermissionDenied("You don't have permission to update this review.")
+        return attrs
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -199,11 +199,14 @@ class CategoryResponseSerializer(SuccessResponseSerializer):
 class ProductResponseSerializer(SuccessResponseSerializer):
     data = ProductSerializer()
 
+
 class ProductWithReviewsResponseSerializer(SuccessResponseSerializer):
     data = ProductWithReviewsSerializer()
-    
+
+
 class WishlistResponseSerializer(SuccessResponseSerializer):
     data = WishlistSerializer()
-    
+
+
 class ReviewResponseSerializer(SuccessResponseSerializer):
     data = ReviewSerializer()

@@ -17,8 +17,7 @@ from apps.shop.serializers import (
     WishlistSerializer,
 )
 
-# "status": SUCCESS_RESPONSE_STATUS,
-# "message": "Paginated data retrieved successfully.",
+
 CATEGORY_EXAMPLE = [
     {
         "id": "5cb41be0-c5e0-4081-a354-6b04f74444b2",
@@ -92,34 +91,42 @@ PRODUCT_REVIEWS_EXAMPLE = [
     },
 ]
 
-
 WISHLIST_EXAMPLE = {
-    "data": {
-        "id": UUID_EXAMPLE,
-        "profile": "827ad08b-0120-4e1f-90b5-653291bfc82a",
-        "products": [
-            {
-                "id": "2fa85f64-5717-4562-b3fc-2c963f66afa6",
-                "name": "Product 1",
-                "slug": "blue-gown",
-                "description": "A description of product 1",
-                "category": {
-                    "id": "827ad08b-0120-4e1f-90b5-653291bfc81a",
-                    "name": "Category 1",
-                    "slug": "female-wears",
-                },
-                "price": "30.00",
-                "in_stock": 5,
-                "is_available": True,
-                "featured": True,
-                "flash_deals": True,
-                "avg_rating": 0,
-                "image_url": "http://res.cloudinary.com/dq0ow9lxw/image/upload/v1739892397/products/s2afqlfaacpt9gpu1xdt.jpg",
-                "cropped_image_url": "http://res.cloudinary.com/dq0ow9lxw/image/upload/c_fill,g_auto,h_250,w_250/v1/products/s2afqlfaacpt9gpu1xdt",
-            }
-        ],
-    }
+    "id": UUID_EXAMPLE,
+    "profile": "827ad08b-0120-4e1f-90b5-653291bfc82a",
+    "products": [
+        {
+            "id": "2fa85f64-5717-4562-b3fc-2c963f66afa6",
+            "name": "Product 1",
+            "slug": "blue-gown",
+            "description": "A description of product 1",
+            "category": {
+                "id": "827ad08b-0120-4e1f-90b5-653291bfc81a",
+                "name": "Category 1",
+                "slug": "female-wears",
+            },
+            "price": "30.00",
+            "in_stock": 5,
+            "is_available": True,
+            "featured": True,
+            "flash_deals": True,
+            "avg_rating": 0,
+            "image_url": AVATAR_URL,
+            "cropped_image_url": AVATAR_URL,
+        }
+    ],
 }
+
+REVIEW_EXAMPLE = {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "product": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "customer": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "text": "I love it.",
+    "rating": 5,
+    "image": AVATAR_URL,
+    "created": "2025-05-04T17:25:10.464Z",
+}
+
 
 CATEGORY_LIST_RESPONSE = {
     # 200: CategoryResponseSerializer,
@@ -250,9 +257,29 @@ PRODUCT_REVIEW_RETRIEVE_RESPONSE = {
     ),
 }
 
+WISHLIST_RESPONSE = {
+    # 200: WishlistResponseSerializer,
+    200: OpenApiResponse(
+        response=WishlistSerializer,
+        description="Products Fetched",
+        examples=[
+            OpenApiExample(
+                name="Success Response",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Wishlist retrieved successfully.",
+                    "data": WISHLIST_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    401: ErrorResponseSerializer,
+}
+
 WISHLIST_ADD_PRODUCT_RESPONSE = {
     200: OpenApiResponse(
         response=WishlistSerializer,
+        description="Product Added to Wishlist",
         examples=[
             OpenApiExample(
                 name="Add to Wishlist",
@@ -265,25 +292,167 @@ WISHLIST_ADD_PRODUCT_RESPONSE = {
         ],
     ),
     400: ErrorDataResponseSerializer,
-    404: ErrorResponseSerializer,
-    409: ErrorResponseSerializer,
     401: ErrorResponseSerializer,
+    404: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Product Does Not Exist",
+        examples=[
+            OpenApiExample(
+                name="Non-existent Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Product not found.",
+                    "code": "non_existent",
+                },
+            ),
+        ],
+    ),
+    409: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Product Exist in Wishlist",
+        examples=[
+            OpenApiExample(
+                name="Already Exists Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Product already in wishlist.",
+                    "code": "already_exists",
+                },
+            ),
+        ],
+    ),
 }
 
 WISHLIST_REMOVE_PRODUCT_RESPONSE = {
     200: OpenApiResponse(
         response=WishlistSerializer,
+        description="Product Removed from Wishlist",
         examples=[
             OpenApiExample(
                 name="Remove from Wishlist",
                 value={
                     "status": SUCCESS_RESPONSE_STATUS,
-                    "message": "Product removed from wishlist",
+                    "message": "Product removed from wishlist.",
                 },
             ),
         ],
     ),
-    400: ErrorResponseSerializer,
     401: ErrorResponseSerializer,
-    404: ErrorDataResponseSerializer,
+    404: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Product Does Not Exist",
+        examples=[
+            OpenApiExample(
+                name="Non-existent Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Product not found.",
+                    "code": "non_existent",
+                },
+            ),
+        ],
+    ),
+    422: ErrorResponseSerializer,
+}
+
+REVIEW_CREATE_RESPONSE = {
+    # 201: ReviewResponseSerializer,
+    201: OpenApiResponse(
+        response=WishlistSerializer,
+        description="Review Created",
+        examples=[
+            OpenApiExample(
+                name="Success Response",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Review created successfully.",
+                    "data": REVIEW_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: ErrorResponseSerializer,
+    404: ErrorResponseSerializer,
+}
+
+REVIEW_UPDATE_RESPONSE = {
+    # 200: ReviewResponseSerializer,
+    200: OpenApiResponse(
+        response=WishlistSerializer,
+        description="Review Updated",
+        examples=[
+            OpenApiExample(
+                name="Success Response",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Review updated successfully.",
+                    "data": REVIEW_EXAMPLE,
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: ErrorResponseSerializer,
+    403: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Permission Denied",
+        examples=[
+            OpenApiExample(
+                name="Permission Denied Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "You don't have permission to update this review.",
+                    "code": "forbidden",
+                },
+            ),
+        ],
+    ),
+    404: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Review Does Not Exist",
+        examples=[
+            OpenApiExample(
+                name="Non-existent Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Review not found.",
+                    "code": "non_existent",
+                },
+            ),
+        ],
+    ),
+}
+
+REVIEW_DELETE_RESPONSE = {
+    204: None,
+    401: ErrorResponseSerializer,
+    403: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Permission Denied",
+        examples=[
+            OpenApiExample(
+                name="Permission Denied Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "You don't have permission to delete this review.",
+                    "code": "forbidden",
+                },
+            ),
+        ],
+    ),
+    404: OpenApiResponse(
+        response=ErrorResponseSerializer,
+        description="Review Does Not Exist",
+        examples=[
+            OpenApiExample(
+                name="Non-existent Response",
+                value={
+                    "status": ERR_RESPONSE_STATUS,
+                    "message": "Review not found.",
+                    "code": "non_existent",
+                },
+            ),
+        ],
+    ),
 }
