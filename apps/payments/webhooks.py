@@ -133,25 +133,6 @@ def flw_payment_webhook(request):
         return HttpResponse(status=404)
 
 
-# @require_POST
-# @csrf_exempt
-# def flutterwave_refund_webhook(request):
-#     try:
-#         payload = json.loads(request.body)
-#     except json.JSONDecodeError:
-#         return HttpResponse(status=400)  # Bad Request
-
-#     event_type = payload.get("event")
-#     data = payload.get("data", {})
-
-#     if event_type == "refund.success":
-#         handle_refund_success_flw(data)
-#     elif event_type == "refund.failed":
-#         handle_refund_failed_flw(data)
-
-#     return HttpResponse(status=200)
-
-
 # PAYSTACK
 def validate_paystack_webhook(request):
     """

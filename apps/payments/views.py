@@ -11,8 +11,10 @@ from rest_framework import status
 
 from drf_spectacular.utils import extend_schema
 
+from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
 from apps.common.serializers import (
+    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
     SuccessResponseSerializer,
 )
@@ -27,13 +29,10 @@ logger = logging.getLogger(__name__)
 
 tags = ["Payment"]
 
-FLW_API_KEY = "FLWPUBK_TEST-01c56c31131e3c8f8c512b3d245e59fc-X"
-FLW_SECRET_KEY = "FLWSECK_TEST-de4f6d02c1748319dc5ff1ff188e4dcd-X"
-FLW_URL = "https://api.flutterwave.com/v3/payments"
-
 
 # FLUTTERWAVE
 @api_view(["GET"])
+@extend_schema(exclude=True)
 def payment_callback_flw(request):
     payment_status = request.GET.get("status")
     tx_ref = request.GET.get("tx_ref")
@@ -82,9 +81,9 @@ class InitiatePaymentFLW(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
     )
     def post(self, request):
@@ -93,9 +92,12 @@ class InitiatePaymentFLW(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        order = get_object_or_404(Order, id=serializer.validated_data["order_id"])
+        order = Order.objects.get(id=serializer.validated_data["order_id"])
+
         user = request.user
-        payment_method = request.data.get("payment_method")
+
+        payment_method = serializer.validated_data["payment_method"]
+
         if payment_method.lower() != PaymentGateway.FLUTTERWAVE:
             return CustomResponse.error(
                 message=f"Invalid payment method. Expected {PaymentGateway.FLUTTERWAVE}",
@@ -103,6 +105,7 @@ class InitiatePaymentFLW(APIView):
                     "available_methods": dict(PaymentGateway.choices),
                 },
                 status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.BAD_REQUEST,
             )
 
         order.payment_method = payment_method
@@ -112,12 +115,10 @@ class InitiatePaymentFLW(APIView):
         tx_ref = str(uuid.uuid4())
 
         # Flutterwave API details
-        # flutterwave_url = config("FLW_URL")
-        flutterwave_url = FLW_URL
-        # flutterwave_secret_key = config("FLW_SECRET_KEY")
-        flutterwave_secret_key = FLW_SECRET_KEY
+        flutterwave_url = config("FLW_URL")
+        flutterwave_secret_key = config("FLW_SECRET_KEY")
 
-        redirect_url = "https://e73a-190-2-141-97.ngrok-free.app/api/v1/payments/flw/payment-callback/"
+        redirect_url = "https://df4e-31-14-252-14.ngrok-free.app/api/v1/payments/flw/payment-callback/"
         print(request.build_absolute_uri(reverse("payment_callback")))
         # Prepare the payload for Flutterwave
         payload = {
@@ -193,7 +194,7 @@ class InitiatePaymentPaystack(APIView):
             200: SuccessResponseSerializer,
             400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
+            422: ErrorResponseSerializer,
         },
     )
     def post(self, request, *args, **kwargs):
@@ -202,10 +203,11 @@ class InitiatePaymentPaystack(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        order = get_object_or_404(Order, id=serializer.validated_data["order_id"])
+        order = Order.objects.get(id=serializer.validated_data["order_id"])
+
         user = request.user
         amount = order.get_total_cost() * Decimal("100")
-        payment_method = request.data.get("payment_method")
+        payment_method = serializer.validated_data["payment_method"]
         if payment_method.lower() != PaymentGateway.PAYSTACK:
             return CustomResponse.error(
                 message=f"Invalid payment method. Expected {PaymentGateway.PAYSTACK}",
@@ -261,7 +263,7 @@ class InitiatePaymentPaystack(APIView):
             response.raise_for_status()  # Raise an exception for HTTP errors
             response_data = response.json()
             return CustomResponse.success(
-                messaqge="Payment initiated successfully",
+                message="Payment initiated successfully.",
                 data=response_data,
                 status_code=status.HTTP_200_OK,
             )
@@ -269,7 +271,7 @@ class InitiatePaymentPaystack(APIView):
             logger.error(f"Paystack API request failed: {err}", exc_info=True)
             # Handle request exceptions
             return CustomResponse.error(
-                message="Payment initiation failed",
+                message="Payment initiation failed.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except ValueError as err:
@@ -289,6 +291,7 @@ class FlutterwaveRefundCallbackAPIView(APIView):
     Callback endpoint for Flutterwave to send refund status updates.
     """
 
+    @extend_schema(exclude=True)
     def post(self, request):
         try:
             # Parse the request body

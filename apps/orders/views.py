@@ -9,6 +9,7 @@ from drf_spectacular.utils import extend_schema
 
 from apps.common.responses import CustomResponse
 from apps.common.serializers import (
+    ErrorDataResponseSerializer,
     ErrorResponseSerializer,
 )
 
@@ -39,7 +40,7 @@ class OrderCreateView(APIView):
         tags=tags,
         responses={
             201: OrderResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )
@@ -76,7 +77,7 @@ class OrderCreateGenericView(CreateAPIView):
         tags=tags,
         responses={
             201: OrderResponseSerializer,
-            400: ErrorResponseSerializer,
+            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
         },
     )

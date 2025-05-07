@@ -6,7 +6,6 @@ from drf_spectacular.utils import (
 from apps.common.schema_examples import (
     AVATAR_URL,
     ERR_RESPONSE_STATUS,
-    RESPONSE_TYPE,
     SUCCESS_RESPONSE_STATUS,
     UUID_EXAMPLE,
 )

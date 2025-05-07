@@ -70,11 +70,14 @@ class Cart:
     def remove(self, product):
         """
         Remove a product from the cart.
+        Returns True if product was removed, False if product wasn't in cart.
         """
         product_id = str(product.id)
         if product_id in self.cart:
             del self.cart[product_id]
             self.save()
+            return True
+        return False
 
     def __iter__(self):
         """

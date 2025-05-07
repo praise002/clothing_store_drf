@@ -1,11 +1,12 @@
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.response import Response
 
-from django.shortcuts import get_object_or_404
 
 from rest_framework.permissions import IsAuthenticated
 from apps.cart.cart import Cart
+from apps.cart.schema_examples import CART_ADD_UPDATE_RESPONSE, CART_LIST_RESPONSE, CART_REMOVE_RESPONSE
+from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
 from apps.common.serializers import (
     ErrorResponseSerializer,
@@ -26,16 +27,13 @@ class CartDetailView(APIView):
         summary="Retrieve the cart",
         description="This endpoint retrieves the cart.",
         tags=tags,
-        responses={
-            200: CartResponseSerializer,
-            401: ErrorResponseSerializer,
-        },
+        responses=CART_LIST_RESPONSE,
     )
     def get(self, request):
         cart = Cart(request)
         serializer = self.serializer_class(cart)
         return CustomResponse.success(
-            message="Cart retrieved successfully",
+            message="Cart retrieved successfully.",
             data=serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -47,14 +45,14 @@ class CartAddUpdateView(APIView):
 
     @extend_schema(
         summary="Add or update a product to the cart",
-        description="This endpoint adds or updates a product to the cart.",
+        description="""
+        This endpoint adds or updates a product to the cart.
+        Set override quantity to True if you want to override the quantity.
+        Set override quantity to false which is the default if you want to add
+        to the items in the cart.
+        """,
         tags=tags,
-        responses={
-            200: CartResponseSerializer,
-            400: ErrorResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=CART_ADD_UPDATE_RESPONSE,
     )
     def post(self, request):
         # Use CartAddSerializer for input validation
@@ -63,24 +61,36 @@ class CartAddUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         product_id = serializer.validated_data["product_id"]
-        product = get_object_or_404(
-            Product,
-            id=product_id,
-            is_available=True,
-            in_stock__gt=0,
-        )
+        try:
+            product = Product.objects.get(
+                id=product_id,
+                is_available=True,
+                in_stock__gt=0,
+            )
+        except Product.DoesNotExist:
+            raise NotFoundError(
+                err_msg="Product not found.",
+            )
 
         cart = Cart(request)
+        override_quantity = serializer.validated_data["override"]
         cart.add(
             product=product,
             quantity=serializer.validated_data["quantity"],
-            override_quantity=serializer.validated_data["override"],
+            override_quantity=override_quantity,
         )
 
         # Serialize response with CartSerializer
         cart_serializer = CartSerializer(cart)
+        if override_quantity:
+            return CustomResponse.success(
+                message="Product updated in cart.",
+                data=cart_serializer.data,
+                status_code=status.HTTP_200_OK,
+            )
+
         return CustomResponse.success(
-            message="Product added to cart",
+            message="Product added to cart.",
             data=cart_serializer.data,
             status_code=status.HTTP_200_OK,
         )
@@ -94,21 +104,23 @@ class CartRemoveView(APIView):
         summary="Remove a product from the cart",
         description="This endpoint removes a product from the cart.",
         tags=tags,
-        responses={
-            200: CartResponseSerializer,
-            400: ErrorResponseSerializer,
-            401: ErrorResponseSerializer,
-            404: ErrorResponseSerializer,
-        },
+        responses=CART_REMOVE_RESPONSE,
     )
     def delete(self, request, product_id):
         cart = Cart(request)
 
-        product = get_object_or_404(Product, id=product_id)
-        cart.remove(product)
-        cart_serializer = self.serializer_class(cart)
-        return CustomResponse.success(
-            message="Product removed from cart",
-            data=cart_serializer.data,
-            status_code=status.HTTP_200_OK,
-        )
+        try:
+            product = Product.objects.get(
+                id=product_id,
+            )
+        except Product.DoesNotExist:
+            raise NotFoundError(
+                err_msg="Product not found.",
+            )
+
+        if not cart.remove(product):
+            raise NotFoundError(
+                err_msg="Product not found in cart.",
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
