@@ -55,7 +55,7 @@ def flw_payment_webhook(request):
     if event != "charge.completed":
         logger.info(f"{event} received. Ignoring.")
         return HttpResponse(status=200)
-    
+
     # Step 3: Extract required fields
     data = payload.get("data", {})
     transaction_id = data.get("id")
@@ -199,16 +199,6 @@ def paystack_webhook(request):
                 )
             else:
                 return HttpResponse(status=200)
-
-        # Handle refund events
-        elif event == "refund.pending":
-            handle_refund_pending_paystack(response_data)
-        elif event == "refund.processing":
-            handle_refund_processing_paystack(response_data)
-        elif event == "refund.failed":
-            handle_refund_failed_paystack(response_data)
-        elif event == "refund.processed":
-            handle_refund_processed_paystack(response_data)
 
         return HttpResponse(status=200)
     except ValueError as e:

@@ -8,7 +8,7 @@ from apps.orders.choices import (
     ShippingStatus,
 )
 
-from apps.orders.models import TrackingNumber, Refund, Return
+from apps.orders.models import TrackingNumber
 from apps.profiles.models import Profile
 from apps.shop.models import Product
 import logging
@@ -30,14 +30,6 @@ class Order(BaseModel):
     )
     shipping_status = models.CharField(
         max_length=20, choices=ShippingStatus.choices, default=ShippingStatus.PENDING
-    )
-
-    # Return / Refund details
-    return_request = models.OneToOneField(
-        Return, on_delete=models.PROTECT, null=True, blank=True
-    )
-    refund = models.OneToOneField(
-        Refund, on_delete=models.PROTECT, null=True, blank=True
     )
 
     transaction_id = models.CharField(max_length=50, blank=True)
@@ -110,7 +102,6 @@ class OrderItem(BaseModel):
     )
     quantity = models.PositiveSmallIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    returned = models.BooleanField(default=False)  # To track returned status
 
     def get_cost(self):
         return self.price * self.quantity

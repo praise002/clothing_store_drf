@@ -285,27 +285,3 @@ class InitiatePaymentPaystack(APIView):
             )
 
 
-# TODO: FIX - CHECK ROUGH_VIEWS FOR CODE
-class FlutterwaveRefundCallbackAPIView(APIView):
-    """
-    Callback endpoint for Flutterwave to send refund status updates.
-    """
-
-    @extend_schema(exclude=True)
-    def post(self, request):
-        try:
-            # Parse the request body
-            data = request.data
-            logger.info(f"Received refund callback: {data}")
-            refund_status = data["data"]["status"]
-            # transaction_id = data["data"]["tx_ref"]
-            try:
-                pass
-            except:
-                pass
-        except Exception as e:
-            logger.error(f"Error processing refund callback: {str(e)}")
-            return Response(
-                {"status": "error", "message": "An error occurred."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )

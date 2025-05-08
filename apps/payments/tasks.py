@@ -30,7 +30,7 @@ def process_successful_payment(order_id, transaction_id=None):
 
             order.update_shipping_status(ShippingStatus.PROCESSING)
             order.payment_status = PaymentStatus.SUCCESSFUL
-            order.save() # This triggers the trackingnumber signal
+            order.save()  # This triggers the trackingnumber signal
             logger.info(
                 f"Order {order.id} {order.shipping_status} {order.payment_status} processed successfully. Tracking number: {order.tracking_number}"
             )
@@ -119,112 +119,4 @@ def order_pending_cancellation(order_id):
         raise
     except Exception as e:
         logger.error(f"Failed to send payment pending cancellation: {str(e)}")
-        raise
-
-
-@shared_task
-def refund_pending(order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-        user = order.customer.user
-        subject = f"Order Refund Pending - Order #{order.id}"
-        context = {
-            "order": order,
-        }
-        message = render_to_string("orders/emails/order_refund_pending.html", context)
-
-        # Send email with PDF attachment
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-
-        # Set the content type to HTML for the body
-        email_message.content_subtype = "html"
-
-        # Send the email
-        email_message.send(fail_silently=False)
-    except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to send refund pending: {str(e)}")
-        raise
-
-
-@shared_task
-def refund_failed(order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-        user = order.customer.user
-        subject = f"Order Refund Failed - Order #{order.id}"
-        context = {
-            "order": order,
-        }
-        message = render_to_string("orders/emails/order_refund_failed.html", context)
-
-        # Send email with PDF attachment
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-
-        # Set the content type to HTML for the body
-        email_message.content_subtype = "html"
-
-        # Send the email
-        email_message.send(fail_silently=False)
-    except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to send refund failed: {str(e)}")
-        raise
-
-
-@shared_task
-def refund_processed(order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-        user = order.customer.user
-        subject = f"Order Refund Successful - Order #{order.id}"
-        context = {
-            "order": order,
-        }
-        message = render_to_string("orders/emails/order_refund_processed.html", context)
-
-        # Send email with PDF attachment
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-
-        # Set the content type to HTML for the body
-        email_message.content_subtype = "html"
-
-        # Send the email
-        email_message.send(fail_silently=False)
-    except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to send refund confirmation: {str(e)}")
-        raise
-
-
-@shared_task
-def refund_success(order_id):
-    try:
-        order = Order.objects.get(id=order_id)
-        user = order.customer.user
-        subject = f"Order Refund Successful - Order #{order.id}"
-        context = {
-            "order": order,
-        }
-        message = render_to_string("orders/emails/order_refund_success.html", context)
-
-        # Send email with PDF attachment
-        email_message = EmailMessage(subject=subject, body=message, to=[user.email])
-
-        # Set the content type to HTML for the body
-        email_message.content_subtype = "html"
-
-        # Send the email
-        email_message.send(fail_silently=False)
-    except Order.DoesNotExist:
-        logger.error(f"Order {order_id} not found")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to send refund confirmation: {str(e)}")
         raise
