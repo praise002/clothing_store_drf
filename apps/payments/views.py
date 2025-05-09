@@ -2,11 +2,11 @@ from django.urls import reverse
 import uuid, json, requests
 from decimal import Decimal
 from decouple import config
-from django.shortcuts import get_object_or_404
+
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+
 from rest_framework import status
 
 from drf_spectacular.utils import extend_schema
@@ -283,5 +283,3 @@ class InitiatePaymentPaystack(APIView):
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-

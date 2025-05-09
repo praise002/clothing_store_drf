@@ -153,6 +153,12 @@ class OrderHistoryGenericAPIView(ListAPIView):
         """
         Return orders belonging to the authenticated user.
         """
+
+        # Check if this is a schema generation request
+        if getattr(self, "swagger_fake_view", False):
+            # Return an empty queryset to prevent errors during schema generation
+            return Order.objects.none()
+
         return Order.objects.filter(customer=self.request.user.profile).order_by(
             "-created"
         )

@@ -13,15 +13,6 @@ from apps.payments.tasks import (
     process_successful_payment,
 )
 
-from apps.payments.utils import (
-    handle_refund_failed_flw,
-    handle_refund_failed_paystack,
-    handle_refund_pending_paystack,
-    handle_refund_processed_paystack,
-    handle_refund_processing_paystack,
-    handle_refund_success_flw,
-)
-
 
 logger = logging.getLogger(__name__)
 

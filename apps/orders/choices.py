@@ -5,14 +5,20 @@ class ShippingStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     PROCESSING = (
         "processing",
-        "Processing",
-    )  # once order is confirmed shipping status is set to processing by the admin
+        "Processing"
+    )  # once order is confirmed shipping status is set to processing by the admin i.e packaging
+    SHIPPED = "shipped", "Shipped"  # handed over to a shipping carrier
     IN_TRANSIT = "in_transit", "In Transit"
+    OUT_FOR_DELIVERY = (
+        "out_for_delivery",
+        "Out for delivery"
+    )  # with local delivery agent
     DELIVERED = "delivered", "Delivered"
-    CANCELLED = (
-        "cancelled",
-        "Cancelled",
-    )  # when user cancels order after payment we set shipping status to cancelled
+
+    # CANCELLED = (
+    #     "cancelled",
+    #     "Cancelled",
+    # )  # when user cancels order after payment we set shipping status to cancelled
 
 
 class PaymentStatus(models.TextChoices):
@@ -28,19 +34,3 @@ class PaymentStatus(models.TextChoices):
 class PaymentGateway(models.TextChoices):
     PAYSTACK = "paystack", "paystack"
     FLUTTERWAVE = "flutterwave", "flutterwave"
-
-
-class PaystackRefundStatus(models.TextChoices):
-    PENDING = "pending", "pending"
-    PROCESSING = "processing", "processing"
-    FAILED = "failed", "failed"
-    PROCESSED = "processed", "processed"
-
-
-class FLWRefundStatus(models.TextChoices):
-    COMPLETED = "completed", "Completed"
-    FAILED = "failed", "Failed"
-
-
-class ReturnMethod(models.TextChoices):
-    SEND_BY_YOURSELF = "send by yourself", "send by yourself"

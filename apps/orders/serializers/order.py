@@ -8,6 +8,7 @@ from apps.profiles.models import ShippingAddress
 from apps.shop.serializers import ProductSerializer
 from apps.orders.models import Order, OrderItem
 from apps.orders.serializers import TrackingNumberSerializer
+from drf_spectacular.utils import extend_schema_field
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -55,6 +56,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_cost",
         ]
 
+    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2))
     def get_total_cost(self, obj):
         return obj.get_total_cost()
 

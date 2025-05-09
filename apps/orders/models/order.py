@@ -58,7 +58,9 @@ class Order(BaseModel):
 
     # Timestamp fields for each payment status
     processing_at = models.DateTimeField(null=True, blank=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
     in_transit_at = models.DateTimeField(null=True, blank=True)
+    out_for_delivery_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
@@ -83,8 +85,12 @@ class Order(BaseModel):
 
         if new_status == ShippingStatus.PROCESSING:
             self.processing_at = now()
+        elif new_status == ShippingStatus.SHIPPED:
+            self.shipped_at = now()
         elif new_status == ShippingStatus.IN_TRANSIT:
             self.in_transit_at = now()
+        elif new_status == ShippingStatus.OUT_FOR_DELIVERY:
+            self.out_for_delivery_at = now()
         elif new_status == ShippingStatus.DELIVERED:
             self.delivered_at = now()
         elif new_status == ShippingStatus.CANCELLED:

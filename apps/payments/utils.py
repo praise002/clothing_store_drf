@@ -1,22 +1,5 @@
-import hashlib, requests, logging
+import hashlib, logging
 
-from django.db import transaction
-from decimal import Decimal
-from decouple import config
-from apps.orders.choices import (
-    FLWRefundStatus,
-    PaymentGateway,
-    PaymentStatus,
-    PaystackRefundStatus,
-    ShippingStatus,
-)
-from apps.orders.models import Order
-from apps.payments.tasks import (
-    refund_failed,
-    refund_pending,
-    refund_processed,
-    refund_success,
-)
 
 logger = logging.getLogger(__name__)
 
