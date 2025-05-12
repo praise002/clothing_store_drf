@@ -4,7 +4,6 @@ from decimal import Decimal
 from decouple import config
 
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework import status
@@ -31,44 +30,44 @@ tags = ["Payment"]
 
 
 # FLUTTERWAVE
-@api_view(["GET"])
-@extend_schema(exclude=True)
-def payment_callback_flw(request):
-    payment_status = request.GET.get("status")
-    tx_ref = request.GET.get("tx_ref")
-    transaction_id = request.GET.get("transaction_id")
+class PaymentCallbackFlw(APIView):
+    @extend_schema(exclude=True)
+    def get(self, request):
+        payment_status = request.GET.get("status")
+        tx_ref = request.GET.get("tx_ref")
+        transaction_id = request.GET.get("transaction_id")
 
-    if not all([payment_status, tx_ref, transaction_id]):
-        logger.warning("Missing required query parameters in payment_callback.")
-        return CustomResponse.error(
-            message="Missing required query parameters",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+        if not all([payment_status, tx_ref, transaction_id]):
+            logger.warning("Missing required query parameters in payment_callback.")
+            return CustomResponse.error(
+                message="Missing required query parameters",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
-    try:
-        Order.objects.get(tx_ref=tx_ref)
-    except Order.DoesNotExist:
-        logger.error(f"Order not found for tx_ref: {tx_ref}.")
-        return CustomResponse.error(
-            message="Order not found", status_code=status.HTTP_404_NOT_FOUND
-        )
+        try:
+            Order.objects.get(tx_ref=tx_ref)
+        except Order.DoesNotExist:
+            logger.error(f"Order not found for tx_ref: {tx_ref}.")
+            return CustomResponse.error(
+                message="Order not found", status_code=status.HTTP_404_NOT_FOUND
+            )
 
-    # Provide feedback based on the payment status
-    if payment_status.lower() == "successful":
-        return CustomResponse.success(
-            message="Thank you for your payment. We will confirm it shortly.",
-            status_code=status.HTTP_200_OK,
-        )
-    elif payment_status.lower() in ["cancelled", "failed"]:
-        return CustomResponse.info(
-            message="Your payment was not completed. Please try again or contact support if needed.",
-            status_code=status.HTTP_200_OK,
-        )
-    else:
-        return CustomResponse.info(
-            message="We are processing your payment. You will receive a confirmation shortly.",
-            status_code=status.HTTP_200_OK,
-        )
+        # Provide feedback based on the payment status
+        if payment_status.lower() == "successful":
+            return CustomResponse.success(
+                message="Thank you for your payment. We will confirm it shortly.",
+                status_code=status.HTTP_200_OK,
+            )
+        elif payment_status.lower() in ["cancelled", "failed"]:
+            return CustomResponse.info(
+                message="Your payment was not completed. Please try again or contact support if needed.",
+                status_code=status.HTTP_200_OK,
+            )
+        else:
+            return CustomResponse.info(
+                message="We are processing your payment. You will receive a confirmation shortly.",
+                status_code=status.HTTP_200_OK,
+            )
 
 
 class InitiatePaymentFLW(APIView):

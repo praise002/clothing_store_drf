@@ -19,6 +19,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ["id", "product", "price", "quantity", "total"]
 
+    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2))
     def get_total(self, obj):
         return obj.price * obj.quantity
 
@@ -124,6 +125,36 @@ class OrderCreateSerializer(
 
         return order
 
+
+class OrderWithDiscountSerializer(serializers.ModelSerializer):
+    order_subtotal = serializers.SerializerMethodField()
+    final_total = serializers.SerializerMethodField()
+    items = OrderItemSerializer(many=True, source='items.all')
+    
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "order_subtotal",
+            "discounted_total",
+            "shipping_fee",
+            "final_total",
+            "items",
+        ]
+    
+    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2))   
+    def get_order_subtotal(self, obj):
+        return obj.calculate_subtotal()
+    
+    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2))   
+    def get_final_total(self, obj):
+        return obj.get_total_cost()
+        
+
+
 # RESPONSES
 class OrderResponseSerializer(SuccessResponseSerializer):
     data = OrderSerializer()
+    
+class OrderWithDiscountResponseSerializer(SuccessResponseSerializer):
+    data = OrderWithDiscountSerializer()

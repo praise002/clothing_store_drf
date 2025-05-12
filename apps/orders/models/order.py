@@ -43,6 +43,14 @@ class Order(BaseModel):
         related_name="order",
     )
 
+    discounted_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Total cost after applying discounts",
+    )
+
     # Shipping address details
     state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
@@ -73,9 +81,19 @@ class Order(BaseModel):
     def __str__(self):
         return f"Order {self.id} by {self.customer.user.full_name}"
 
+    def calculate_subtotal(self) -> float:
+        """Calculate the subtotal (sum of all items before discount and shipping)."""
+        return sum(item.get_cost() for item in self.items.all())
+
     def get_total_cost(self) -> float:
-        """Calculate the total cost of the order."""
-        return sum(item.get_cost() for item in self.items.all()) + self.shipping_fee
+        """Calculate the final total including discount (if any) and shipping fee."""
+        base_amount = (
+            self.discounted_total
+            if self.discounted_total
+            else self.calculate_subtotal()
+        )
+
+        return base_amount + self.shipping_fee
 
     def update_shipping_status(self, new_status):
         """

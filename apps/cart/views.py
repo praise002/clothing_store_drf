@@ -8,13 +8,11 @@ from apps.cart.cart import Cart
 from apps.cart.schema_examples import CART_ADD_UPDATE_RESPONSE, CART_LIST_RESPONSE, CART_REMOVE_RESPONSE
 from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
-from apps.common.serializers import (
-    ErrorResponseSerializer,
-)
+
 from drf_spectacular.utils import extend_schema
 from apps.shop.models import Product
 
-from .serializers import CartResponseSerializer, CartSerializer, CartAddUpdateSerializer
+from .serializers import CartSerializer, CartAddUpdateSerializer
 
 tags = ["cart"]
 

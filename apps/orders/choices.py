@@ -1,5 +1,10 @@
 from django.db import models
 
+class DiscountChoices(models.TextChoices):
+    PERCENTAGE = 'percentage', 'Percentage'
+    FIXED_AMOUNT = 'fixed_amount', 'Fixed Amount'
+    TIERED = 'tiered', 'Tiered Discount'
+    FREE_SHIPPING = 'free_shipping', 'Free Shipping'
 
 class ShippingStatus(models.TextChoices):
     PENDING = "pending", "Pending"

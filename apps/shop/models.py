@@ -41,6 +41,10 @@ class Product(BaseModel):
     price = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
+    discounted_price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)],
+        null=True, blank=True, editable=False
+    ) #TODO: SET TO NULL IF DISCOUNT IS REMOVED
     # price_after_discount = models.DecimalField(max_digits=10, decimal_places=2)
     in_stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
