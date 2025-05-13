@@ -1,5 +1,6 @@
+from decimal import Decimal
 from django.db import models
-
+from django.core.validators import MinValueValidator
 
 from apps.common.models import BaseModel
 from apps.orders.choices import (
@@ -81,11 +82,11 @@ class Order(BaseModel):
     def __str__(self):
         return f"Order {self.id} by {self.customer.user.full_name}"
 
-    def calculate_subtotal(self) -> float:
+    def calculate_subtotal(self) -> Decimal:
         """Calculate the subtotal (sum of all items before discount and shipping)."""
         return sum(item.get_cost() for item in self.items.all())
 
-    def get_total_cost(self) -> float:
+    def get_total_cost(self) -> Decimal:
         """Calculate the final total including discount (if any) and shipping fee."""
         base_amount = (
             self.discounted_total
@@ -124,7 +125,7 @@ class OrderItem(BaseModel):
     product = models.ForeignKey(
         Product, on_delete=models.PROTECT, related_name="order_items"
     )
-    quantity = models.PositiveSmallIntegerField(default=1)
+    quantity = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def get_cost(self):

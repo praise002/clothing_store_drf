@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -17,7 +17,7 @@ class Discount(BaseModel):
         choices=DiscountChoices.choices,
         default=DiscountChoices.PERCENTAGE,
     )
-    value = models.PositiveIntegerField(default=0)
+    value = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
 
@@ -33,6 +33,9 @@ class Discount(BaseModel):
             raise ValidationError(
                 "The value must be 0 when the discount type is 'tiers'."
             )
+
+        if self.discount_type == DiscountChoices.PERCENTAGE and self.value > 100:
+            raise ValidationError({"value": "Percentage discount cannot exceed 100%"})
 
     def __str__(self):
         return f"{self.name}"
@@ -89,9 +92,12 @@ class Coupon(BaseModel):
                 f"Coupon discount type has to be 'fixed amount' or 'percentage'"
             )
 
+        if not self.discount.is_active:
+            raise ValidationError(f"The discount '{self.discount.name}' is expired.")
+
     @property
     def is_valid(self):
-        return self.is_active and (self.used_count < self.usage_limit)
+        return self.discount.is_active and (self.used_count < self.usage_limit)
 
     def __str__(self):
         return self.code

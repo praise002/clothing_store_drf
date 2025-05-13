@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -29,21 +30,32 @@ def apply_discount_to_order(coupon, order):
     Applies coupon discount to an order and records the usage.
     """
     with transaction.atomic():
+        subtotal = order.calculate_subtotal()
+        discount_total = Decimal('0')
+        
         # 1. Calculate discount amount based on type
-
         discount_type = coupon.discount.discount_type
         discount_value = coupon.discount.value
 
         if discount_type == DiscountChoices.PERCENTAGE:
-            discount_amount = discount_value / 100
-            discount_total = discount_amount * order.calculate_subtotal()
+            discount_amount = (discount_value / Decimal('100')) * subtotal
+            print(f"Type discount amount {type(discount_amount)}")
+            discount_total = subtotal - discount_amount
+            print(f"Type discount total {type(discount_total)}")
         elif discount_type == DiscountChoices.FIXED_AMOUNT:
-            discount_amount = min(discount_value, order.calculate_subtotal())
-            discount_total = order.calculate_subtotal() - discount_amount
+            discount_amount = min(discount_value, subtotal)
+            print(f"Type discount amount {type(discount_amount)}")
+            discount_total = subtotal - discount_amount
+            print(f"Type discount total {type(discount_total)}")
 
+        print(f"Subtotal: {subtotal} {type(subtotal)}")
+        print(f"Discount Type: {discount_type}")
+        print(f"Discount Value: {discount_value} {type(discount_value)}")
+        print(f"Final Discount Total: {discount_total} {type(discount_total)}")
+        
         # 2. Apply the discount
         order.discounted_total = discount_total
-        order.coupon = coupon
+        print(order.discounted_total)
         order.save()
 
         # 3. Record coupon usage
@@ -66,6 +78,7 @@ class ApplyCouponView(APIView):
             200: OrderWithDiscountResponseSerializer,
             400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
     )
     def post(self, request, *args, **kwargs):
@@ -84,7 +97,7 @@ class ApplyCouponView(APIView):
             raise NotFoundError(err_msg="Order not found.")
 
         if order.payment_status == PaymentStatus.SUCCESSFUL:
-            raise CustomResponse.error(
+            return CustomResponse.error(
                 message="This order has already been paid for.",
                 err_code=ErrorCode.BAD_REQUEST,
             )

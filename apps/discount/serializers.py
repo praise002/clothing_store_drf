@@ -1,6 +1,4 @@
 from rest_framework import serializers
-
-from apps.common.serializers import SuccessResponseSerializer
 from apps.discount.models import Coupon
 
 
@@ -18,15 +16,3 @@ class CouponApplySerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid coupon code")
 
         return code
-
-
-# class CouponSerializer(serializers.ModelSerializer):
-#     discount_type = serializers.CharField(source="discount.discount_type")
-#     discount_value = serializers.CharField(source="discount.discount_value")
-    
-#     class Meta:
-#         model = Coupon
-#         fields = ["code", "discount", "discount_type", "discount_value"]
-
-# class CouponResponseSerializer(SuccessResponseSerializer):
-#     data = CategorySerializer()
