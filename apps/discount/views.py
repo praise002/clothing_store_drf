@@ -1,11 +1,9 @@
-from decimal import Decimal
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from drf_spectacular.utils import extend_schema
 
-from django.db import transaction
 
 from apps.common.errors import ErrorCode
 from apps.common.exceptions import NotFoundError
@@ -16,54 +14,14 @@ from apps.common.serializers import (
 )
 from apps.discount.models import Coupon, CouponUsage
 from apps.discount.serializers import CouponApplySerializer
-from apps.orders.choices import DiscountChoices, PaymentStatus
+from apps.discount.service import apply_discount_to_order
+from apps.orders.choices import PaymentStatus
 from apps.orders.models.order import Order
 from apps.orders.serializers.order import (
     OrderWithDiscountResponseSerializer,
     OrderWithDiscountSerializer,
 )
 from apps.orders.views import tags
-
-
-def apply_discount_to_order(coupon, order):
-    """
-    Applies coupon discount to an order and records the usage.
-    """
-    with transaction.atomic():
-        subtotal = order.calculate_subtotal()
-        discount_total = Decimal('0')
-        
-        # 1. Calculate discount amount based on type
-        discount_type = coupon.discount.discount_type
-        discount_value = coupon.discount.value
-
-        if discount_type == DiscountChoices.PERCENTAGE:
-            discount_amount = (discount_value / Decimal('100')) * subtotal
-            print(f"Type discount amount {type(discount_amount)}")
-            discount_total = subtotal - discount_amount
-            print(f"Type discount total {type(discount_total)}")
-        elif discount_type == DiscountChoices.FIXED_AMOUNT:
-            discount_amount = min(discount_value, subtotal)
-            print(f"Type discount amount {type(discount_amount)}")
-            discount_total = subtotal - discount_amount
-            print(f"Type discount total {type(discount_total)}")
-
-        print(f"Subtotal: {subtotal} {type(subtotal)}")
-        print(f"Discount Type: {discount_type}")
-        print(f"Discount Value: {discount_value} {type(discount_value)}")
-        print(f"Final Discount Total: {discount_total} {type(discount_total)}")
-        
-        # 2. Apply the discount
-        order.discounted_total = discount_total
-        print(order.discounted_total)
-        order.save()
-
-        # 3. Record coupon usage
-        CouponUsage.objects.create(coupon=coupon, user=order.customer, order=order)
-
-        # 4. Increment usage counter
-        coupon.used_count += 1
-        coupon.save()
 
 
 class ApplyCouponView(APIView):
@@ -104,7 +62,7 @@ class ApplyCouponView(APIView):
 
         coupon = Coupon.objects.get(code=serializer.validated_data["code"])
 
-        # 3. Validate coupon against order
+        # 3. Validate coupon against order 
         coupon_usage = CouponUsage.objects.filter(coupon=coupon, order=order).exists()
 
         if coupon_usage:

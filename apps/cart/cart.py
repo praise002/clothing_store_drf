@@ -52,7 +52,11 @@ class Cart:
         product_id = str(product.id)
 
         if product_id not in self.cart:
-            self.cart[product_id] = {"quantity": 0, "price": str(product.price)}
+            self.cart[product_id] = {
+                "quantity": 0,
+                "price": str(product.price),
+                "discounted_price": str(product.discounted_price),
+            }
 
         if override_quantity:  # updating items directly from cart page
             self.cart[product_id]["quantity"] = quantity
@@ -92,7 +96,13 @@ class Cart:
             cart[str(product.id)]["product"] = product
         for item in cart.values():
             item["price"] = Decimal(item["price"])
-            item["total_price"] = item["price"] * item["quantity"]
+            item["discounted_price"] = (
+                Decimal(item["discounted_price"]) if item["discounted_price"] else None
+            )
+            price_to_use = (
+                item["discounted_price"] if item["discounted_price"] else item["price"]
+            )
+            item["total_price"] = price_to_use * item["quantity"]
             yield item
 
     def __len__(self):

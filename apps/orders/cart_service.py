@@ -2,6 +2,7 @@ from decimal import Decimal
 from apps.cart.cart import Cart
 from apps.orders.models import Order, OrderItem
 
+
 def process_cart_for_order(request):
     """
     Process the cart for creating an order.
@@ -28,6 +29,7 @@ def process_cart_for_order(request):
 
     return cart
 
+
 def create_order_from_cart(cart, shipping_address, user_profile):
     """
     Create an order from the cart and reduce stock for purchased items.
@@ -49,15 +51,22 @@ def create_order_from_cart(cart, shipping_address, user_profile):
         product = item["product"]
         quantity = item["quantity"]
         price = Decimal(item["price"])
+        discounted_price = Decimal(item["discounted_price"])
 
         # Create order item and reduce stock
-        OrderItem.objects.create(
-            order=order, product=product, quantity=quantity, price=price
-        )
+        if discounted_price:
+            OrderItem.objects.create(
+                order=order, product=product, quantity=quantity, price=discounted_price
+            )
+        else:
+            OrderItem.objects.create(
+                order=order, product=product, quantity=quantity, price=price
+            )
+
         product.in_stock -= quantity
         product.save()
 
     # Clear the cart after creating the order
     cart.clear()
-    
+
     return order

@@ -14,6 +14,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 10
     list_select_related = ["category"]
     search_fields = ["name"]
+    readonly_fields = ["discounted_price"]
 
 
 @admin.register(models.Category)
@@ -33,7 +34,9 @@ class CategoryAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(products_count=Count("products"))
 
+
 admin.site.register(models.Review)
+
 
 @admin.register(models.Wishlist)
 class WishlistAdmin(admin.ModelAdmin):
@@ -42,4 +45,4 @@ class WishlistAdmin(admin.ModelAdmin):
     search_fields = ["profile__user__full_name"]
     date_hierarchy = "added_at"
     ordering = ["-added_at"]
-    filter_horizontal = ('products',)
+    filter_horizontal = ("products",)

@@ -240,6 +240,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.orders.tasks.check_pending_orders",
         "schedule": 60 * 5,  # Run every 5 minutes
     },
+    'check-expired-discounts': {
+        'task': 'apps.discount.tasks.check_expired_discounts',
+        'schedule': 60.0,  # Run every minute
+    },
 }
 
 FIRST_PURCHASE_DISCOUNT = 10

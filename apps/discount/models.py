@@ -45,14 +45,15 @@ class ProductDiscount(BaseModel):
     discount = models.ForeignKey(
         Discount, on_delete=models.CASCADE, related_name="discounts"
     )
-    # product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
     product = models.OneToOneField(
         Product, on_delete=models.CASCADE, related_name="product"
     )
 
     def clean(self):
         if not self.discount.is_active:
-            raise ValidationError(f"The discount '{self.discount.name}' is expired.")
+            raise ValidationError(
+                {"discount": f"The discount '{self.discount.name}' is expired."}
+            )
 
     def __str__(self):
         return f"{self.product.name} - {self.discount.name}"
