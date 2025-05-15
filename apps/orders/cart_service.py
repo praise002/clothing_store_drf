@@ -1,5 +1,8 @@
 from decimal import Decimal
 from apps.cart.cart import Cart
+from apps.discount.models import Discount
+from apps.discount.service import apply_discount_to_order
+from apps.orders.choices import DiscountChoices
 from apps.orders.models import Order, OrderItem
 
 
@@ -46,6 +49,14 @@ def create_order_from_cart(cart, shipping_address, user_profile):
         postal_code=shipping_address.postal_code,
     )
 
+    # Apply tiered discount if applicable
+    try:
+        tiered_discount = Discount.objects.get(discount_type=DiscountChoices.TIERED)
+        discount_info = apply_discount_to_order(order, tiered_discount)
+    except Discount.DoesNotExist:
+        # do nothing if no tiered discount is configured
+        pass
+
     # Add items from the cart to the order
     for item in cart:
         product = item["product"]
@@ -69,4 +80,4 @@ def create_order_from_cart(cart, shipping_address, user_profile):
     # Clear the cart after creating the order
     cart.clear()
 
-    return order
+    return order, discount_info

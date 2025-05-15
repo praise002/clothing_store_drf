@@ -121,9 +121,9 @@ class OrderCreateSerializer(
             id=shipping_id, user=user_profile
         )
 
-        order = create_order_from_cart(cart, shipping_address, user_profile)
+        order, discount_info = create_order_from_cart(cart, shipping_address, user_profile)
 
-        return order
+        return order, discount_info
 
 
 class OrderWithDiscountSerializer(serializers.ModelSerializer):

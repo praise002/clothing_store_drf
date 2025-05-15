@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -66,14 +66,30 @@ class TieredDiscount(BaseModel):
     min_amount = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
-    discount_percentage = models.PositiveIntegerField()
+    discount_percentage = models.PositiveIntegerField(
+        blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    free_shipping = models.BooleanField(default=False)
 
     def clean(self):
         if not self.discount.is_active:
             raise ValidationError(f"The discount '{self.discount.name}' is expired.")
 
+        if self.free_shipping and self.discount_percentage:
+            raise ValidationError(
+                "Tiered discount cannot have both discount percentage and free shipping."
+            )
+
+        if not self.free_shipping and not self.discount_percentage:
+            raise ValidationError(
+                "Tiered discount must have either discount percentage or free shipping."
+            )
+
     def __str__(self):
-        return f"Spend {self.min_amount}, get {self.discount_percentage}% off"
+        if self.free_shipping:
+            return f"Spend {self.min_amount}, get Free Shipping"
+        else:
+            return f"Spend {self.min_amount}, get {self.discount_percentage}% off"
 
 
 class Coupon(BaseModel):

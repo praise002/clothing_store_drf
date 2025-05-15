@@ -52,7 +52,7 @@ class OrderCreateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         # Save the order using the serializer
-        order = serializer.save()
+        order, discount_info = serializer.save()
 
         # Serialize the created order for the response
         order_serializer = OrderSerializer(order)
@@ -62,7 +62,10 @@ class OrderCreateView(APIView):
 
         return CustomResponse.success(
             message="Order created successfully. Shipping address associated with this order will remain the same even if updated.",
-            data=order_serializer.data,
+            data={
+                "order": order_serializer.data,
+                "discount_info": discount_info,
+            },
             status_code=status.HTTP_201_CREATED,
         )
 

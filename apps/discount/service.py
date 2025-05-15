@@ -1,6 +1,6 @@
 from django.db import transaction
 from decimal import Decimal
-from apps.discount.models import CouponUsage, ProductDiscount
+from apps.discount.models import CouponUsage, ProductDiscount, TieredDiscount
 from apps.orders.choices import DiscountChoices
 
 
@@ -82,3 +82,35 @@ def apply_discount_to_product(product, discount):
         # 2. Apply the discount
         product.discounted_price = discount_total
         product.save()
+
+
+def apply_discount_to_order(order, discount):
+    """
+    Applies coupon discount to an order and records the usage.
+    """
+    with transaction.atomic():
+        subtotal = order.calculate_subtotal()
+        tiered_discount = (
+            TieredDiscount.objects.filter(discount=discount, min_amount__lte=subtotal)
+            .order_by("-min_amount")
+            .first()
+        )
+
+        if tiered_discount:
+            if tiered_discount.free_shipping:
+                order.free_shipping = 0
+                order.save()
+                return {
+                    "discount_type": "free_shipping",
+                    "message": f"Free shipping applied! Spend at least {tiered_discount.min_amount} to get free shipping.",
+                }
+            else:
+                discount_amount = (
+                    tiered_discount.discount_percentage / Decimal("100")
+                ) * subtotal
+                order.discounted_total = subtotal - discount_amount
+                order.save()
+                return {
+                    "discount_type": "percentage",
+                    "message": "No discount applied.",
+                }

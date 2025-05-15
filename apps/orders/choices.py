@@ -1,22 +1,23 @@
 from django.db import models
 
+
 class DiscountChoices(models.TextChoices):
-    PERCENTAGE = 'percentage', 'Percentage'
-    FIXED_AMOUNT = 'fixed_amount', 'Fixed Amount'
-    TIERED = 'tiered', 'Tiered Discount'
-    FREE_SHIPPING = 'free_shipping', 'Free Shipping'
+    PERCENTAGE = "percentage", "Percentage"
+    FIXED_AMOUNT = "fixed_amount", "Fixed Amount"
+    TIERED = "tiered", "Tiered Discount"
+
 
 class ShippingStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     PROCESSING = (
         "processing",
-        "Processing"
+        "Processing",
     )  # once order is confirmed shipping status is set to processing by the admin i.e packaging
     SHIPPED = "shipped", "Shipped"  # handed over to a shipping carrier
     IN_TRANSIT = "in_transit", "In Transit"
     OUT_FOR_DELIVERY = (
         "out_for_delivery",
-        "Out for delivery"
+        "Out for delivery",
     )  # with local delivery agent
     DELIVERED = "delivered", "Delivered"
 
