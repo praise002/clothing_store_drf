@@ -9,6 +9,10 @@ class DiscountAdmin(admin.ModelAdmin):
 class ProductDiscountAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(models.TieredDiscount)
+class TieredDiscountAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(models.Coupon)
 class CouponAdmin(admin.ModelAdmin):
     pass

@@ -14,7 +14,7 @@ from apps.common.serializers import (
 )
 from apps.discount.models import Coupon, CouponUsage
 from apps.discount.serializers import CouponApplySerializer
-from apps.discount.service import apply_discount_to_order
+from apps.discount.service import apply_coupon_discount_to_order
 from apps.orders.choices import PaymentStatus
 from apps.orders.models.order import Order
 from apps.orders.serializers.order import (
@@ -72,7 +72,7 @@ class ApplyCouponView(APIView):
             )
 
         # 4. Apply discount
-        apply_discount_to_order(coupon, order)
+        apply_coupon_discount_to_order(coupon, order)
 
         # Refresh order from DB to ensure we have latest data
         order.refresh_from_db()

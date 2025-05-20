@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 from django.conf import settings
 
@@ -86,6 +87,18 @@ class ShippingAddress(BaseModel):
         except ShippingFee.DoesNotExist:
             self.shipping_fee = 0  # Default to 0 if no fee is found
 
+        if self.default:
+            # Find all other addresses for this user that are currently default
+            # and set them to not be default
+            ShippingAddress.objects.filter(
+                user=self.user,  # Only addresses for this user
+                default=True,  # That are currently marked as default
+            ).exclude(
+                pk=self.pk  # Exclude this address itself (important for updates)
+            ).update(
+                default=False
+            )  # Set them all to not be default
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -94,7 +107,9 @@ class ShippingAddress(BaseModel):
 
 class Profile(BaseModel):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, editable=False,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        editable=False,
     )
     avatar = models.ImageField(upload_to="avatars/", null=True)
     last_updated = models.DateTimeField(auto_now=True)

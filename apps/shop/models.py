@@ -1,3 +1,4 @@
+from decimal import Decimal
 from autoslug import AutoSlugField
 from django.db import models
 
@@ -42,10 +43,13 @@ class Product(BaseModel):
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
     discounted_price = models.DecimalField(
-        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)],
-        null=True, blank=True, editable=False
-    ) #TODO: SET TO NULL IF DISCOUNT IS REMOVED
-    # price_after_discount = models.DecimalField(max_digits=10, decimal_places=2)
+        max_digits=10,
+        decimal_places=2,
+        # validators=[MinValueValidator(0)],
+        null=True,
+        blank=True,
+        editable=False,
+    )
     in_stock = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
@@ -114,11 +118,13 @@ class Review(BaseModel):
 
 
 class Wishlist(models.Model):
-    #TODO: SWITCH TO UUID
+    # TODO: SWITCH TO UUID
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name="wishlists", blank=True)
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.profile.user.full_name} wishlist"
+
+
 # 827ad08b-0120-4e1f-90b5-653291bfc82a

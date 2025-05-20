@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -67,7 +67,7 @@ class TieredDiscount(BaseModel):
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
     discount_percentage = models.PositiveIntegerField(
-        blank=True, null=True, validators=[MinValueValidator(0)]
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(99)]
     )
     free_shipping = models.BooleanField(default=False)
 

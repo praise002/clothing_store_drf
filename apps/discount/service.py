@@ -2,7 +2,10 @@ from django.db import transaction
 from decimal import Decimal
 from apps.discount.models import CouponUsage, ProductDiscount, TieredDiscount
 from apps.orders.choices import DiscountChoices
+from apps.payments.tasks import payment_successful, process_successful_payment
 
+import logging
+logger = logging.getLogger(__name__)
 
 def calculate_order_discount(
     subtotal: Decimal, discount_type: str, discount_value: int
@@ -16,7 +19,7 @@ def calculate_order_discount(
     return subtotal - discount_amount
 
 
-def apply_discount_to_order(coupon, order):
+def apply_coupon_discount_to_order(coupon, order):
     """
     Applies coupon discount to an order and records the usage.
     """
@@ -43,6 +46,19 @@ def apply_discount_to_order(coupon, order):
         # 4. Increment usage counter
         coupon.used_count += 1
         coupon.save()
+
+        # Check if the order total is now 0 (100% discount)
+        final_total = order.get_total_cost()
+
+        if final_total <= Decimal("0"):
+            # If total is 0 or less, automatically mark order as paid
+            process_successful_payment.apply_async(
+                args=[str(order.id)],
+                link=[payment_successful.si(order.id)],
+            )
+            return
+
+        return
 
 
 def calculate_product_discount(
@@ -90,16 +106,20 @@ def apply_discount_to_order(order, discount):
     """
     with transaction.atomic():
         subtotal = order.calculate_subtotal()
+        logger.info(f"Checking tiered discounts for order {order.id} with subtotal {subtotal}")
         tiered_discount = (
             TieredDiscount.objects.filter(discount=discount, min_amount__lte=subtotal)
             .order_by("-min_amount")
             .first()
         )
 
-        if tiered_discount:
+        if tiered_discount and tiered_discount.discount.is_active:
+            logger.info(f"Found tiered discount: {tiered_discount}")
             if tiered_discount.free_shipping:
-                order.free_shipping = 0
+                original_shipping = order.shipping_fee
+                order.shipping_fee = 0
                 order.save()
+                logger.info(f"Applied free shipping to order {order.id}. Original shipping: {original_shipping}")
                 return {
                     "discount_type": "free_shipping",
                     "message": f"Free shipping applied! Spend at least {tiered_discount.min_amount} to get free shipping.",
@@ -110,7 +130,8 @@ def apply_discount_to_order(order, discount):
                 ) * subtotal
                 order.discounted_total = subtotal - discount_amount
                 order.save()
+                logger.info(f"Applied {tiered_discount.discount_percentage}% discount to order {order.id}. Saved: {discount_amount}")
                 return {
                     "discount_type": "percentage",
-                    "message": "No discount applied.",
+                    "message": f"Discount of {tiered_discount.discount_percentage}% applied!",
                 }

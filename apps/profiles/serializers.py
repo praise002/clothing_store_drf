@@ -52,9 +52,10 @@ class ShippingAddressCreateSerializer(serializers.ModelSerializer):
         )  # ensures that the behavior is consistent and predictable, even if the "default" key is not explicitly provided in the request
 
         # If marking as default, unmark all other addresses for the user
-        if default:
-            ShippingAddress.objects.filter(user=user).update(default=False)
-
+        # if default:
+        #     ShippingAddress.objects.filter(user=user).update(default=False)
+        # business logic - default from model will work
+        
         # Create the shipping address and associate it with the user
         shipping_address = ShippingAddress.objects.create(
             user=user, default=default, **validated_data
