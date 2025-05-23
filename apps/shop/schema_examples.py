@@ -13,6 +13,7 @@ from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSe
 from apps.shop.serializers import (
     CategorySerializer,
     ProductSerializer,
+    ReviewSerializer,
     WishlistSerializer,
 )
 
@@ -357,7 +358,7 @@ WISHLIST_REMOVE_PRODUCT_RESPONSE = {
 REVIEW_CREATE_RESPONSE = {
     # 201: ReviewResponseSerializer,
     201: OpenApiResponse(
-        response=WishlistSerializer,
+        response=ReviewSerializer,
         description="Review Created",
         examples=[
             OpenApiExample(
@@ -378,7 +379,7 @@ REVIEW_CREATE_RESPONSE = {
 REVIEW_UPDATE_RESPONSE = {
     # 200: ReviewResponseSerializer,
     200: OpenApiResponse(
-        response=WishlistSerializer,
+        response=ReviewSerializer,
         description="Review Updated",
         examples=[
             OpenApiExample(

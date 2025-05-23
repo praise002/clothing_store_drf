@@ -20,4 +20,8 @@ urlpatterns = [
         "shipping-addresses/<uuid:pk>/",
         views.ShippingAddressDetailGenericView.as_view(),
     ),
+    # path(
+    #     "shipping-addresses/<uuid:pk>/",
+    #     views.ShippingAddressDetailView.as_view(),
+    # ),
 ]

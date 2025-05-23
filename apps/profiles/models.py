@@ -100,6 +100,13 @@ class ShippingAddress(BaseModel):
             )  # Set them all to not be default
 
         super().save(*args, **kwargs)
+        
+    def delete(self, *args, **kwargs):
+        # If this is the default address, throw an error 
+        if self.default:
+            raise ValueError("Cannot delete default shipping address")
+        
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return f"{self.state} - ₦{self.shipping_fee}"

@@ -107,6 +107,8 @@ PROFILE_UPDATE_RESPONSE_EXAMPLE = {
 }
 
 PROFILE_RETRIEVE_RESPONSE_EXAMPLE = {
+    # 200: ShippingAddressResponseSerializer,
+    #     401: ErrorResponseSerializer
     200: OpenApiResponse(
         description="Profile Retrieve Successful",
         response=ProfileSerializer,
@@ -165,11 +167,16 @@ SHIPPING_ADDRESS_RESPONSE_EXAMPLE = OpenApiResponse(
 )
 
 SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE = {
+    #     200: ShippingAddressResponseSerializer,
+    #     401: ErrorResponseSerializer,
     200: SHIPPING_ADDRESS_RESPONSE_EXAMPLE,
     401: UNAUTHORIZED_USER_RESPONSE,
 }
 
 SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE = {
+    #     201: ShippingAddressResponseSerializer,
+    #     401: ErrorResponseSerializer,
+    #     422: ErrorResponseSerializer,
     201: OpenApiResponse(
         description="Shipping Address Retrieve Successful",
         response=ShippingAddressSerializer,
@@ -192,29 +199,32 @@ SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     401: UNAUTHORIZED_USER_RESPONSE,
-    422: OpenApiResponse(
-        response=ErrorDataResponseSerializer,
-        description="Validation error",
-        examples=[
-            OpenApiExample(
-                name="Validation error",
-                value={
-                    "status": ERR_RESPONSE_STATUS,
-                    "message": "Validation error",
-                    "code": ErrorCode.VALIDATION_ERROR,
-                    "data": {
-                        "state": '"abia" is not a valid choice.',
-                    },
-                },
-            ),
-        ],
-    ),
+    422: ErrorDataResponseSerializer,
+    # 422: OpenApiResponse(
+    #     response=ErrorDataResponseSerializer,
+    #     description="Validation error",
+    #     examples=[
+    #         OpenApiExample(
+    #             name="Validation error",
+    #             value={
+    #                 "status": ERR_RESPONSE_STATUS,
+    #                 "message": "Validation error",
+    #                 "code": ErrorCode.VALIDATION_ERROR,
+    #                 "data": {
+    #                     "state": '"abia" is not a valid choice.',
+    #                 },
+    #             },
+    #         ),
+    #     ],
+    # ),
 }
 
 
 SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE = {
+    #     200: ShippingAddressResponseSerializer,
+    #     401: ErrorResponseSerializer,
+    #     404: ErrorResponseSerializer,
     200: OpenApiResponse(
         description="Shipping Address Retrieve Successful",
         response=ShippingAddressSerializer,
@@ -247,6 +257,10 @@ SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE = {
 }
 
 SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE = {
+    #     200: ShippingAddressResponseSerializer,
+    #     422: ErrorDataResponseSerializer,
+    #     401: ErrorResponseSerializer,
+    #     404: ErrorResponseSerializer,
     200: OpenApiResponse(
         description="Shipping Address Update Successful",
         response=ShippingAddressSerializer,
@@ -261,7 +275,7 @@ SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    422: ErrorDataResponseSerializer,
     401: UNAUTHORIZED_USER_RESPONSE,
     404: OpenApiResponse(
         response=ErrorResponseSerializer,
@@ -280,6 +294,10 @@ SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE = {
 }
 
 SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE = {
+    #     204: None,
+    #     401: ErrorResponseSerializer,
+    #     403: ErrorResponseSerializer,
+    #     404: ErrorResponseSerializer,
     204: None,
     401: UNAUTHORIZED_USER_RESPONSE,
     403: OpenApiResponse(

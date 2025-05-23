@@ -76,12 +76,12 @@ class ShippingAddressUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
-        default = validated_data.pop("default", None)
+        # default = validated_data.pop("default", None)
 
         # If marking as default, unmark all other addresses for the user
-        if default and default is True:
-            ShippingAddress.objects.filter(user=instance.user).update(default=False)
-            instance.default = True
+        # if default and default is True:
+        #     ShippingAddress.objects.filter(user=instance.user).update(default=False)
+        #     instance.default = True
 
         # Update the shipping address
         for attr, value in validated_data.items():

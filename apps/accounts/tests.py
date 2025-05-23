@@ -1,4 +1,3 @@
-import os
 from rest_framework.test import APITestCase
 from apps.common.schema_examples import ERR_RESPONSE_STATUS, SUCCESS_RESPONSE_STATUS
 from apps.common.utils import TestUtil
@@ -565,7 +564,6 @@ class TestGoogleOAuth(APITestCase):
     def setUp(self):
         self.signup_url = reverse("google_signup")
         self.login_url = reverse("google_login")
-        
 
     def test_google_signup(self):
         # Test successful redirect URL generation

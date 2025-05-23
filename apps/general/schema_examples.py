@@ -88,6 +88,7 @@ MESSAGE_CREATE_EXAMPLE = {
 }
 
 SITE_DETAIL_RESPONSE_EXAMPLE = {
+    #     200: SiteDetailResponseSerializer,
     200: OpenApiResponse(
         response=SiteDetailSerializer,
         description="Site Detail Retrieval Successful",
@@ -105,6 +106,7 @@ SITE_DETAIL_RESPONSE_EXAMPLE = {
 }
 
 TEAM_MEMBER_RESPONSE_EXAMPLE = {
+    #     200: TeamMemberResponseSerializer,
     200: OpenApiResponse(
         response=TeamMemberSerializer,
         description="Team Members Retrieval Successful",
@@ -122,6 +124,8 @@ TEAM_MEMBER_RESPONSE_EXAMPLE = {
 }
 
 MESSAGE_RESPONSE_EXAMPLE = {
+    #     201: MessageResponseSerializer,
+    #     422: ErrorDataResponseSerializer,
     201: OpenApiResponse(
         response=MessageSerializer,
         description="Message Sent Successful",
@@ -136,5 +140,5 @@ MESSAGE_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    422: ErrorDataResponseSerializer,
 }

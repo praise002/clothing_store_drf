@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.generics import (
@@ -47,10 +47,6 @@ class ShippingAddressListView(APIView):
         summary="List shipping address for the authenticated user",
         description="This endpoint retrieves all shipping addresses for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE,
     )
     def get(self, request):
@@ -85,12 +81,6 @@ class ShippingAddressCreateView(APIView):
             Rivers, Sokoto, Taraba, Yobe, Zamfara.
             """,
         tags=shipping_tags,
-        # responses={
-        #     201: ShippingAddressResponseSerializer,
-        #     400: ErrorDataResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     422: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE,
     )
     def post(self, request):
@@ -138,11 +128,6 @@ class ShippingAddressDetailView(APIView):
         summary="Get a shipping address",
         description="This endpoint retrieves a single shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE,
     )
     def get(self, request, pk):
@@ -160,12 +145,6 @@ class ShippingAddressDetailView(APIView):
         summary="Update a shipping address",
         description="This endpoint updates a shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressResponseSerializer,
-        #     400: ErrorDataResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE,
     )
     def patch(self, request, pk):
@@ -189,12 +168,6 @@ class ShippingAddressDetailView(APIView):
         summary="Delete a shipping address",
         description="This endpoint deletes a shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     204: None,
-        #     401: ErrorResponseSerializer,
-        #     403: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE,
     )
     def delete(self, request, pk):
@@ -202,14 +175,11 @@ class ShippingAddressDetailView(APIView):
         shipping_address = self.get_object(pk)
 
         # Allow deletion only if the address is not the default
-        if shipping_address.default:
-            return CustomResponse.error(
-                message="Cannot delete default shipping address",
-                status_code=status.HTTP_403_FORBIDDEN,
-                err_code=ErrorCode.FORBIDDEN,
-            )
+        try:
+            shipping_address.delete()
+        except ValueError as e:
+            raise PermissionDenied(detail=str(e))
 
-        shipping_address.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -243,10 +213,6 @@ class ShippingAddressListGenericView(ListAPIView):
         summary="List shipping address for the authenticated user",
         description="This endpoint retrieves all shipping addresses for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
@@ -275,14 +241,10 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         return ShippingAddress.objects.filter(user=self.request.user.profile)
 
     def perform_destroy(self, instance):
-        # Allow deletion only if the address is not the default
-        if instance.default:
-            return CustomResponse.error(
-                message="Cannot delete default shipping address",
-                status_code=status.HTTP_403_FORBIDDEN,
-            )
-
-        instance.delete()
+        try:
+            instance.delete()
+        except ValueError as e:
+            raise PermissionDenied(detail=str(e))
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -296,11 +258,6 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Get a shipping address",
         description="This endpoint retrieves a single shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE,
     )
     def get(self, request, *args, **kwargs):
@@ -315,12 +272,12 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         # Get lookup field and value
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         lookup_value = self.kwargs[lookup_url_kwarg]
-        
+
         assert lookup_url_kwarg in self.kwargs, (
-            'Expected view %s to be called with a URL keyword argument '
+            "Expected view %s to be called with a URL keyword argument "
             'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
+            "attribute on the view correctly."
+            % (self.__class__.__name__, lookup_url_kwarg)
         )
 
         try:
@@ -351,12 +308,6 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Update a shipping address",
         description="This endpoint updates a shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     200: ShippingAddressUpdateSerializer,
-        #     400: ErrorDataResponseSerializer,
-        #     401: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE,
     )
     def patch(self, request, *args, **kwargs):
@@ -380,12 +331,6 @@ class ShippingAddressDetailGenericView(RetrieveUpdateDestroyAPIView):
         summary="Delete a shipping address",
         description="This endpoint deletes a shipping address for the authenticated user.",
         tags=shipping_tags,
-        # responses={
-        #     204: None,
-        #     401: ErrorResponseSerializer,
-        #     403: ErrorResponseSerializer,
-        #     404: ErrorResponseSerializer,
-        # },
         responses=SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE,
     )
     def delete(self, request, *args, **kwargs):

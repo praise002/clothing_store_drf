@@ -28,9 +28,6 @@ class SiteDetailView(APIView):
         summary="Retrieve the single SiteDetail object",
         description="This endpoint retrieves the single SiteDetail object",
         tags=tags,
-        # responses={
-        #     200: SiteDetailResponseSerializer,
-        # },
         responses=SITE_DETAIL_RESPONSE_EXAMPLE,
         auth=[],
     )
@@ -52,9 +49,6 @@ class TeamMemberListView(APIView):
         summary="List all TeamMember objects",
         description="This endpoint lists all TeamMember objects",
         tags=tags,
-        # responses={
-        #     200: TeamMemberResponseSerializer,
-        # },
         responses=TEAM_MEMBER_RESPONSE_EXAMPLE,
         auth=[],
     )
@@ -76,10 +70,6 @@ class MessageCreateView(APIView):
         summary="Create a new Message object",
         description="This endpoint creates a new Message object",
         tags=tags,
-        # responses={
-        #     201: MessageResponseSerializer,
-        #     400: ErrorDataResponseSerializer,
-        # },
         responses=MESSAGE_RESPONSE_EXAMPLE,
         auth=[],
     )
