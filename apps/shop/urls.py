@@ -6,7 +6,7 @@ urlpatterns = [
     path("products/", views.ProductListGenericView.as_view()),
     path(
         "products/<uuid:pk>/<slug:slug>/",
-        views.ProductRetrieveView.as_view(),
+    views.ProductRetrieveView.as_view(),
     ),
     path(
         "products/<uuid:pk>/<slug:slug>/reviews/",

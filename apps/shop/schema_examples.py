@@ -291,7 +291,6 @@ WISHLIST_ADD_PRODUCT_RESPONSE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     401: ErrorResponseSerializer,
     404: OpenApiResponse(
         response=ErrorResponseSerializer,
@@ -371,9 +370,9 @@ REVIEW_CREATE_RESPONSE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     401: ErrorResponseSerializer,
     404: ErrorResponseSerializer,
+    422: ErrorDataResponseSerializer,
 }
 
 REVIEW_UPDATE_RESPONSE = {

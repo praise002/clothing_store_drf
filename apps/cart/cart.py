@@ -33,7 +33,7 @@ class Cart:
 
         # Try to get the cart from Redis
         cart = self.redis_client.get(self.cart_key)
-        print(cart)
+        # print(cart)
 
         if cart:
             # Load the cart from Redis if it exists
@@ -120,19 +120,19 @@ class Cart:
         # iterating over the raw data with string values
         # Iterate over the temporary cart with product objects
         for item in cart.values():
-            print(cart.values())
+            # print(cart.values())
             item["price"] = Decimal(item["price"])
-            print("Before conversion", item["discounted_price"])
-            print(type(item["discounted_price"]))
+            # print("Before conversion", item["discounted_price"])
+            # print(type(item["discounted_price"]))
             item["discounted_price"] = Decimal(item["discounted_price"])
-            print("After conversion", item["discounted_price"])
-            print(type(item["discounted_price"]))
+            # print("After conversion", item["discounted_price"])
+            # print(type(item["discounted_price"]))
             price_to_use = (
                 item["discounted_price"]
                 if item["discounted_price"] != 0
                 else item["price"]
             )
-            print("Price to use", price_to_use)
+            # print("Price to use", price_to_use)
             
             item["total_price"] = price_to_use * item["quantity"]
             yield item
@@ -146,16 +146,16 @@ class Cart:
 
     def get_total_price(self):
         total = Decimal("0")
-        print(self.cart.values())
+        # print(self.cart.values())
         for item in self.cart.values():
-            print(item)
+            # print(item)
             if item["discounted_price"] != Decimal("0"):
                 total += item["discounted_price"] * item["quantity"]
             else:
                 total += item["price"] * item["quantity"]
-            print("DEBUG: Current total:", total)
+            # print("DEBUG: Current total:", total)
 
-        print("DEBUG: Final total:", total)
+        # print("DEBUG: Final total:", total)
         return total
 
         # return sum(

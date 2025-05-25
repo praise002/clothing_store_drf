@@ -1,4 +1,3 @@
-from email.policy import default
 from django.db import models
 from django.conf import settings
 
@@ -100,12 +99,12 @@ class ShippingAddress(BaseModel):
             )  # Set them all to not be default
 
         super().save(*args, **kwargs)
-        
+
     def delete(self, *args, **kwargs):
-        # If this is the default address, throw an error 
+        # If this is the default address, throw an error
         if self.default:
             raise ValueError("Cannot delete default shipping address")
-        
+
         super().delete(*args, **kwargs)
 
     def __str__(self):

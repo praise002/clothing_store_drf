@@ -1,4 +1,4 @@
-from decimal import Decimal
+
 from autoslug import AutoSlugField
 from django.db import models
 
