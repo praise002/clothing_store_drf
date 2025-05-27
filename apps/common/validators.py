@@ -1,6 +1,8 @@
 from django.forms import ValidationError
-from cloudinary.models import CloudinaryResource
 from uuid import UUID
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def validate_uuid(uuid_string):
@@ -11,13 +13,6 @@ def validate_uuid(uuid_string):
         return False
 
 
-# def validate_file_size(file):
-#     max_size_kb = 90
-
-#     if file.size > max_size_kb * 1024:
-#         raise ValidationError(f"Files cannot be larger than {max_size_kb}KB!")
-
-
 def validate_file_size(file):
     """
     Validate file size for Cloudinary uploads
@@ -26,19 +21,17 @@ def validate_file_size(file):
     max_size_mb = 2
     max_size_bytes = max_size_mb * 1024 * 1024
 
-    if hasattr(file, "size"):
-        # Regular file upload
-        if file.size > max_size_bytes:
-            raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
-    elif isinstance(file, CloudinaryResource):
-        # Cloudinary file
-        if hasattr(file, "metadata"):
-            file_size = file.metadata.get("bytes", 0)
-            if file_size > max_size_bytes:
-                raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
-    else:
-        # If we can't determine size, assume it's valid
-        # You might want to modify this behavior based on your requirements
-        pass
+    logger.debug(f"Validating file size for file type: {type(file).__name__}")
 
-# TODO: FIX LATER
+    # Only validate if it's a file with size attribute (during upload)
+    if hasattr(file, "size"):
+        logger.info(f"File has size attribute. Size: {file.size} bytes")
+        if file.size > max_size_bytes:
+            logger.warning(f"File size ({file.size} bytes) exceeds limit of {max_size_bytes} bytes")
+            raise ValidationError(f"File size cannot exceed {max_size_mb}MB")
+        else:
+            logger.info(f"File size validation passed: {file.size} bytes")
+    else:
+        # Don't validate CloudinaryResource objects (existing files)
+        logger.info(f"File doesn't have size attribute, skipping validation. File type: {type(file).__name__}")
+        return True

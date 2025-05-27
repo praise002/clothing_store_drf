@@ -53,11 +53,9 @@ class Product(BaseModel):
     is_available = models.BooleanField(default=True)
     featured = models.BooleanField(default=False)
     flash_deals = models.BooleanField(default=False)
-    # image = CloudinaryField(
-    #     "image", folder="products/", validators=[validate_file_size]
-    # ) #TODO: FIX LATER
-    image = CloudinaryField("image", folder="products/")
-
+    image = CloudinaryField(
+        "image", folder="products/", validators=[validate_file_size]
+    )
     objects = ProductManager()
 
     def get_cropped_image_url(self, width=250, height=250):
