@@ -168,6 +168,7 @@ class InitiatePaymentFLW(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                err_code=ErrorCode.SERVER_ERROR
             )
         except ValueError as err:
             logger.error(
@@ -177,6 +178,7 @@ class InitiatePaymentFLW(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                err_code=ErrorCode.SERVER_ERROR
             )
 
 
@@ -234,7 +236,7 @@ class InitiatePaymentPaystack(APIView):
         # Generate a unique reference for the payment
         tx_ref = str(
             uuid.uuid4()
-        )  # TODO: VERY UNLIKELY FOR COLLISION BUT TEST FOR COLLISION
+        )  # NOTE: VERY UNLIKELY FOR COLLISION BUT TEST FOR COLLISION
 
         # Associate the reference to the Order record
         order.tx_ref = tx_ref
@@ -272,6 +274,7 @@ class InitiatePaymentPaystack(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                err_code=ErrorCode.SERVER_ERROR,
             )
         except ValueError as err:
             logger.error(
@@ -281,4 +284,5 @@ class InitiatePaymentPaystack(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                err_code=ErrorCode.SERVER_ERROR,
             )

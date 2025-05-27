@@ -90,7 +90,7 @@ class Order(BaseModel):
         """Calculate the final total including discount (if any) and shipping fee."""
         base_amount = (
             self.discounted_total
-            if self.discounted_total
+            if self.discounted_total is not None
             else self.calculate_subtotal()
         )
 

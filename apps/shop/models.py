@@ -1,4 +1,3 @@
-
 from autoslug import AutoSlugField
 from django.db import models
 
@@ -118,7 +117,6 @@ class Review(BaseModel):
 
 
 class Wishlist(models.Model):
-    # TODO: SWITCH TO UUID
     profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name="wishlists", blank=True)
     added_at = models.DateTimeField(auto_now_add=True)

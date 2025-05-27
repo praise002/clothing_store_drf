@@ -15,7 +15,7 @@ from apps.common.serializers import (
 from apps.discount.models import Coupon, CouponUsage
 from apps.discount.serializers import CouponApplySerializer
 from apps.discount.service import apply_coupon_discount_to_order
-from apps.orders.choices import PaymentStatus
+from apps.orders.choices import PaymentStatus, ShippingStatus
 from apps.orders.models.order import Order
 from apps.orders.serializers.order import (
     OrderWithDiscountResponseSerializer,
@@ -54,7 +54,10 @@ class ApplyCouponView(APIView):
         except Order.DoesNotExist:
             raise NotFoundError(err_msg="Order not found.")
 
-        if order.payment_status == PaymentStatus.SUCCESSFUL:
+        if (
+            order.payment_status == PaymentStatus.SUCCESSFUL
+            or order.shipping_status == ShippingStatus.DELIVERED
+        ):
             return CustomResponse.error(
                 message="This order has already been paid for.",
                 err_code=ErrorCode.BAD_REQUEST,
@@ -62,7 +65,7 @@ class ApplyCouponView(APIView):
 
         coupon = Coupon.objects.get(code=serializer.validated_data["code"])
 
-        # 3. Validate coupon against order 
+        # 3. Validate coupon against order
         coupon_usage = CouponUsage.objects.filter(coupon=coupon, order=order).exists()
 
         if coupon_usage:

@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 def calculate_order_discount(
     subtotal: Decimal, discount_type: str, discount_value: int
 ) -> Decimal:
+    discount_amount = Decimal("0")
+    
     if discount_type == DiscountChoices.PERCENTAGE:
         discount_amount = (discount_value / Decimal("100")) * subtotal
 
