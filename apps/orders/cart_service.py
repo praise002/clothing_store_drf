@@ -71,6 +71,9 @@ def create_order_from_cart(cart, shipping_address, user_profile):
 
     # Clear the cart after creating the order
     cart.clear()
+    
+    # Initialize discount_info to None before the try block
+    discount_info = None
 
     # Apply tiered discount if applicable
     try:
@@ -82,4 +85,4 @@ def create_order_from_cart(cart, shipping_address, user_profile):
         # do nothing if no tiered discount is configured
         pass
 
-    return order, discount_info
+    return order, discount_info 

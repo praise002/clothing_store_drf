@@ -40,8 +40,8 @@ class OrderCreateView(APIView):
         tags=tags,
         responses={
             201: OrderResponseSerializer,
-            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
     )
     def post(self, request):
@@ -80,8 +80,8 @@ class OrderCreateGenericView(CreateAPIView):
         tags=tags,
         responses={
             201: OrderResponseSerializer,
-            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
+            422: ErrorDataResponseSerializer,
         },
     )
     def create(self, request, *args, **kwargs):
