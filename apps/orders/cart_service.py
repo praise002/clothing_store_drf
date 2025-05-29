@@ -71,18 +71,18 @@ def create_order_from_cart(cart, shipping_address, user_profile):
 
     # Clear the cart after creating the order
     cart.clear()
-    
+
     # Initialize discount_info to None before the try block
     discount_info = None
 
     # Apply tiered discount if applicable
     try:
         discount = Discount.objects.get(discount_type=DiscountChoices.TIERED)
-        print(discount)
+
         discount_info = apply_discount_to_order(order, discount)
-        print(f"Discount info: {discount_info}")
+
     except Discount.DoesNotExist:
         # do nothing if no tiered discount is configured
         pass
 
-    return order, discount_info 
+    return order, discount_info

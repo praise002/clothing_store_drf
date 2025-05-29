@@ -54,9 +54,7 @@ class TestShop(APITestCase):
     def test_product_list(self):
         # Test success
         response = self.client.get(self.product_list_url)
-        print(response.json())
-        print(len(response.json()))
-        print(response.data["data"]["results"])
+
         self.assertEqual(response.status_code, 200)
         self.assertIn("results", response.data["data"])
 
@@ -65,7 +63,6 @@ class TestShop(APITestCase):
         response = self.client.get(self.product_detail_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["data"]["name"], "Test Product 1")
-        print(response.json())
 
         # Test 404 for non-existent product
         response = self.client.get(self.nonexistent_product_url)
@@ -79,9 +76,6 @@ class TestShop(APITestCase):
         # Test success
         response = self.client.get(self.product_reviews_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
-
-        print(len(response.json()))
 
         # Test 404 for non-existent product
         nonexistent_product_reviews_url = (
@@ -102,12 +96,10 @@ class TestShop(APITestCase):
 
         response = self.client.post(self.review_create_url, review_data)
         self.assertEqual(response.status_code, 201)
-        print(response.json())
 
         # Test 422 for has reviewed
         response = self.client.post(self.review_create_url, review_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test 422 for invalid rating
         invalid_data = {
@@ -139,7 +131,6 @@ class TestShop(APITestCase):
 
         response = self.client.patch(self.review_update_url, update_data)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
         # Test 422 for invalid rating
         invalid_update = {"rating": 6}  # Invalid rating
@@ -169,14 +160,12 @@ class TestShop(APITestCase):
         # Test success
         response = self.client.get(self.category_list_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
     def test_category_product_list(self):
         # Test success
         response = self.client.get(self.category1_url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("data", response.data)
-        print(response.json())
 
         # Test 404 for non-existent category
         response = self.client.get(self.nonexistent_category_url)
@@ -189,7 +178,6 @@ class TestShop(APITestCase):
         response = self.client.get(self.wishlist_url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("products", response.data["data"])
-        print(response.json())
 
         # Test 401 for unauthenticated user
         self.client.force_authenticate(user=None)
@@ -203,7 +191,6 @@ class TestShop(APITestCase):
 
         response = self.client.post(self.add_to_wishlist_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
         # Verify product was added to wishlist
         wishlist = Wishlist.objects.get(profile=self.user1.profile)
@@ -226,24 +213,21 @@ class TestShop(APITestCase):
     def test_remove_product_from_wishlist(self):
         # Test success for authenticated user
         self.client.force_authenticate(user=self.user1)
-        print(self.wishlist)
-        
+
         response = self.client.delete(self.remove_from_wishlist_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
-        
+
         # Verify product was removed from wishlist
         wishlist = Wishlist.objects.get(profile=self.user1.profile)
         self.assertFalse(wishlist.products.filter(id=self.product2.id).exists())
-        
+
         # Test 404 for product not in wishlist
         response = self.client.delete(self.add_to_wishlist_url)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
-        
+
         # Test 401 for unauthenticated user
         self.client.force_authenticate(user=None)
-        
+
         response = self.client.delete(self.remove_from_wishlist_url)
         self.assertEqual(response.status_code, 401)
 

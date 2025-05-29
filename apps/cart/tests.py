@@ -4,7 +4,7 @@ from django.utils import timezone
 import uuid
 from rest_framework.test import APITestCase
 
-from apps.cart.cart import Cart
+
 from apps.common.utils import TestUtil
 from apps.discount.models import Discount, ProductDiscount
 from apps.shop.models import Product
@@ -33,7 +33,7 @@ class TestCart(APITestCase):
         # Test empty cart
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
+
         self.assertEqual(response.data["data"]["items"], [])
 
         # Add item to cart first
@@ -46,40 +46,33 @@ class TestCart(APITestCase):
         # Test cart with items
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
+
         self.assertEqual(len(response.data["data"]["items"]), 1)
 
         # Get initial cart response to check price
 
         initial_price = Decimal(response.data["data"]["items"][0]["price"])
-        print(type(initial_price))
+
         initial_total = response.data["data"]["total_price"]
-        print(type(initial_total))
-        
+
         # Switch to second user
         self.client.force_authenticate(user=self.user2)
-        
+
         # Second user's cart should be empty
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(len(response.data["data"]["items"]), 0)
-        print("Second user cart empty", response.json())
 
         # Test that product price in cart updates when price is updated by admin
         self.client.force_authenticate(user=self.user)
         original_price = self.product1.price
         Product.objects.filter(id=self.product1.id).update(price=original_price * 5)
         product = Product.objects.get(id=self.product1.id)
-        print(product.price)
-        print(type(product.price))
 
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
         updated_price = Decimal(response.data["data"]["items"][0]["price"])
         updated_total = response.data["data"]["total_price"]
-        print(type(updated_price))
-        print(type(updated_total))
 
         # Verify prices were updated correctly
         self.assertEqual(updated_price, initial_price * 5)
@@ -97,7 +90,6 @@ class TestCart(APITestCase):
 
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
         # Test 401
         self.client.force_authenticate(user=None)
@@ -111,14 +103,17 @@ class TestCart(APITestCase):
         cart_data = {"product_id": str(self.product1.id), "quantity": 2}
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
 
         # Verify cart has the item
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(len(response.data["data"]["items"]), 1)
 
         # Test success - update existing product (increase quantity)
-        cart_data = {"product_id": str(self.product1.id), "quantity": 3, "override": True}
+        cart_data = {
+            "product_id": str(self.product1.id),
+            "quantity": 3,
+            "override": True,
+        }
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 200)
 
@@ -136,40 +131,34 @@ class TestCart(APITestCase):
         cart_data = {"product_id": str(self.product2.id), "quantity": 1}
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 404)
-        print(response.json())
 
         # Test validation error - negative quantity
         cart_data = {"product_id": str(self.product1.id), "quantity": -1}
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test 401 for unauthenticated
         self.client.force_authenticate(user=None)
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 401)
-        
 
     def test_remove_product_cart(self):
         # Add product to cart first
         self.client.force_authenticate(user=self.user)
-        cart_data = {
-            "product_id": str(self.product1.id),
-            "quantity": 2
-        }
+        cart_data = {"product_id": str(self.product1.id), "quantity": 2}
         self.client.post(self.cart_add_update_url, cart_data)
-        
+
         # Test success - 204 No Content
         response = self.client.delete(self.cart_remove_url)
         self.assertEqual(response.status_code, 204)
-        
+
         # Verify product was removed
         response = self.client.get(self.cart_detail_url)
         self.assertEqual(len(response.data["data"]["items"]), 0)
-        
+
         response = self.client.delete(self.nonexistent_product_remove_url)
         self.assertEqual(response.status_code, 404)
-        
+
         # Test 401 for unauthenticated
         self.client.force_authenticate(user=None)
         response = self.client.delete(self.cart_remove_url)

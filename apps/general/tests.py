@@ -9,13 +9,12 @@ class TestGeneral(APITestCase):
     def test_site_detail(self):
         # Test successful retrieval of site detail
         response = self.client.get(self.site_detail_url)
-        print(response.data)
+
         self.assertEqual(response.status_code, 200)
 
     def test_team_member_list(self):
         # Test successful retrieval of team members
         response = self.client.get(self.teams_url)
-        print(response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_message_create(self):
@@ -43,5 +42,6 @@ class TestGeneral(APITestCase):
         }
         response = self.client.post(self.contact_url, invalid_email_data)
         self.assertEqual(response.status_code, 422)
+
 
 # python manage.py test apps.general.tests.TestGeneral.test_message_create

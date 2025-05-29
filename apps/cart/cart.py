@@ -99,7 +99,7 @@ class Cart:
         # get the product objects and add them to the cart
         products = Product.objects.filter(id__in=product_ids)
         cart = self.cart.copy()
-        
+
         # First update prices in self.cart (without product objects)
         for product in products:
             product_id = str(product.id)
@@ -133,7 +133,7 @@ class Cart:
                 else item["price"]
             )
             # print("Price to use", price_to_use)
-            
+
             item["total_price"] = price_to_use * item["quantity"]
             yield item
 
@@ -153,9 +153,7 @@ class Cart:
                 total += item["discounted_price"] * item["quantity"]
             else:
                 total += item["price"] * item["quantity"]
-            # print("DEBUG: Current total:", total)
 
-        # print("DEBUG: Final total:", total)
         return total
 
         # return sum(

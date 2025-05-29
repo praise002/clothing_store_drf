@@ -1,5 +1,9 @@
 from apps.accounts.models import User
-from apps.profiles.models import Profile
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TestUtil:
@@ -34,13 +38,3 @@ class TestUtil:
         }
         user, _ = User.objects.get_or_create(**user_dict)
         return user
-
-    @staticmethod
-    def delete_all_profiles():
-        try:
-            User.objects.all().delete()
-        except Exception as e:
-            print(f"Unexpected error occurred while deleting profiles: {e}")
-
-    def get_profile(user):
-        return Profile.objects.get(user=user)

@@ -24,7 +24,7 @@ class TestOrders(APITestCase):
 
         # Create shipping address for the user
         ShippingFee.objects.create(state="Lagos", fee=5000)
-        self.shipping_address = ShippingAddress.objects.create(
+        self.shipping_address1 = ShippingAddress.objects.create(
             user=self.user1.profile,
             phone_number="1234567890",
             state="Lagos",
@@ -34,7 +34,7 @@ class TestOrders(APITestCase):
             default=True,
         )
 
-        self.shipping_address1 = ShippingAddress.objects.create(
+        self.shipping_address2 = ShippingAddress.objects.create(
             user=self.user2.profile,
             phone_number="12345678",
             state="Ondo",
@@ -43,8 +43,6 @@ class TestOrders(APITestCase):
             street_address="123 Test Street",
             default=True,
         )
-
-        # Add items to user's cart
 
         self.client.force_authenticate(user=self.user1)
 
@@ -59,13 +57,12 @@ class TestOrders(APITestCase):
         # Test success(201)
         # No need to auth again since it is in setup
 
-        order_data = {"shipping_id": str(self.shipping_address.id)}
+        order_data = {"shipping_id": str(self.shipping_address1.id)}
         order_data_invalid = {"shipping_id": str(uuid.uuid4())}
-        order_data_invalid2 = {"shipping_id": str(self.shipping_address1.id)}
+        order_data_invalid2 = {"shipping_id": str(self.shipping_address2.id)}
 
         response = self.client.post(self.order_create_url, order_data)
         self.assertEqual(response.status_code, 201)
-        print(response.json())
 
         # Verify order was created
         self.assertTrue(Order.objects.filter(customer=self.user1.profile).exists())
@@ -73,12 +70,10 @@ class TestOrders(APITestCase):
         # Test 422(shipping id does not exist)
         response = self.client.post(self.order_create_url, order_data_invalid)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test 422(shipping id does not exist for user)
         response = self.client.post(self.order_create_url, order_data_invalid2)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test validation on stock availability
         # Add product2 to cart(out of stock)
@@ -90,13 +85,11 @@ class TestOrders(APITestCase):
 
         response = self.client.post(self.order_create_url, order_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test validation on cart empty
         self.client.post(self.cart_add_url, None)
         response = self.client.post(self.order_create_url, order_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test 401
         self.client.force_authenticate(user=None)
@@ -104,7 +97,7 @@ class TestOrders(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_order_create_discount(self):
-        order_data = {"shipping_id": str(self.shipping_address.id)}
+        order_data = {"shipping_id": str(self.shipping_address1.id)}
 
         # Test tiered order discount
         discount = Discount.objects.create(
@@ -118,7 +111,7 @@ class TestOrders(APITestCase):
         )
 
         response = self.client.post(self.order_create_url, order_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 201)
         self.assertIn("Discount", response.data["data"]["discount_info"]["message"])
 
@@ -128,7 +121,7 @@ class TestOrders(APITestCase):
         # )
 
         # response = self.client.post(self.order_create_url, order_data)
-        # print(response.json())
+        #
         # self.assertEqual(response.status_code, 201)
         # self.assertIn("Free shipping", response.data["data"]["discount_info"]["message"])
         # print(response.data["data"]["discount_info"])
@@ -138,19 +131,18 @@ class TestOrders(APITestCase):
 
         response = self.client.get(self.order_history_url)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
+
         self.assertIn("No orders found", response.data["message"])
 
         # Test success(200)
         order_data = {
-            "shipping_id": str(self.shipping_address.id),
+            "shipping_id": str(self.shipping_address1.id),
         }
 
         self.client.post(self.order_create_url, order_data)
         response = self.client.get(self.order_history_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["data"][0]["items"]), 1)
-        # print(response.data["data"][0]["items"])
 
         # Test 401
         self.client.force_authenticate(user=None)

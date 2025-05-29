@@ -29,7 +29,7 @@ SECRET_KEY = config("SECRET_KEY")
 # Application definition
 
 DJANGO_APPS = [
-    # "jazzmin",
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -240,9 +240,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.orders.tasks.check_pending_orders",
         "schedule": 60 * 5,  # Run every 5 minutes
     },
-    'check-expired-discounts': {
-        'task': 'apps.discount.tasks.check_expired_discounts',
-        'schedule': 60.0,  # Run every minute
+    "check-expired-discounts": {
+        "task": "apps.discount.tasks.check_expired_discounts",
+        "schedule": 60.0,  # Run every minute
     },
 }
 
@@ -250,11 +250,11 @@ FIRST_PURCHASE_DISCOUNT = 10
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Sixteen Clothing Store Admin",
+    "site_title": "Clothing Store Admin",
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Sixteen Clothing Store",
+    "site_header": "Clothing Store",
     # # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "Sixteen Clothing Store",
+    "site_brand": "Clothing Store",
     # Logo to use for your site, must be present in static files, used for brand on top left
     "site_logo": "media/logo.svg",
     # Logo to use for your site, must be present in static files, used for login form logo (defaults to site_logo)
@@ -262,9 +262,9 @@ JAZZMIN_SETTINGS = {
     # CSS classes that are applied to the logo above
     "site_logo_classes": "img-circle",
     # Welcome text on the login screen
-    "welcome_sign": "Welcome to Sixteen Clothing Store",
+    "welcome_sign": "Welcome to Clothing Store",
     # Copyright on the footer
-    "copyright": "Sixteen Clothing Store Ltd",
+    "copyright": "Clothing Store Ltd",
     # List of model admins to search from the search bar, search bar omitted if excluded
     # If you want to use a single search field you dont need to use a list, you can use a simple string
     "search_model": "accounts.User",
@@ -283,7 +283,7 @@ JAZZMIN_SETTINGS = {
         {"app": "shop"},
         {"app": "cart"},
         {"app": "orders"},
-        {"app": "coupons"},
+        {"app": "discount"},
         {"app": "payments"},
         {"app": "general"},
     ],
@@ -292,7 +292,7 @@ JAZZMIN_SETTINGS = {
     #############
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
-        {"name": "Sixteen Clothing Store Frontpage", "url": "/", "new_window": True},
+        {"name": "Clothing Store Frontpage", "url": "/", "new_window": True},
         {"model": "accounts.user"},
     ],
     #############
@@ -314,14 +314,19 @@ JAZZMIN_SETTINGS = {
         "auth.Group": "fas fa-users",
         "sites.site": "fas fa-globe",
         "profiles.profile": "fas fa-id-card",
-        "coupons.couponusage": "fas fa-ticket-alt",
-        "coupons.coupon": "fas fa-tags",
+        "discount.couponusage": "fas fa-ticket-alt",
+        "discount.coupon": "fas fa-tags",
+        "discount.discount": "fas fa-percent",        
+        "discount.productdiscount": "fas fa-tag",     
+        "discount.tiereddiscount": "fas fa-layer-group",
         "general.message": "fas fa-envelope",
         "general.sitedetail": "fas fa-info-circle",
         "general.social": "fas fa-share-alt",
         "general.teammember": "fas fa-users-cog",
-        "orders.delivery": "fas fa-truck",
+        "profiles.shippingaddress": "fas fa-map-marker-alt",
+        "profiles.shippingfee": "fas fa-money-bill-wave",
         "orders.order": "fas fa-shopping-cart",
+        "orders.trackingnumber": "fas fa-truck-loading",  
         "shop.category": "fas fa-layer-group",
         "shop.product": "fas fa-tshirt",
         "shop.review": "fas fa-star",

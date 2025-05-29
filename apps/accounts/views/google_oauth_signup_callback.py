@@ -14,6 +14,10 @@ from apps.accounts.utils import google_callback
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @extend_schema(exclude=True)
 class GoogleOAuth2SignUpCallbackView(APIView):
@@ -30,13 +34,12 @@ class GoogleOAuth2SignUpCallbackView(APIView):
                 err_code=ErrorCode.BAD_REQUEST,
             )
 
-        print(f"Redirect uri: {redirect_uri}")
-        print(f"Auth uri: {auth_uri}")
-        print(f"State: {state}")
+        logger.debug(f"Redirect uri: {redirect_uri}")
+        logger.debug(f"Auth uri: {auth_uri}")
+        logger.debug(f"State: {state}")
 
         user_data = google_callback(redirect_uri, auth_uri, state)
-        print(f"User data: {user_data}")
-        print(f"Id: {user_data["id"]}")
+
         # Use get_or_create since an existing user may end up signing in
         # through the sign up route.
         user, created = User.objects.get_or_create(
@@ -48,7 +51,6 @@ class GoogleOAuth2SignUpCallbackView(APIView):
                 "is_email_verified": True,
             },
         )
-        print(f"Created: {created}")
 
         avatar_url = user_data.get("picture")
         download_and_upload_avatar.delay(avatar_url, user.id)

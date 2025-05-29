@@ -5,7 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 
 from apps.common.utils import TestUtil
-from apps.profiles.models import Profile, ShippingAddress
+from apps.profiles.models import Profile
+from apps.profiles.test_utils import TestProfileUtil
 
 
 class TestProfiles(APITestCase):
@@ -21,34 +22,8 @@ class TestProfiles(APITestCase):
         self.profile1 = Profile.objects.get(user=self.user1)
         self.profile2 = Profile.objects.get(user=self.user2)
 
-        self.address1 = ShippingAddress.objects.create(
-            user=self.profile1,
-            phone_number="1234567890",
-            state="Lagos",
-            postal_code="100001",
-            city="Lagos",
-            street_address="123 Test Street",
-            default=True,
-        )
-
-        self.address2 = ShippingAddress.objects.create(
-            user=self.profile1,
-            phone_number="0987654321",
-            state="Abuja",
-            postal_code="900001",
-            city="Abuja",
-            street_address="456 Sample Road",
-            default=False,
-        )
-
-        self.address3 = ShippingAddress.objects.create(
-            user=self.profile2,
-            phone_number="5555555555",
-            state="Rivers",
-            postal_code="500001",
-            city="Port Harcourt",
-            street_address="789 Example Avenue",
-            default=True,
+        self.address1, self.address2, self.address3 = TestProfileUtil.shipping_address(
+            self.profile1, self.profile2
         )
 
         # Create shipping address detail URL with ID
@@ -74,19 +49,18 @@ class TestProfiles(APITestCase):
         }
 
         response = self.client.post(self.shipping_address_create_url, valid_data)
-        print(response.data)
+
         self.assertEqual(response.status_code, 201)
 
         # get all the shipping address to check the default changes for the previous one
         response = self.client.get(self.shipping_address_list_url)
-        print(response.data)
 
         # Test invalid state choice (422)
         invalid_data = valid_data.copy()
         invalid_data["state"] = "InvalidState"
 
         response = self.client.post(self.shipping_address_create_url, invalid_data)
-        print(response.data)
+
         self.assertEqual(response.status_code, 422)
 
         # Test 422(missing field)
@@ -96,7 +70,7 @@ class TestProfiles(APITestCase):
             "postal_code": "100001",
         }
         response = self.client.post(self.shipping_address_create_url, invalid_data)
-        print(response.data)
+
         self.assertEqual(response.status_code, 422)
 
         # test 401
@@ -111,7 +85,6 @@ class TestProfiles(APITestCase):
 
         response = self.client.get(self.shipping_address_list_url)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
 
         # User1 should have 2 addresses
         self.assertEqual(len(response.data["data"]), 2)
@@ -137,12 +110,12 @@ class TestProfiles(APITestCase):
 
         response = self.client.get(self.shipping_address_detail_url)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
+
         self.assertEqual(response.data["data"]["id"], str(self.address1.id))
 
         # Test you can only retrieve your shipping address
         response = self.client.get(self.shipping_address_other_user_url)
-        print(response.data)
+
         self.assertEqual(response.status_code, 404)
 
         self.client.force_authenticate(user=None)
@@ -155,7 +128,6 @@ class TestProfiles(APITestCase):
 
         response = self.client.get(self.non_existent_address_url)
         self.assertEqual(response.status_code, 404)
-        print(response.data)
 
     def test_shipping_address_detail_patch(self):
         # Test 200 for authenticated users
@@ -168,7 +140,6 @@ class TestProfiles(APITestCase):
 
         response = self.client.patch(self.shipping_address_detail_url, update_data)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
 
         # Verify the update
         self.address1.refresh_from_db()
@@ -183,16 +154,13 @@ class TestProfiles(APITestCase):
             f"/api/v1/shipping-addresses/{self.address2.id}/", update_data
         )
         self.assertEqual(response.status_code, 200)
-        print(response.data)
 
         # get all the shipping address to check the default changes for the previous one
         response = self.client.get(self.shipping_address_list_url)
-        print(response.data)
 
         # Test you can only update your shipping address
         response = self.client.patch(self.shipping_address_other_user_url, update_data)
         self.assertEqual(response.status_code, 404)
-        print(response.data)
 
         # Test 401 for unauthenticated users
         self.client.force_authenticate(user=None)
@@ -204,7 +172,6 @@ class TestProfiles(APITestCase):
         self.client.force_authenticate(user=self.user1)
         response = self.client.patch(self.non_existent_address_url, update_data)
         self.assertEqual(response.status_code, 404)
-        print(response.data)
 
     def test_shipping_address_detail_delete(self):
         # Test 204 for authenticated users (non-default address)
@@ -219,29 +186,24 @@ class TestProfiles(APITestCase):
         response = self.client.delete(
             self.shipping_address_detail_url
         )  # This is the default address
-        print(self.shipping_address_detail_url)
-        print(self.address1)
+
         self.assertEqual(response.status_code, 403)
-        print(response.data)
 
         # Test you can only delete your shipping address
         response = self.client.delete(self.shipping_address_other_user_url)
         self.assertEqual(response.status_code, 404)
-        print(response.data)
 
         # Test 401 for unauthenticated users
         self.client.force_authenticate(user=None)
 
         response = self.client.delete(non_default_url)
         self.assertEqual(response.status_code, 401)
-        print(response.data)
 
         # Test 404 for non-existent address
         self.client.force_authenticate(user=self.user1)
 
         response = self.client.delete(self.non_existent_address_url)
         self.assertEqual(response.status_code, 404)
-        print(response.data)
 
     def test_profile(self):
         # Test successful retrieval for authenticated users
@@ -249,7 +211,7 @@ class TestProfiles(APITestCase):
 
         response = self.client.get(self.profile_url)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
+
         profile1 = Profile.objects.get(user=response.data["data"]["user"]["id"])
         self.assertEqual(str(profile1.id), str(self.profile1.id))
 
@@ -259,7 +221,7 @@ class TestProfiles(APITestCase):
 
         response = self.client.get(self.profile_url)
         self.assertEqual(response.status_code, 200)
-        print(response.data)
+
         profile2 = Profile.objects.get(user=response.data["data"]["user"]["id"])
         self.assertEqual(str(profile2.id), str(self.profile2.id))
 
@@ -282,7 +244,6 @@ class TestProfiles(APITestCase):
             self.avatar_update_url, {"avatar": image}, format="multipart"
         )
 
-        print(response.data)
         self.assertEqual(response.status_code, 200)
         self.profile1.refresh_from_db()
         self.assertTrue(self.profile1.avatar)
@@ -293,7 +254,6 @@ class TestProfiles(APITestCase):
         response = self.client.patch(
             self.avatar_update_url, {"avatar": image}, format="multipart"
         )
-        print(response.data)
 
         self.assertEqual(response.status_code, 401)
 

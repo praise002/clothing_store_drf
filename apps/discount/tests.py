@@ -84,56 +84,46 @@ class TestDiscount(APITestCase):
         coupon_data = {"code": self.expired_coupon}
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         # Test coupon does not exist
         coupon_data = {"code": "NONEXISTENT"}
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
         self.assertEqual(response.status_code, 422)
-        print(response.json())
 
         coupon_data = {"code": self.active_coupon}
 
         # Test order id does not exist(404)
         response = self.client.post(self.non_existent_order_url, coupon_data)
         self.assertEqual(response.status_code, 404)
-        print(response.json())
 
         # Test success(200)
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
         self.assertEqual(response.status_code, 200)
-        print(response.json())
+
         self.order.refresh_from_db()
         self.assertEqual(self.order.discounted_total, 1000)
-        print(self.order.discounted_total)
 
         # Test coupon already applied to order
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
         self.assertEqual(response.status_code, 400)
-        print(response.json())
 
         # Test order has been paid for
         response = self.client.post(self.paid_order_url, coupon_data)
         self.assertEqual(response.status_code, 400)
-        print(response.json())
 
         # Test delivered order
         response = self.client.post(self.delivered_order_url, coupon_data)
         self.assertEqual(response.status_code, 400)
-        print(response.json())
 
         # Test if order total is 0, no payment
         response = self.client.post(self.apply_coupon_other_order_url, coupon_data)
         self.order.refresh_from_db()
         self.assertEqual(response.data["data"]["final_total"], 0)
-        print(response.json())
 
         # Test 401
         self.client.force_authenticate(user=None)
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
         self.assertEqual(response.status_code, 401)
-
-        print(response.json())
 
 
 # python manage.py test apps.discount.tests.TestDiscount.test_apply_coupon

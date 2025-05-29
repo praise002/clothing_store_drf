@@ -22,7 +22,6 @@ class TestShopUtil:
             category=category1,
             image="",
         )
-        print(product1)
 
         product2, _ = Product.objects.get_or_create(
             name="Test Product 2",
@@ -51,7 +50,7 @@ class TestShopUtil:
         return product1, product2, product3
 
     def review():
-        _,  _ , product3 = TestShopUtil.product()
+        _, _, product3 = TestShopUtil.product()
         user1 = TestUtil.verified_user()
         review, _ = Review.objects.get_or_create(
             product=product3,

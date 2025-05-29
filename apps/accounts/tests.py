@@ -568,8 +568,7 @@ class TestGoogleOAuth(APITestCase):
     def test_google_signup(self):
         # Test successful redirect URL generation
         response = self.client.get(self.signup_url)
-        print(response)
-        print(response.json())
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], SUCCESS_RESPONSE_STATUS)
         self.assertIn("authorization_url", response.json()["data"])
@@ -577,8 +576,7 @@ class TestGoogleOAuth(APITestCase):
     def test_google_login(self):
         # Test successful redirect URL generation
         response = self.client.get(self.login_url)
-        print(response)
-        print(response.json())
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], SUCCESS_RESPONSE_STATUS)
         self.assertIn("authorization_url", response.json()["data"])

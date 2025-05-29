@@ -85,7 +85,7 @@ def flw_payment_webhook(request):
         ):
             # Step 7: Handle idempotency (check if the event has already been processed)
             event_id = payload["data"]["id"]
-            print(event_id)
+
             existing_event = PaymentEvent.objects.filter(event_id=event_id).exists()
 
             if existing_event and existing_event.status == payload["data"]["status"]:

@@ -26,13 +26,16 @@ def download_and_upload_avatar(url: str, user_id: str):
         response.raise_for_status()
 
         content_type = response.headers.get("Content-Type", "")
-        print(f"Content Type: {content_type}")
+        logger.debug(f"Content Type: {content_type}")
+
         ext = extension_map.get(content_type, ".jpg")
         image_name = f"{user.full_name}_{uuid.uuid4()}{ext}"
-        print(f"Image name: {image_name}")
+        logger.debug(f"Image name: {image_name}")
+
         image_content = ContentFile(response.content, name=image_name)
-        print(f"Image content: {image_content}")
-        
+
+        logger.debug(f"Image content: {image_content}")
+
         profile.avatar = image_content
         profile.save(update_fields=["avatar"])
         logger.info(f"Successfully uploaded profile picture for user {user.full_name}")

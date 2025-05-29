@@ -37,20 +37,20 @@ class TestPayments(APITestCase):
         # Test 422(order_id does not exist)
         payment_data = {"order_id": uuid.uuid4(), "payment_method": "flutterwave"}
         response = self.client.post(self.initiate_payment_flw_url, payment_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 422)
 
         # Test 400 or 422
         invalid_payment_data = {"order_id": self.order.id, "payment_method": ""}
         response = self.client.post(self.initiate_payment_flw_url, invalid_payment_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 422)
 
         payment_data = {"order_id": self.order.id, "payment_method": "flutterwave"}
 
         # Test success(200)
         response = self.client.post(self.initiate_payment_flw_url, payment_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 200)
 
         # Test payment status if paid
@@ -59,12 +59,10 @@ class TestPayments(APITestCase):
             "payment_method": "flutterwave",
         }
         response = self.client.post(self.initiate_payment_flw_url, payment_paid_data)
-        print(response.json())
 
         # Test 401
         self.client.force_authenticate(user=None)
         response = self.client.post(self.initiate_payment_flw_url, payment_data)
-        print(response.json())
 
     def test_paystack(self):
         self.client.force_authenticate(user=self.user)
@@ -72,20 +70,22 @@ class TestPayments(APITestCase):
         # Test 422(order_id does not exist)
         payment_data = {"order_id": uuid.uuid4(), "payment_method": "paystack"}
         response = self.client.post(self.initiate_payment_paystack_url, payment_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 422)
 
         # Test 400 or 422
         invalid_payment_data = {"order_id": self.order.id, "payment_method": "flw"}
-        response = self.client.post(self.initiate_payment_paystack_url, invalid_payment_data)
-        print(response.json())
+        response = self.client.post(
+            self.initiate_payment_paystack_url, invalid_payment_data
+        )
+
         self.assertEqual(response.status_code, 422)
 
         payment_data = {"order_id": self.order.id, "payment_method": "paystack"}
 
         # Test success(200)
         response = self.client.post(self.initiate_payment_paystack_url, payment_data)
-        print(response.json())
+
         self.assertEqual(response.status_code, 200)
 
         # Test payment status if paid
@@ -93,13 +93,13 @@ class TestPayments(APITestCase):
             "order_id": self.paid_order.id,
             "payment_method": "flutterwave",
         }
-        response = self.client.post(self.initiate_payment_paystack_url, payment_paid_data)
-        print(response.json())
+        response = self.client.post(
+            self.initiate_payment_paystack_url, payment_paid_data
+        )
 
         # Test 401
         self.client.force_authenticate(user=None)
         response = self.client.post(self.initiate_payment_paystack_url, payment_data)
-        print(response.json())
 
 
 # python manage.py test apps.payments.tests.TestPayments.test_flw
