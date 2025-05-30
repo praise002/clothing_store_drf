@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14.5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  redis:
+    image: redis:7.0.4
+    restart: always
+    volumes:
+      - ./data/redis:/data
+
+  web:
+    build: .
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", 
+              "clothing_store.wsgi:application"]
+    restart: always
+    volumes:
+      - .:/app
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build: .
+    command: ["celery", "-A", "clothing_store", "worker", "--loglevel=info"]
+    restart: always
+    volumes: 
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: .
+    command: ["celery", "-A", "clothing_store", "beat", "--loglevel=info"]
+    restart: always
+    volumes: 
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+    depends_on:
+      - db
+      - redis
+
+  flower:
+    build: .
+    command: ["flower", "--broker=redis://redis:6379/0", "--port=5555", "--basic-auth=admin:${FLOWER_PASSWORD}"]
+    restart: always
+    ports:
+      - "5555:5555"
+    environment:
+      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+    depends_on:
+      - db
+      - redis
+  
+    

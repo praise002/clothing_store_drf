@@ -7,6 +7,7 @@
 * Wishlist
 * Order Management
 * Coupons
+* Discounts
 * User Profiles
 * Reviews and Ratings
 * Admin Dashboard
@@ -86,15 +87,21 @@
 
   
 # Home Page
- 
+<img src="./static/media/home1.png"> 
+<img src="./static/media/auth.png"> 
+<img src="./static/media/cart.png"> 
+<img src="./static/media/shop.png"> 
+<img src="./static/media/ghop.png"> 
+<img src="./static/media/rp.png"> 
+<img src="./static/media/shipping.png"> 
 
-# Admin login
 
-
-# Admin logout
  
 
 # Admin dashboard
+<img src="./static/media/admin1.png">  
+<img src="./static/media/admin2.png">  
+<img src="./static/media/admin3.png">  
  
  
 

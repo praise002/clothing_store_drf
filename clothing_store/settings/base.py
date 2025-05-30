@@ -241,7 +241,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 5,  # Run every 5 minutes
     },
     "check-expired-discounts": {
-        "task": "apps.discount.tasks.check_expired_discounts",
+        "task": "apps.shop.tasks.check_expired_discounts",
         "schedule": 60.0,  # Run every minute
     },
 }
