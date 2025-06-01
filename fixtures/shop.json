@@ -1,0 +1,232 @@
+[
+{
+  "model": "shop.category",
+  "pk": "24fa42c5-fb8a-4e37-8ea7-3a8abbc1f36c",
+  "fields": {
+    "created": "2025-06-01T22:16:47.596Z",
+    "name": "Jeans",
+    "slug": "jeans",
+    "last_updated": "2025-06-01T22:16:47.603Z"
+  }
+},
+{
+  "model": "shop.category",
+  "pk": "633004b6-ba52-45ae-a418-2c1f6e6c3136",
+  "fields": {
+    "created": "2025-06-01T22:17:10.719Z",
+    "name": "Sweaters",
+    "slug": "sweaters",
+    "last_updated": "2025-06-01T22:17:10.727Z"
+  }
+},
+{
+  "model": "shop.category",
+  "pk": "ab9e7fd6-0086-48cb-b755-63fae19911a7",
+  "fields": {
+    "created": "2025-06-01T22:16:23.699Z",
+    "name": "T-Shirts",
+    "slug": "t-shirts",
+    "last_updated": "2025-06-01T22:16:23.760Z"
+  }
+},
+{
+  "model": "shop.category",
+  "pk": "b6669b75-de3f-4286-8e97-fa97156a0aba",
+  "fields": {
+    "created": "2025-06-01T22:16:59.530Z",
+    "name": "Dresses",
+    "slug": "dresses",
+    "last_updated": "2025-06-01T22:16:59.540Z"
+  }
+},
+{
+  "model": "shop.category",
+  "pk": "d2f90cf3-ee7a-4707-a047-46f776568316",
+  "fields": {
+    "created": "2025-06-01T22:16:35.530Z",
+    "name": "Jackets",
+    "slug": "jackets",
+    "last_updated": "2025-06-01T22:16:35.539Z"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "1b9226ab-7152-4b21-b162-d2717aa3d646",
+  "fields": {
+    "created": "2025-06-01T22:37:06.664Z",
+    "name": "Maxi Dress",
+    "slug": "maxi-dress",
+    "description": "Elegant maxi dress with wrap design and flutter sleeves. Features a subtle print and side slit.",
+    "category": "b6669b75-de3f-4286-8e97-fa97156a0aba",
+    "price": "10000.00",
+    "discounted_price": null,
+    "in_stock": 40,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": false,
+    "image": "image/upload/v1748817459/products/yxxqntzoccxlagzkluzo.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "2546621c-3568-4f69-8d88-f5774dab67df",
+  "fields": {
+    "created": "2025-06-01T22:22:53.767Z",
+    "name": "Denim Jacket",
+    "slug": "denim-jacket",
+    "description": "Vintage-inspired denim jacket with button closures and multiple pockets. Perfect for layering in any season.",
+    "category": "d2f90cf3-ee7a-4707-a047-46f776568316",
+    "price": "8000.00",
+    "discounted_price": null,
+    "in_stock": 45,
+    "is_available": true,
+    "featured": true,
+    "flash_deals": false,
+    "image": "image/upload/v1748816606/products/pruettjtfymw1hykiupp.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "3230464f-fd45-43f7-8087-a383ffb9701f",
+  "fields": {
+    "created": "2025-06-01T22:31:30.442Z",
+    "name": "Graphic Tee",
+    "slug": "graphic-tee",
+    "description": "Cotton t-shirt featuring a unique graphic print. Relaxed fit with a slightly longer length.",
+    "category": "ab9e7fd6-0086-48cb-b755-63fae19911a7",
+    "price": "8500.00",
+    "discounted_price": null,
+    "in_stock": 100,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": true,
+    "image": "image/upload/v1748817123/products/wffe310nksakn8unszku.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "44abd4d6-e35f-49da-a84c-c1f707c61297",
+  "fields": {
+    "created": "2025-06-01T22:26:29.819Z",
+    "name": "Summer Dress",
+    "slug": "summer-dress",
+    "description": "Lightweight floral dress perfect for warm weather. Features a flowy silhouette and adjustable spaghetti straps.",
+    "category": "b6669b75-de3f-4286-8e97-fa97156a0aba",
+    "price": "3000.00",
+    "discounted_price": null,
+    "in_stock": 30,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": false,
+    "image": "image/upload/v1748816822/products/azdds2m4fk0n46aprvwk.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "7302837e-473a-4d28-a2ef-7acd392d230d",
+  "fields": {
+    "created": "2025-06-01T22:19:29.129Z",
+    "name": "Classic White Tee",
+    "slug": "classic-white-tee",
+    "description": "Essential cotton t-shirt with a relaxed fit and crew neckline. Made from premium organic cotton for everyday comfort and durability.",
+    "category": "ab9e7fd6-0086-48cb-b755-63fae19911a7",
+    "price": "5000.00",
+    "discounted_price": null,
+    "in_stock": 149,
+    "is_available": true,
+    "featured": true,
+    "flash_deals": false,
+    "image": "image/upload/v1748816406/products/wtcfdighxul7eujohqif.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "7e94aadf-1310-4147-9503-bea2c223e2cd",
+  "fields": {
+    "created": "2025-06-01T22:33:11.982Z",
+    "name": "Leather Jacket",
+    "slug": "leather-jacket",
+    "description": "Classic faux leather jacket with asymmetrical zip closure and quilted details. Fully lined for comfort.",
+    "category": "d2f90cf3-ee7a-4707-a047-46f776568316",
+    "price": "18000.00",
+    "discounted_price": null,
+    "in_stock": 25,
+    "is_available": true,
+    "featured": true,
+    "flash_deals": false,
+    "image": "image/upload/v1748817224/products/az08lfhvk4s8ibcqyqb0.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "d84f90f3-fb5f-4f1b-a4ea-a7597588ea43",
+  "fields": {
+    "created": "2025-06-01T22:29:49.613Z",
+    "name": "Cozy Knit Sweater",
+    "slug": "cozy-knit-sweater",
+    "description": "Soft knit sweater with ribbed details at cuffs and hem. Perfect for layering in cooler months.",
+    "category": "633004b6-ba52-45ae-a418-2c1f6e6c3136",
+    "price": "15000.00",
+    "discounted_price": null,
+    "in_stock": 55,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": false,
+    "image": "image/upload/v1748817022/products/jqmbk9asxef3i5r0u025.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "ec3714cd-ffd1-4e79-b71d-12bad53e4b42",
+  "fields": {
+    "created": "2025-06-01T22:38:20.581Z",
+    "name": "Cardigan",
+    "slug": "cardigan",
+    "description": "Lightweight cardigan with button front closure. Perfect for layering over dresses or casual outfits.",
+    "category": "633004b6-ba52-45ae-a418-2c1f6e6c3136",
+    "price": "16000.00",
+    "discounted_price": null,
+    "in_stock": 70,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": false,
+    "image": "image/upload/v1748817533/products/kj1ggsxnm1tmmdce3bx0.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "fd093e61-b8d0-44af-a13f-028e799c3988",
+  "fields": {
+    "created": "2025-06-01T22:24:33.221Z",
+    "name": "Slim Fit Jeans",
+    "slug": "slim-fit-jeans",
+    "description": "Modern slim fit jeans with slight stretch for comfort. Features a classic five-pocket design and medium wash.",
+    "category": "24fa42c5-fb8a-4e37-8ea7-3a8abbc1f36c",
+    "price": "9000.00",
+    "discounted_price": null,
+    "in_stock": 75,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": true,
+    "image": "image/upload/v1748816705/products/lhy72tiqvyvl0fpbdnam.jpg"
+  }
+},
+{
+  "model": "shop.product",
+  "pk": "ffcb1ced-8f34-42e4-9626-9fd529d8b6e5",
+  "fields": {
+    "created": "2025-06-01T22:35:05.487Z",
+    "name": "High Waist Jeans",
+    "slug": "high-waist-jeans",
+    "description": "Flattering high-waisted jeans with a straight leg silhouette. Light distressing for a lived-in look.",
+    "category": "24fa42c5-fb8a-4e37-8ea7-3a8abbc1f36c",
+    "price": "5500.00",
+    "discounted_price": null,
+    "in_stock": 61,
+    "is_available": true,
+    "featured": false,
+    "flash_deals": false,
+    "image": "image/upload/v1748817338/products/grsbys31vyiktqszwmfi.jpg"
+  }
+}
+]

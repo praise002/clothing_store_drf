@@ -5,7 +5,10 @@
 
 # Apply migrations
 echo "Running migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
+
+echo "Creating sample data..."
+ python manage.py loaddata fixtures/shop.json
 
 # Collect static files
 echo "Collecting static files..."
