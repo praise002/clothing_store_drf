@@ -1,8 +1,9 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+
 from apps.common.serializers import SuccessResponseSerializer
 
-from .models import Social, SiteDetail, TeamMember, Message
+from .models import Message, SiteDetail, Social, TeamMember
 
 
 class SocialSerializer(serializers.ModelSerializer):
@@ -67,4 +68,5 @@ class TeamMemberResponseSerializer(SuccessResponseSerializer):
 
 
 class MessageResponseSerializer(SuccessResponseSerializer):
+    data = MessageSerializer()
     data = MessageSerializer()

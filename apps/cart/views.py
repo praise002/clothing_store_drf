@@ -1,18 +1,20 @@
-from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.response import Response
-
-
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from apps.cart.cart import Cart
-from apps.cart.schema_examples import CART_ADD_UPDATE_RESPONSE, CART_LIST_RESPONSE, CART_REMOVE_RESPONSE
+from apps.cart.schema_examples import (
+    CART_ADD_UPDATE_RESPONSE,
+    CART_LIST_RESPONSE,
+    CART_REMOVE_RESPONSE,
+)
 from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
-
-from drf_spectacular.utils import extend_schema
 from apps.shop.models import Product
 
-from .serializers import CartSerializer, CartAddUpdateSerializer
+from .serializers import CartAddUpdateSerializer, CartSerializer
 
 tags = ["cart"]
 
@@ -120,5 +122,7 @@ class CartRemoveView(APIView):
             raise NotFoundError(
                 err_msg="Product not found in cart.",
             )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

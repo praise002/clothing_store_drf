@@ -1,23 +1,16 @@
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView,
-    CreateAPIView,
-)
-from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.common.errors import ErrorCode
 from apps.common.exceptions import NotFoundError
 from apps.common.pagination import CustomPagination, DefaultPagination
 from apps.common.responses import CustomResponse
-
-
 from apps.shop.filters import ProductFilter
 from apps.shop.schema_examples import (
     CATEGORY_LIST_RESPONSE,
@@ -32,6 +25,7 @@ from apps.shop.schema_examples import (
     WISHLIST_REMOVE_PRODUCT_RESPONSE,
     WISHLIST_RESPONSE,
 )
+
 from .models import Category, Product, Review, Wishlist
 from .serializers import (
     CategorySerializer,

@@ -1,7 +1,7 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils import timezone
 
 from apps.common.models import BaseModel
 from apps.orders.choices import DiscountChoices

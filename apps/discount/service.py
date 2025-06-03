@@ -1,17 +1,20 @@
-from django.db import transaction
+import logging
 from decimal import Decimal
+
+from django.db import transaction
+
 from apps.discount.models import CouponUsage, ProductDiscount, TieredDiscount
 from apps.orders.choices import DiscountChoices
 from apps.payments.tasks import payment_successful, process_successful_payment
 
-import logging
 logger = logging.getLogger(__name__)
+
 
 def calculate_order_discount(
     subtotal: Decimal, discount_type: str, discount_value: int
 ) -> Decimal:
     discount_amount = Decimal("0")
-    
+
     if discount_type == DiscountChoices.PERCENTAGE:
         discount_amount = (discount_value / Decimal("100")) * subtotal
 
@@ -108,7 +111,9 @@ def apply_discount_to_order(order, discount):
     """
     with transaction.atomic():
         subtotal = order.calculate_subtotal()
-        logger.info(f"Checking tiered discounts for order {order.id} with subtotal {subtotal}")
+        logger.info(
+            f"Checking tiered discounts for order {order.id} with subtotal {subtotal}"
+        )
         tiered_discount = (
             TieredDiscount.objects.filter(discount=discount, min_amount__lte=subtotal)
             .order_by("-min_amount")
@@ -121,7 +126,9 @@ def apply_discount_to_order(order, discount):
                 original_shipping = order.shipping_fee
                 order.shipping_fee = 0
                 order.save()
-                logger.info(f"Applied free shipping to order {order.id}. Original shipping: {original_shipping}")
+                logger.info(
+                    f"Applied free shipping to order {order.id}. Original shipping: {original_shipping}"
+                )
                 return {
                     "discount_type": "free_shipping",
                     "message": f"Free shipping applied! Spend at least {tiered_discount.min_amount} to get free shipping.",
@@ -132,7 +139,9 @@ def apply_discount_to_order(order, discount):
                 ) * subtotal
                 order.discounted_total = subtotal - discount_amount
                 order.save()
-                logger.info(f"Applied {tiered_discount.discount_percentage}% discount to order {order.id}. Saved: {discount_amount}")
+                logger.info(
+                    f"Applied {tiered_discount.discount_percentage}% discount to order {order.id}. Saved: {discount_amount}"
+                )
                 return {
                     "discount_type": "percentage",
                     "message": f"Discount of {tiered_discount.discount_percentage}% applied!",

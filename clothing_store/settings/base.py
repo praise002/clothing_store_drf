@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
-from decouple import config
-from celery.schedules import crontab
 import os
+from pathlib import Path
+
+from celery.schedules import crontab
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -324,8 +325,8 @@ JAZZMIN_SETTINGS = {
         "profiles.profile": "fas fa-id-card",
         "discount.couponusage": "fas fa-ticket-alt",
         "discount.coupon": "fas fa-tags",
-        "discount.discount": "fas fa-percent",        
-        "discount.productdiscount": "fas fa-tag",     
+        "discount.discount": "fas fa-percent",
+        "discount.productdiscount": "fas fa-tag",
         "discount.tiereddiscount": "fas fa-layer-group",
         "general.message": "fas fa-envelope",
         "general.sitedetail": "fas fa-info-circle",
@@ -334,7 +335,7 @@ JAZZMIN_SETTINGS = {
         "profiles.shippingaddress": "fas fa-map-marker-alt",
         "profiles.shippingfee": "fas fa-money-bill-wave",
         "orders.order": "fas fa-shopping-cart",
-        "orders.trackingnumber": "fas fa-truck-loading",  
+        "orders.trackingnumber": "fas fa-truck-loading",
         "shop.category": "fas fa-layer-group",
         "shop.product": "fas fa-tshirt",
         "shop.review": "fas fa-star",

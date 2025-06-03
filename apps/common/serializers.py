@@ -20,11 +20,13 @@ class ErrorDataResponseSerializer(serializers.Serializer):
     code = serializers.CharField()
     data = serializers.DictField(required=False)
 
+
 class ValidationErrorResponseSerializer(serializers.Serializer):
     status = serializers.CharField(default="failure")
     message = serializers.CharField(default="Validation error")
     code = serializers.CharField(default=ErrorCode.VALIDATION_ERROR)
     data = serializers.DictField()
+
 
 class PaginatedResponseDataSerializer(serializers.Serializer):
     per_page = serializers.IntegerField()

@@ -1,6 +1,6 @@
-from rest_framework import serializers
 from django.core.validators import MinValueValidator
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
 from apps.common.serializers import SuccessResponseSerializer
 from apps.shop.serializers import ProductAddSerializer

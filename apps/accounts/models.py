@@ -1,13 +1,14 @@
+import uuid
 from datetime import timedelta
-from django.utils import timezone
+
 from django.conf import settings
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
+from django.utils import timezone
 
 from apps.common.models import IsDeletedModel
 
 from .managers import CustomUserManager
-import uuid
 
 
 class User(AbstractBaseUser, IsDeletedModel, PermissionsMixin):
@@ -22,7 +23,7 @@ class User(AbstractBaseUser, IsDeletedModel, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
     user_active = models.BooleanField(default=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,4 +56,5 @@ class Otp(models.Model):
         expiration_time = self.created_at + timedelta(
             minutes=settings.EMAIL_OTP_EXPIRE_MINUTES
         )
+        return timezone.now() < expiration_time
         return timezone.now() < expiration_time

@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+
 from apps.common.serializers import SuccessResponseSerializer
 
-
 from .models import Profile, ShippingAddress
-
 
 User = get_user_model()
 
@@ -55,7 +54,7 @@ class ShippingAddressCreateSerializer(serializers.ModelSerializer):
         # if default:
         #     ShippingAddress.objects.filter(user=user).update(default=False)
         # business logic - default from model will work
-        
+
         # Create the shipping address and associate it with the user
         shipping_address = ShippingAddress.objects.create(
             user=user, default=default, **validated_data

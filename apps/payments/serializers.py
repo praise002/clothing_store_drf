@@ -21,7 +21,7 @@ class PaymentInitializeSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Order ID not found or does not belong to the user."
             )
-        
+
         # Check if the order has already been paid for
         if order.payment_status == PaymentStatus.SUCCESSFUL:
             raise serializers.ValidationError("This order has already been paid for.")

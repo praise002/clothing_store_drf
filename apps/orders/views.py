@@ -1,28 +1,17 @@
-from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
-
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
 from apps.common.responses import CustomResponse
-from apps.common.serializers import (
-    ErrorDataResponseSerializer,
-    ErrorResponseSerializer,
-)
-
-
+from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
 from apps.orders.filters import OrderFilter
 from apps.orders.models import Order
-from apps.orders.serializers import (
-    OrderCreateSerializer,
-    OrderSerializer,
-)
+from apps.orders.serializers import OrderCreateSerializer, OrderSerializer
 from apps.orders.serializers.order import OrderResponseSerializer
 from apps.orders.tasks import order_created
-
 
 tags = ["orders"]
 

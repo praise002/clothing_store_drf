@@ -42,6 +42,13 @@
 ```bash
     $ python manage.py test apps.app_name.tests
 ```
+```bash
+    # Sort a specific file
+    $ isort your_file.py
+
+    # Sort all Python files in the project
+    $ isort .
+```
 
 **On windows**
 ```bash

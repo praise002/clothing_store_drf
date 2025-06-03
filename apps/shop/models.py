@@ -1,18 +1,16 @@
-from autoslug import AutoSlugField
-from django.db import models
-
-from typing import Optional
-from apps.profiles.models import Profile
-from apps.common.models import BaseModel
-from django.utils.translation import gettext_lazy as _
 from statistics import mean
-from django.core.validators import MinValueValidator
+from typing import Optional
 
-from apps.common.validators import validate_file_size
-
-from cloudinary.models import CloudinaryField
+from autoslug import AutoSlugField
 from cloudinary import CloudinaryImage
+from cloudinary.models import CloudinaryField
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
+from apps.common.models import BaseModel
+from apps.common.validators import validate_file_size
+from apps.profiles.models import Profile
 from apps.shop.managers import ProductManager
 
 

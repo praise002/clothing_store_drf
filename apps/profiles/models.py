@@ -109,7 +109,7 @@ class ShippingAddress(BaseModel):
 
     def __str__(self):
         return f"{self.state} - ₦{self.shipping_fee}"
-    
+
     class Meta:
         verbose_name_plural = "Shipping Addresses"
 

@@ -1,5 +1,6 @@
-from django.db import models
 import uuid
+
+from django.db import models
 from django.utils import timezone
 
 from apps.common.manager import IsDeletedManager
@@ -31,4 +32,5 @@ class IsDeletedModel(BaseModel):
         self.save(update_fields=["is_deleted", "deleted_at"])
 
     def hard_delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
         super().delete(*args, **kwargs)

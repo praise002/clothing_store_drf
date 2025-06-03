@@ -1,6 +1,9 @@
-from . import views
 from django.urls import path
-from .webhooks import flw_payment_webhook as fwh, paystack_webhook as pwh
+
+from . import views
+from .webhooks import flw_payment_webhook as fwh
+from .webhooks import paystack_webhook as pwh
+
 urlpatterns = [
     path("flw/initiate-payment/", views.InitiatePaymentFLW.as_view()),
     path("flw/payment-callback/", views.PaymentCallbackFlw.as_view(), name="payment_callback"),
@@ -9,4 +12,3 @@ urlpatterns = [
     path("paystack-webhook/", pwh),
 ]
 
-# https://66d7-185-107-57-10.ngrok-free.app/success/?status=successful&tx_ref=f556e708-d829-4de9-9d20-e43f281c3cd3&transaction_id=8335507

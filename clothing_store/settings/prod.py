@@ -1,5 +1,6 @@
-from .base import *
 from datetime import timedelta
+
+from .base import *
 
 DEBUG = False
 
@@ -37,4 +38,5 @@ CORS_ALLOWED_ORIGINS = [
     config("FRONTEND_URL_PROD"),
 ]
 
+FRONTEND_URL = config("FRONTEND_URL_PROD")
 FRONTEND_URL = config("FRONTEND_URL_PROD")

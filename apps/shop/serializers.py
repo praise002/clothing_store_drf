@@ -1,10 +1,11 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from apps.common.serializers import SuccessResponseSerializer
 from apps.orders.models import OrderItem
+
 from .models import Category, Product, Review, Wishlist
-from drf_spectacular.utils import extend_schema_field
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -212,4 +213,5 @@ class WishlistResponseSerializer(SuccessResponseSerializer):
 
 
 class ReviewResponseSerializer(SuccessResponseSerializer):
+    data = ReviewSerializer()
     data = ReviewSerializer()

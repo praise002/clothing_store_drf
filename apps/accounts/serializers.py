@@ -1,12 +1,12 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
-
-from django.core.validators import MinValueValidator, MaxValueValidator
+from rest_framework_simplejwt.tokens import BlacklistedToken, OutstandingToken
 
 from apps.accounts.utils import validate_password_strength
 from apps.common.schema_examples import ACCESS_TOKEN, REFRESH_TOKEN
 from apps.common.serializers import SuccessResponseSerializer
+
 from .models import User
 
 
@@ -123,6 +123,7 @@ class LoginResponseSerializer(SuccessResponseSerializer):
             "access": ACCESS_TOKEN,
         }
     )
+
 
 class RefreshTokenResponseSerializer(SuccessResponseSerializer):
     data = serializers.DictField(

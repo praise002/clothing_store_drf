@@ -1,11 +1,10 @@
 import logging
 
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from apps.discount.models import Discount, ProductDiscount
+from apps.discount.models import ProductDiscount
 from apps.discount.service import apply_discount_to_product
-
 
 logger = logging.getLogger(__name__)
 

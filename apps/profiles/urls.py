@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -25,3 +26,4 @@ urlpatterns = [
     #     views.ShippingAddressDetailView.as_view(),
     # ),
 ]
+

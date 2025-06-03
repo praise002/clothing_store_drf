@@ -1,9 +1,11 @@
-from .base import *
-from decouple import config
-from django.utils.log import DEFAULT_LOGGING
-from datetime import timedelta
 import logging
 import logging.config
+from datetime import timedelta
+
+from decouple import config
+from django.utils.log import DEFAULT_LOGGING
+
+from .base import *
 
 DEBUG = True
 
@@ -91,4 +93,5 @@ logging.config.dictConfig(
     }
 )
 
+# NOTE: CORS_ALLOW_CREDENTIALS = True, CORS_ALLOWED_ORIGINS =[]
 # NOTE: CORS_ALLOW_CREDENTIALS = True, CORS_ALLOWED_ORIGINS =[]

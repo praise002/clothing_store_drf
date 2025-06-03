@@ -1,10 +1,11 @@
+from cloudinary.models import CloudinaryField
 from django.db import models
 from django.forms import ValidationError
-from cloudinary.models import CloudinaryField
 
 from apps.common.models import BaseModel
 
 TEAM_MEMBER_FOLDER = "team/"
+
 
 class Social(models.Model):
     fb = models.URLField(blank=True, null=True)
@@ -54,7 +55,6 @@ class TeamMember(BaseModel):
     @property
     def avatar_url(self):
         return self.avatar.url
-        
 
 
 class Message(BaseModel):
