@@ -41,7 +41,7 @@ def download_and_upload_avatar(url: str, user_id: str):
         logger.info(f"Successfully uploaded profile picture for user {user.full_name}")
     except User.DoesNotExist:
         logger.error(f"User with id {user_id} not found")
-        raise
+        return f"Error: User with id {user_id} not found"
     except requests.RequestException as e:
         logger.error(f"Error downloading image: {e}")
-        raise
+        return f"Error: {str(e)}"

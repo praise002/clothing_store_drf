@@ -33,10 +33,10 @@ def order_created(order_id):
         email_message.send(fail_silently=False)
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
-        raise
+        return f"Error: Order {order_id} not found"
     except Exception as e:
         logger.error(f"Failed to send payment confirmation: {str(e)}")
-        raise
+        return f"Error: {str(e)}"
 
 
 def order_canceled(order_id):
@@ -54,10 +54,10 @@ def order_canceled(order_id):
         email_message.send(fail_silently=False)
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
-        raise
+        return f"Error: Order {order_id} not found"
     except Exception as e:
         logger.error(f"Failed to send cancelation confirmation: {str(e)}")
-        raise
+        return f"Error: {str(e)}"
 
 
 @shared_task
@@ -138,3 +138,4 @@ def check_pending_orders():
 
     except Exception as e:
         logger.error(f"Task failed: {e}")
+        return f"Error: {str(e)}"

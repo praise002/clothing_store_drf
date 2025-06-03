@@ -33,4 +33,4 @@ def check_expired_discounts():
         return f"Processed {expired_discounts.count()} expired discounts"
     except Exception as e:
         logger.error(f"Error checking expired discounts: {str(e)}")
-        raise
+        return f"Error: {str(e)}"

@@ -4,11 +4,13 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
+from apps.common.models import IsDeletedModel
+
 from .managers import CustomUserManager
 import uuid
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, IsDeletedModel, PermissionsMixin):
     id = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)

@@ -2,7 +2,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-class CustomUserManager(BaseUserManager):
+from apps.common.manager import GetOrNoneManager
+
+class CustomUserManager(BaseUserManager, GetOrNoneManager):
     # username_field + required_fields
     def create_user(self, first_name, last_name, email, password, **extra_fields): 
         if not (first_name and last_name) :

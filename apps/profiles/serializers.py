@@ -75,19 +75,20 @@ class ShippingAddressUpdateSerializer(serializers.ModelSerializer):
             "default",  # Allow updating the default status
         ]
 
-    def update(self, instance, validated_data):
-        # default = validated_data.pop("default", None)
+    # now handled in the model
+    # def update(self, instance, validated_data):
+    #     default = validated_data.pop("default", None)
 
-        # If marking as default, unmark all other addresses for the user
-        # if default and default is True:
-        #     ShippingAddress.objects.filter(user=instance.user).update(default=False)
-        #     instance.default = True
+    #     # If marking as default, unmark all other addresses for the user
+    #     if default and default is True:
+    #         ShippingAddress.objects.filter(user=instance.user).update(default=False)
+    #         instance.default = True
 
-        # Update the shipping address
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+    #     # Update the shipping address
+    #     for attr, value in validated_data.items():
+    #         setattr(instance, attr, value)
+    #     instance.save()
+    #     return instance
 
 
 class UserSerializer(serializers.ModelSerializer):

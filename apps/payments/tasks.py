@@ -36,10 +36,10 @@ def process_successful_payment(order_id, transaction_id=None):
             )
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
-        raise
+        return f"Error: Order {order_id} not found"
     except Exception as e:
         logger.error(f"Error processing payment for order {order_id}: {str(e)}")
-        raise
+        return f"Error: {str(e)}"
 
 
 @shared_task
@@ -86,11 +86,11 @@ def payment_successful(order_id):
 
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
-        raise
+        return f"Error: Order {order_id} not found"
 
     except Exception as e:
         logger.error(f"Failed to send payment successful: {str(e)}")
-        raise
+        return f"Error: {str(e)}"
 
 
 @shared_task
@@ -116,7 +116,7 @@ def order_pending_cancellation(order_id):
         email_message.send(fail_silently=False)
     except Order.DoesNotExist:
         logger.error(f"Order {order_id} not found")
-        raise
+        return f"Error: Order {order_id} not found"
     except Exception as e:
         logger.error(f"Failed to send payment pending cancellation: {str(e)}")
-        raise
+        return f"Error: {str(e)}"

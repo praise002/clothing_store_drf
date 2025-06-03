@@ -102,7 +102,7 @@ class Review(BaseModel):
     image = CloudinaryField(
         "review_image",
         folder="reviews/",
-        # validators=[validate_file_size],
+        validators=[validate_file_size],
         null=True,
         blank=True,
     )
@@ -121,6 +121,3 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f"{self.profile.user.full_name} wishlist"
-
-
-# 827ad08b-0120-4e1f-90b5-653291bfc82a
