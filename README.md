@@ -109,6 +109,6 @@
 <img src="./static/media/admin1.png">  
 <img src="./static/media/admin2.png">  
 <img src="./static/media/admin3.png">  
- 
- 
+
+![Django Tests](https://github.com/praise002/clothing_store_drf/actions/workflows/django-tests.yml/badge.svg)
 
