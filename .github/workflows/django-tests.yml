@@ -8,6 +8,8 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
+        env:
+            SETTINGS: "prod"
 
         services:
             # Set up PostgreSQL service for testing
