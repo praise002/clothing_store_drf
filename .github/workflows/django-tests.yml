@@ -10,6 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             SETTINGS: "prod"
+            SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
 
         services:
             # Set up PostgreSQL service for testing
