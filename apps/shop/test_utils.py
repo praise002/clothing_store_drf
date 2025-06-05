@@ -1,4 +1,3 @@
-from apps.common.utils import TestUtil
 from apps.orders.models.order import Order, OrderItem
 from apps.shop.models import Category, Product, Review
 
@@ -10,9 +9,8 @@ class TestShopUtil:
         category2, _ = Category.objects.get_or_create(name="Women")
         return category1, category2
 
-    def product():
+    def product(user):
         category1, category2 = TestShopUtil.category()
-        user1 = TestUtil.verified_user()
 
         product1, _ = Product.objects.get_or_create(
             name="Test Product 1",
@@ -42,19 +40,18 @@ class TestShopUtil:
 
         Review.objects.get_or_create(
             product=product3,
-            customer=user1.profile,
+            customer=user.profile,
             text="Initial review text",
             rating=3,
         )
 
         return product1, product2, product3
 
-    def review():
-        _, _, product3 = TestShopUtil.product()
-        user1 = TestUtil.verified_user()
+    def review(user):
+        _, _, product3 = TestShopUtil.product(user)
         review, _ = Review.objects.get_or_create(
             product=product3,
-            customer=user1.profile,
+            customer=user.profile,
             text="Initial review text",
             rating=4,
         )

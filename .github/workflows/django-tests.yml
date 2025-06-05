@@ -13,7 +13,10 @@ jobs:
             # Set up PostgreSQL service for testing
             postgres:
                 image: postgres:13
-                
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+                    POSTGRES_DB: test_db
                 ports:
                     - 5432:5432
                 options: >-

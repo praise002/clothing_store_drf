@@ -20,7 +20,7 @@ class TestCart(APITestCase):
         self.user2 = TestUtil.other_verified_user()
 
         # Create test products
-        self.product1, self.product2, self.product3 = TestShopUtil.product()
+        self.product1, self.product2, self.product3 = TestShopUtil.product(self.user)
 
         # Set up URLs with parameters
         self.cart_remove_url = f"/api/v1/cart/remove/{self.product1.id}/"

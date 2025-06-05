@@ -16,8 +16,8 @@ class TestShop(APITestCase):
     def setUp(self):
         self.user1 = TestUtil.verified_user()
         self.user2 = TestUtil.other_verified_user()
-        self.product1, self.product2, self.product3 = TestShopUtil.product()
-        self.review = TestShopUtil.review()
+        self.product1, self.product2, self.product3 = TestShopUtil.product(self.user1)
+        self.review = TestShopUtil.review(self.user1)
         self.wishlist, _ = Wishlist.objects.get_or_create(profile=self.user1.profile)
         self.wishlist.products.add(self.product2)
 

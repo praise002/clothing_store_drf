@@ -20,7 +20,7 @@ class TestDiscount(APITestCase):
         self.user2 = TestUtil.other_verified_user()
 
         # Create test products
-        self.product1, self.product2, self.product3 = TestShopUtil.product()
+        self.product1, self.product2, self.product3 = TestShopUtil.product(self.user1)
 
         self.order = Order.objects.create(
             customer=self.user1.profile,
