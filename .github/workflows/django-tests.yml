@@ -8,9 +8,7 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
-        env:
-            SETTINGS: "prod"
-            SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+        
 
         services:
             # Set up PostgreSQL service for testing
@@ -48,6 +46,10 @@ jobs:
               with:
                   python-version: "3.12"
                   cache: "pip"
+
+            - name: Write .env file from secret
+              run: |
+                echo "${{ secrets.ENV_FILE_CONTENTS }}" | base64 --decode > .env
 
             - name: Install dependencies
               run: |
