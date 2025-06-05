@@ -1,12 +1,13 @@
+from datetime import timedelta
+from unittest.mock import patch
+
+from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APITestCase
+
+from apps.accounts.models import Otp
 from apps.common.schema_examples import ERR_RESPONSE_STATUS, SUCCESS_RESPONSE_STATUS
 from apps.common.utils import TestUtil
-from apps.accounts.models import Otp
-from unittest.mock import patch
-from datetime import timedelta
-from django.utils import timezone
-from django.urls import reverse
-
 
 valid_data = {
     "first_name": "Test",
@@ -340,6 +341,7 @@ class TestAccounts(APITestCase):
             self.password_change_url,
             {"old_password": verified_user.password, "new_password": "Verified2001#"},
         )
+
         self.assertEqual(response.status_code, 401)
 
         # Valid Password Change
@@ -582,4 +584,5 @@ class TestGoogleOAuth(APITestCase):
         self.assertIn("authorization_url", response.json()["data"])
 
 
+# python manage.py test apps.accounts.tests.TestAccounts.test_register
 # python manage.py test apps.accounts.tests.TestAccounts.test_register

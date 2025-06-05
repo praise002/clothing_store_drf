@@ -8,16 +8,12 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
-        
 
         services:
             # Set up PostgreSQL service for testing
             postgres:
                 image: postgres:13
-                env:
-                    POSTGRES_USER: postgres
-                    POSTGRES_PASSWORD: postgres
-                    POSTGRES_DB: test_db
+                
                 ports:
                     - 5432:5432
                 options: >-
@@ -50,7 +46,7 @@ jobs:
             - name: Create log directory
               run: |
                 mkdir -p logs
-                
+
             - name: Write .env file from secret
               run: |
                 echo "${{ secrets.ENV_FILE_CONTENTS }}" | base64 --decode > .env

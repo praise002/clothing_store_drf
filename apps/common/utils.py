@@ -14,7 +14,7 @@ class TestUtil:
             "email": "test@example.com",
             "password": "Testpassword2008@",
         }
-        user, _ = User.objects.get_or_create(**user_dict)
+        user = User.objects.create_user(**user_dict)
         return user
 
     def verified_user():
@@ -25,7 +25,7 @@ class TestUtil:
             "is_email_verified": True,
             "password": "Verified2001#",
         }
-        user, _ = User.objects.get_or_create(**user_dict)
+        user = User.objects.create_user(**user_dict)
         return user
 
     def other_verified_user():
@@ -36,5 +36,5 @@ class TestUtil:
             "is_email_verified": True,
             "password": "testpassword",
         }
-        user, _ = User.objects.get_or_create(**user_dict)
+        user = User.objects.create_user(**user_dict)
         return user

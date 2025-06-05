@@ -57,4 +57,4 @@ class Otp(models.Model):
             minutes=settings.EMAIL_OTP_EXPIRE_MINUTES
         )
         return timezone.now() < expiration_time
-        return timezone.now() < expiration_time
+        

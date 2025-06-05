@@ -174,3 +174,4 @@ rough.py
 cert.crt
 cert.key
 Note.md
+.env.ci
