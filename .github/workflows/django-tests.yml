@@ -46,7 +46,11 @@ jobs:
               with:
                   python-version: "3.12"
                   cache: "pip"
-
+            
+            - name: Create log directory
+              run: |
+                mkdir -p logs
+                
             - name: Write .env file from secret
               run: |
                 echo "${{ secrets.ENV_FILE_CONTENTS }}" | base64 --decode > .env
