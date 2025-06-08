@@ -1,36 +1,79 @@
+# --- STAGE 1: Builder ---
 # Base image
-FROM python:3.12-slim
-
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Install dependencies
-RUN apt-get update \
-    && apt-get install -y gcc libpq-dev netcat-openbsd libglib2.0-0 \
-    && apt-get install -y libpango-1.0-0 libcairo2 libgdk-pixbuf2.0-0 libffi-dev libpango1.0-dev libcairo2-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* 
-
+FROM python:3.12-slim as builder
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install dependencies
-RUN pip install --upgrade pip
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 
+ENV PYTHONUNBUFFERED=1
+
+# Install minimal system dependencies needed to build packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc \
+        libpq-dev \
+        libpango1.0-dev \
+        libcairo2-dev \
+        libgdk-pixbuf2.0-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file to the app dir app/requirements.txt
 COPY requirements.txt . 
 
-# Install dependencies
-# RUN pip install -r requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Build wheels in a temp dir
+RUN pip install --upgrade pip  && \
+    pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 
-# Now copy the rest of the application files
+
+# --- STAGE 2: Final Image ---
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 
+ENV PYTHONUNBUFFERED=1
+
+# Install only runtime system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq5 \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libcairo2 \
+        libgdk-pixbuf2.0-0 \
+        netcat-openbsd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user and group
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser
+
+# Copy wheels from builder stage
+COPY --from=builder /wheels /wheels
+COPY requirements.txt .
+
+# Install dependencies from wheels
+RUN pip install --no-cache-dir /wheels/* && \
+    rm -rf /wheels
+
+# Copy source code
 COPY . .
 
+# Create logs directory and set permissions
+RUN mkdir -p /app/logs && \
+    touch /app/logs/clothing_store.log &&  \
+    chmod -R 777 /app/logs/clothing_store.log && \
+    chown -R appuser:appgroup /app/logs
+    
 # Make scripts executable
 RUN chmod +x entrypoint.sh wait-for-it.sh
+
+# Switch to non-root user
+USER appuser
 
 # Set the entrypoint
 ENTRYPOINT ["./entrypoint.sh"]

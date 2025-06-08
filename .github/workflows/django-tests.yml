@@ -1,6 +1,7 @@
 name: Django Tests
 
 on:
+    # triggers the job on master push
     push:
         branches:
             - master
@@ -37,9 +38,11 @@ jobs:
                     --health-retries 5
 
         steps:
+            # Pulls the Django project from the repo
             - name: Check out repository code
               uses: actions/checkout@v3
 
+            # Installs Python 3.12
             - name: Set up Python
               uses: actions/setup-python@v4
               with:
@@ -60,8 +63,9 @@ jobs:
                   pip install -r requirements.txt
 
             - name: Run migrations
-              run: python manage.py migrate
+              run: python manage.py migrate --noinput
 
             - name: Run tests
               run: |
                   python manage.py test --verbosity=2
+# NOTE: ADD DEPLOY LATER

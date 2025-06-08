@@ -11,6 +11,8 @@ services:
     restart: always
     volumes:
       - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - .env
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -23,6 +25,7 @@ services:
       - ./data/redis:/data
 
   web:
+    image: clothing-store-api-web:${IMAGE_TAG}
     build: .
     command: ["gunicorn", "--bind", "0.0.0.0:8000", 
               "clothing_store.wsgi:application"]
@@ -32,6 +35,8 @@ services:
       - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
       - POSTGRES_DB=${POSTGRES_DB}
@@ -42,11 +47,15 @@ services:
       - redis
 
   celery:
+    image: clothing-store-api-celery:${IMAGE_TAG}
     build: .
     command: ["celery", "-A", "clothing_store", "worker", "--loglevel=info"]
     restart: always
+    user: "appuser"  # Run as non-root
     volumes: 
       - .:/app
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
     depends_on:
@@ -54,11 +63,15 @@ services:
       - redis
 
   celery-beat:
+    image: clothing-store-api-celery-beat:${IMAGE_TAG}
     build: .
     command: ["celery", "-A", "clothing_store", "beat", "--loglevel=info"]
     restart: always
+    user: "appuser"  
     volumes: 
       - .:/app
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
     depends_on:
@@ -66,11 +79,15 @@ services:
       - redis
 
   flower:
+    image: clothing-store-api-flower:${IMAGE_TAG}
     build: .
     command: ["flower", "--broker=redis://redis:6379/0", "--port=5555", "--basic-auth=admin:${FLOWER_PASSWORD}"]
     restart: always
+    user: "appuser"
     ports:
       - "5555:5555"
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
     depends_on:

@@ -2,27 +2,27 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:14.5
+    image: postgres:17-alpine
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     restart: always
     volumes:
       - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
+    
 
   redis:
-    image: redis:7.0.4
+    image: redis:7-alpine
     restart: always
     volumes:
       - ./data/redis:/data
 
   web:
+    image: clothing-store-api-dev-web:${IMAGE_TAG}
     build: .
     command: ["gunicorn", "--bind", "0.0.0.0:8000", 
               "clothing_store.wsgi:application"]
@@ -32,33 +32,40 @@ services:
       - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
-    environment:
-      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     depends_on:
       - db
       - redis
 
   celery:
+    image: clothing-store-api-dev-celery:${IMAGE_TAG}
     build: .
     command: ["celery", "-A", "clothing_store", "worker", "--loglevel=info"]
     restart: always
+    user: "appuser"  # Run as non-root
     volumes: 
       - .:/app
+      - ./celery/worker:/app/celery/worker
+    env_file:
+      - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+      - DJANGO_SETTINGS_MODULE=clothing_store.settings.dev
     depends_on:
       - db
       - redis
 
   celery-beat:
+    image: clothing-store-api-dev-celery-beat:${IMAGE_TAG}
     build: .
     command: ["celery", "-A", "clothing_store", "beat", "--loglevel=info"]
     restart: always
+    user: "appuser"  
     volumes: 
       - .:/app
+      - ./celery/beat:/app/celery/beat
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=clothing_store.settings.dev
     depends_on:
@@ -66,15 +73,16 @@ services:
       - redis
 
   flower:
-    build: .
-    command: ["flower", "--broker=redis://redis:6379/0", "--port=5555", "--basic-auth=admin:${FLOWER_PASSWORD}"]
+    image: mher/flower:2.0.0
     restart: always
     ports:
       - "5555:5555"
+    env_file:
+      - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=clothing_store.settings.prod
+      - FLOWER_BASIC_AUTH=admin:${FLOWER_PASSWORD}
+      - BROKER_URL=redis://redis:6379/0
     depends_on:
-      - db
       - redis
   
     

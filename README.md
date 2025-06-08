@@ -42,13 +42,6 @@
 ```bash
     $ python manage.py test apps.app_name.tests
 ```
-```bash
-    # Sort a specific file
-    $ isort your_file.py
-
-    # Sort all Python files in the project
-    $ isort .
-```
 
 **On windows**
 ```bash
@@ -88,6 +81,7 @@
 
 ## Resources 
 * [Ngrok](https://download.ngrok.com/downloads/windows)
+* [Docker Best Practices](https://testdriven.io/blog/docker-best-practices/)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part I](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part II](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django-ii)
 * [An opinionated guide to drf-oauth](https://www.circumeo.io/blog/entry/an-opinionated-guide-to-drf-oauth/)
