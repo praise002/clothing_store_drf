@@ -30,6 +30,12 @@ services:
       - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
+    healthcheck:
+      test: curl --fail http://localhost:8000 || exit 1
+      interval: 10s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
     env_file:
       - .env
     environment:

@@ -50,7 +50,7 @@ RUN apt-get update && \
 
 # Copy wheels from builder stage
 COPY --from=builder /wheels /wheels
-COPY requirements.txt .
+COPY --from=builder /app/requirements.txt .
 
 # Install dependencies from wheels
 RUN pip install --no-cache-dir /wheels/* && \
