@@ -48,10 +48,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create non-root user and group
-RUN addgroup --system appgroup && \
-    adduser --system --ingroup appgroup appuser
-
 # Copy wheels from builder stage
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
@@ -66,14 +62,10 @@ COPY . .
 # Create logs directory and set permissions
 RUN mkdir -p /app/logs && \
     touch /app/logs/clothing_store.log &&  \
-    chmod -R 777 /app/logs/clothing_store.log && \
-    chown -R appuser:appgroup /app/logs
+    chmod -R 777 /app/logs/clothing_store.log 
     
 # Make scripts executable
 RUN chmod +x entrypoint.sh wait-for-it.sh
-
-# Switch to non-root user
-USER appuser
 
 # Set the entrypoint
 ENTRYPOINT ["./entrypoint.sh"]

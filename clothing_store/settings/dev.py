@@ -33,12 +33,13 @@ DATABASES = {
         "NAME": config("POSTGRES_DB"),
         "USER": config("POSTGRES_USER"),
         "PASSWORD": config("POSTGRES_PASSWORD"),
-        "HOST": config("POSTGRES_HOST", "localhost"),
+        "HOST": config("POSTGRES_HOST"),
         "PORT": config("POSTGRES_PORT"),
     }
 }
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+
 
 # if DEBUG:
 #     hide_toolbar_patterns = ["/media/", "/static/"]

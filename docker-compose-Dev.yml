@@ -24,8 +24,6 @@ services:
   web:
     image: clothing-store-api-dev-web:${IMAGE_TAG}
     build: .
-    command: ["gunicorn", "--bind", "0.0.0.0:8000", 
-              "clothing_store.wsgi:application"]
     restart: always
     volumes:
       - .:/app
@@ -34,40 +32,45 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      # to override localhost
+      - POSTGRES_HOST=db
+      - SERVICE_TYPE=web
     depends_on:
       - db
       - redis
 
   celery:
-    image: clothing-store-api-dev-celery:${IMAGE_TAG}
+    image: celery:${IMAGE_TAG}
     build: .
-    command: ["celery", "-A", "clothing_store", "worker", "--loglevel=info"]
     restart: always
-    user: "appuser"  # Run as non-root
     volumes: 
       - .:/app
       - ./celery/worker:/app/celery/worker
     env_file:
       - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=clothing_store.settings.dev
+      # explicitly set it cos dev.py is using localhost
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - POSTGRES_HOST=db
+      - SERVICE_TYPE=celery
     depends_on:
       - db
       - redis
 
   celery-beat:
-    image: clothing-store-api-dev-celery-beat:${IMAGE_TAG}
+    image: celery-beat:${IMAGE_TAG}
     build: .
-    command: ["celery", "-A", "clothing_store", "beat", "--loglevel=info"]
     restart: always
-    user: "appuser"  
     volumes: 
       - .:/app
       - ./celery/beat:/app/celery/beat
     env_file:
       - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=clothing_store.settings.dev
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - POSTGRES_HOST=db
+      - SERVICE_TYPE=celery-beat
     depends_on:
       - db
       - redis

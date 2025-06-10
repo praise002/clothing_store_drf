@@ -1,6 +1,5 @@
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
 from django.core.paginator import InvalidPage
 
 from apps.common.responses import CustomResponse
@@ -15,6 +14,7 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = (
         "page_size"  # Optional: allow clients to override the page size
     )
+    max_page_size = 100
 
     def paginate_queryset(self, queryset, request, view=None):
         page_size = self.get_page_size(request)
@@ -59,6 +59,7 @@ class CustomPagination(PageNumberPagination):
 class DefaultPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
+    max_page_size = 100
 
     def get_paginated_response(self, data):
         data = {
