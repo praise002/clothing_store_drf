@@ -4,13 +4,13 @@
 set -e
 
 # Wait for database to be ready
-./wait-for-it.sh db:5432
+../wait-for-it.sh db:5432
 
 # Apply migrations - Only run Django management commands for web service
 if [ "$SERVICE_TYPE" = "web" ]; then
   echo "Running migrations..."
   python manage.py migrate --noinput
-  python manage.py collectstatic --noinput
+  
   echo "Creating sample data..."
   python manage.py loaddata fixtures/shop.json
   python manage.py initd

@@ -82,6 +82,9 @@
 ## Resources 
 * [Ngrok](https://download.ngrok.com/downloads/windows)
 * [Docker Best Practices](https://testdriven.io/blog/docker-best-practices/)
+* [Production Django Deployments on Heroku](https://testdriven.io/blog/production-django-deployments-on-heroku/)
+* [Dockerizing Celery and Django](https://testdriven.io/courses/django-celery/docker/)
+* [Dockerizing Django with Postgres, Gunicorn, and Nginx](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/#project-setup)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part I](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part II](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django-ii)
 * [An opinionated guide to drf-oauth](https://www.circumeo.io/blog/entry/an-opinionated-guide-to-drf-oauth/)

@@ -11,18 +11,12 @@ ADMINS = [
 # ALLOWED_HOSTS = ['.vercel.app', '.now.sh']
 ALLOWED_HOSTS = ["*"]
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("POSTGRES_DB"),
-        "USER": config("POSTGRES_USER"),
-        "PASSWORD": config("POSTGRES_PASSWORD"),
-        "HOST": "db",
-        "PORT": config("POSTGRES_PORT"),
-    }
-}
 
 CELERY_BROKER_URL = "redis://redis:6379/1"
+
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+REDIS_DB = 1
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
@@ -39,4 +33,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 FRONTEND_URL = config("FRONTEND_URL_PROD")
-FRONTEND_URL = config("FRONTEND_URL_PROD")
+SECURE_SSL_REDIRECT = True

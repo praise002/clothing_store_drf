@@ -16,6 +16,10 @@ docker-compose.yml
 **/.DS_Store
 **/venv
 **/env
+**/..env.prod
+**/..env.prod.db
+**/..env.dev
+**/..env.dev.db
 logs
 celerybeat-schedule.bak
 celerybeat-schedule.dat

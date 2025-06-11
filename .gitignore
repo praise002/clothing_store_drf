@@ -175,3 +175,7 @@ cert.crt
 cert.key
 Note.md
 .env.ci
+**/..env.prod
+**/..env.prod.db
+**/..env.dev
+**/..env.dev.db
