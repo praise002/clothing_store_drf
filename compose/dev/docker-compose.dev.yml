@@ -20,6 +20,11 @@ services:
     restart: always
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   web:
     image: clothing-store-api-dev-web:${IMAGE_TAG}
@@ -32,7 +37,8 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      test: curl --fail http://localhost:8000 || exit 1
+      # test: curl --fail http://localhost:8000 || exit 1
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/healthcheck"]
       interval: 10s
       timeout: 10s
       start_period: 10s
