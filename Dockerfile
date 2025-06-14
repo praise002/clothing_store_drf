@@ -44,8 +44,7 @@ RUN apt-get update && \
         libpangoft2-1.0-0 \
         libcairo2 \
         libgdk-pixbuf2.0-0 \
-        netcat-openbsd \
-        curl && \ 
+        netcat-openbsd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -65,12 +64,5 @@ RUN mkdir -p /app/logs && \
     touch /app/logs/clothing_store.log &&  \
     chmod -R 777 /app/logs/clothing_store.log 
 
-#NOTE: Had to do this cos i don't want compose in imahge but need entrypoint.sh and don't wanna mess up the main dir with files
-RUN mv /app/compose/dev/entrypoint.sh /entrypoint.sh && \
-    rm -rf /app/compose
-
 # Make scripts executable
-RUN chmod +x /entrypoint.sh wait-for-it.sh
-    
-# Set the entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod +x ./entrypoint

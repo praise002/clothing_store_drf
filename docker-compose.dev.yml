@@ -11,8 +11,10 @@ services:
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST=db
     env_file:
-      - .env.dev.db
+      - .env
     
 
   redis:
@@ -29,8 +31,8 @@ services:
   web:
     image: clothing-store-api-dev-web:${IMAGE_TAG}
     build:
-      context: ../..
-      dockerfile: compose/dev/Dockerfile
+      context: .
+      dockerfile: Dockerfile.dev
     restart: always
     volumes:
       - static_volume:/app/staticfiles
@@ -43,28 +45,37 @@ services:
       timeout: 10s
       start_period: 10s
       retries: 3
-    env_file:
-      - .env.dev
-      - .env.dev.db
     environment:
       - SERVICE_TYPE=web
+      - POSTGRES_HOST=db
+    env_file:
+      - .env
     depends_on:
       - db
       - redis
+    develop:
+      watch:
+        - action: rebuild
+          path: Dockerfile.dev
+        - action: rebuild 
+          path: requirements.txt
+        - action: rebuild 
+          path: docker-compose.dev-yml
 
   celery:
     image: celery:${IMAGE_TAG}
     build:
-      context: ../..
-      dockerfile: compose/dev/Dockerfile
+      context: .
+      dockerfile: Dockerfile.dev
     restart: always
     env_file:
-      - .env.dev
-      - .env.dev.db
+      - .env
     environment:
-      # explicitly set it cos dev.py is using localhost
+      # explicitly set it cos dev.py is using localPOSTGRES_HOST
       - CELERY_BROKER_URL=redis://redis:6379/0
       - SERVICE_TYPE=celery
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
     depends_on:
       - db
       - redis
@@ -72,12 +83,11 @@ services:
   celery-beat:
     image: celery-beat:${IMAGE_TAG}
     build:
-      context: ../..
-      dockerfile: compose/dev/Dockerfile
+      context: .
+      dockerfile: Dockerfile.dev
     restart: always
     env_file:
-      - .env.dev
-      - .env.dev.db
+      - .env
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - SERVICE_TYPE=celery-beat
@@ -91,7 +101,7 @@ services:
     ports:
       - "5555:5555"
     env_file:
-      - .env.dev
+      - .env
     environment:
       - FLOWER_BASIC_AUTH=admin:${FLOWER_PASSWORD}
       - BROKER_URL=redis://redis:6379/0

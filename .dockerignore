@@ -10,9 +10,11 @@ __pycache__
 **/.aws
 **/.ssh
 Dockerfile
+Dockerfile.dev
 README.md
 Note.md
 docker-compose.yml
+docker-compose.dev.yml
 **/.DS_Store
 **/venv
 **/env

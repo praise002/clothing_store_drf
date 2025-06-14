@@ -3,12 +3,6 @@
 # Stop the script immediately if any command fails
 set -e
 
-# Wait for PostgreSQL to be ready
-until pg_isready -h db -p 5432; do
-  echo "Waiting for PostgreSQL..."
-  sleep 2
-done
-
 echo "Running migrations..."
 python manage.py migrate --noinput
 

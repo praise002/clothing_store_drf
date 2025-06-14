@@ -1,1 +1,0 @@
-{ "build": { "dockerfilePath": "compose/prod/Dockerfile" } }

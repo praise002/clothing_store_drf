@@ -1,13 +1,12 @@
-from django.conf import settings
-from django.db import transaction
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from cloudinary_storage.storage import MediaCloudinaryStorage
-
-import os
 import logging
+import os
 from pathlib import Path
 
+from cloudinary_storage.storage import MediaCloudinaryStorage
+from django.conf import settings
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from apps.accounts.models import User
 from apps.common.management.commands.data import TEAM_MEMBERS_DATA
@@ -38,13 +37,16 @@ class CreateData:
             "last_name": "Admin",
             "email": settings.SUPERUSER_EMAIL,
             "password": settings.SUPERUSER_PASSWORD,
-            "is_superuser": True,
-            "is_staff": True,
             "is_email_verified": True,
         }
         superuser = User.objects.get_or_none(email=user_dict["email"])
+        print(superuser)
         if not superuser:
-            superuser = User.objects.create(**user_dict)
+            superuser = User.objects.create_superuser(**user_dict)
+        print(superuser)
+        user = User.objects.get_or_none(email=user_dict["email"])
+        print(user.is_staff)
+        print(user.is_superuser)
         return superuser
 
     def create_user_groups(self) -> Group:
@@ -104,7 +106,7 @@ class CreateData:
 
         # Create test users and assign to groups
         if not User.objects.filter(email="manager@example.com").exists():
-            manager = User.objects.create(
+            manager = User.objects.create_user(
                 first_name="Store",
                 last_name="Manager",
                 email=settings.STORE_MANAGER_EMAIL,
@@ -118,7 +120,7 @@ class CreateData:
             )
 
         if not User.objects.filter(email="editor@example.com").exists():
-            editor = User.objects.create(
+            editor = User.objects.create_user(
                 first_name="Content",
                 last_name="Editor",
                 email=settings.CONTENT_EDITOR_EMAIL,
@@ -127,19 +129,23 @@ class CreateData:
                 is_email_verified=True,
             )
             editor.groups.add(content_editors)
-            logger.info(f"Created user 'Content Editor' and added to 'Content Editors' group")
-            
+            logger.info(
+                f"Created user 'Content Editor' and added to 'Content Editors' group"
+            )
+
         if not User.objects.filter(email="support@example.com").exists():
-            support = User.objects.create(
+            support = User.objects.create_user(
                 first_name="Customer",
                 last_name="Support",
-                email=settings.CUSTOMER_SUPPORT_EMAIL ,
+                email=settings.CUSTOMER_SUPPORT_EMAIL,
                 password=settings.CUSTOMER_SUPPORT_PASSWORD,
                 is_staff=True,
-                is_email_verified=True
+                is_email_verified=True,
             )
             support.groups.add(customer_support)
-            logger.info(f"Created user 'Customer Support' and added to 'Customer Support' group")
+            logger.info(
+                f"Created user 'Customer Support' and added to 'Customer Support' group"
+            )
 
     def create_team_members(self) -> TeamMember:
         created_count = 0

@@ -20,7 +20,7 @@ if [ "$SERVICE_TYPE" = "web" ]; then
   python manage.py collectstatic --noinput
 
   exec gunicorn --bind 0.0.0.0:8000 clothing_store.wsgi:application
-elif [ "$SERVICE_TYPE" = "celery" ]|| [ "$SERVICE_TYPE" = "celery-beat" ]; then
+elif [ "$SERVICE_TYPE" = "celery" ] || [ "$SERVICE_TYPE" = "celery-beat" ]; then
   echo "Waiting for Django to be ready..."
   while ! curl -s http://web:8000 >/dev/null; do
     echo "Django not ready. Retrying in 5s..."
