@@ -2,6 +2,12 @@
 # Base image
 FROM python:3.12-slim as builder
 
+# Create a virtual environment
+RUN python -m venv /opt/venv
+
+# Set the virtual environment as the current location
+ENV PATH=/opt/venv/bin:$PATH
+
 # Set the working directory in the container
 WORKDIR /app
 
