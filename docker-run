@@ -10,10 +10,7 @@ echo "Creating sample data..."
 python manage.py loaddata fixtures/shop.json
 python manage.py initd
 
-# Collect static files
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+RUNTIME_PORT=${PORT:-8080}
+RUNTIME_HOST=${HOST:-0.0.0.0}
 
-# Execute the command passed to the script
-echo "Executing: $@"
-exec "$@"
+gunicorn clothing_store.wsgi:application --bind $RUNTIME_HOST:$RUNTIME_PORT

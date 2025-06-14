@@ -64,5 +64,10 @@ RUN mkdir -p /app/logs && \
     touch /app/logs/clothing_store.log &&  \
     chmod -R 777 /app/logs/clothing_store.log 
 
+# add our static files to container itself on build
+RUN python manage.py collectstatic --noinput
+
 # Make scripts executable
-RUN chmod +x ./entrypoint
+RUN chmod +x ./docker-run
+
+CMD ["./docker-run"]
