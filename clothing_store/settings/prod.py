@@ -34,7 +34,8 @@ if DATABASE_URL:
         )
 
 
-CELERY_BROKER_URL = "redis://redis:6379/1"
+# CELERY_BROKER_URL = "redis://redis:6379/1"
+CELERY_BROKER_URL = config("CELERY_BROKER_URL")
 
 REDIS_HOST = "redis"
 REDIS_PORT = 6379
