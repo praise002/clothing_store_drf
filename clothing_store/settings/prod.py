@@ -11,6 +11,28 @@ ADMINS = [
 # ALLOWED_HOSTS = ['.vercel.app', '.now.sh']
 ALLOWED_HOSTS = [".railway.app"]
 
+DATABASE_URL = config("DATABASE_URL")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": "db",
+        "PORT": config("POSTGRES_PORT"),
+    }
+}
+
+if DATABASE_URL:
+    import dj_database_url
+
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASES["default"] = dj_database_url.config(
+            conn_max_age=500,
+            conn_health_checks=True,
+        )
+
 
 CELERY_BROKER_URL = "redis://redis:6379/1"
 
@@ -33,6 +55,8 @@ FRONTEND_URL = config("FRONTEND_URL_PROD")
 CORS_ALLOWED_ORIGINS = [
     config("FRONTEND_URL_PROD"),
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     config("FRONTEND_URL_PROD"),

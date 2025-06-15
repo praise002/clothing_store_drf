@@ -97,6 +97,3 @@ logging.config.dictConfig(
         },
     }
 )
-
-# NOTE: CORS_ALLOW_CREDENTIALS = True, CORS_ALLOWED_ORIGINS =[]
-# NOTE: CORS_ALLOW_CREDENTIALS = True, CORS_ALLOWED_ORIGINS =[]
