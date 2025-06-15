@@ -71,6 +71,7 @@ RUN mkdir -p /app/logs && \
     chmod -R 777 /app/logs/clothing_store.log 
 
 # Make scripts executable
-RUN chmod +x ./docker-run
+RUN chmod +x ./deployment/docker-run && \
+    chmod +x ./deployment/celery
 
-CMD ["./docker-run"]
+CMD ["./deployment/docker-run"]

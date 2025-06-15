@@ -236,22 +236,6 @@ SPECTACULAR_SETTINGS = {
 
 EMAIL_OTP_EXPIRE_MINUTES = 15
 
-CELERY_BEAT_SCHEDULE = {
-    "cancel-expired-orders": {
-        "task": "apps.orders.tasks.cancel_expired_orders",
-        "schedule": crontab(hour=0, minute=0),  # Every day at midnight
-        # 'schedule': 1,
-    },
-    "pending-orders": {
-        "task": "apps.orders.tasks.check_pending_orders",
-        "schedule": 60 * 5,  # Run every 5 minutes
-    },
-    "check-expired-discounts": {
-        "task": "apps.shop.tasks.check_expired_discounts",
-        "schedule": 60.0,  # Run every minute
-    },
-}
-
 FIRST_PURCHASE_DISCOUNT = 10
 
 JAZZMIN_SETTINGS = {

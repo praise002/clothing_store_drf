@@ -40,6 +40,21 @@ REDIS_HOST = "redis"
 REDIS_PORT = 6379
 REDIS_DB = 1
 
+CELERY_BEAT_SCHEDULE = {
+    "cancel-expired-orders": {
+        "task": "apps.orders.tasks.cancel_expired_orders",
+        "schedule": crontab(hour=2, minute=0),  # Once daily at 2 AM
+    },
+    "pending-orders": {
+        "task": "apps.orders.tasks.check_pending_orders",
+        "schedule": 60 * 30,  # Every 30 minutes instead of 5
+    },
+    "check-expired-discounts": {
+        "task": "apps.shop.tasks.check_expired_discounts",
+        "schedule": crontab(hour=1, minute=0),  # Once daily at 1 AM
+    },
+}
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=60
@@ -62,7 +77,10 @@ CSRF_TRUSTED_ORIGINS = [
     config("FRONTEND_URL_PROD"),
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)  # Fixed too many redirects
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

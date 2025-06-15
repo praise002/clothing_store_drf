@@ -38,6 +38,22 @@ DATABASES = {
     }
 }
 
+CELERY_BEAT_SCHEDULE = {
+    "cancel-expired-orders": {
+        "task": "apps.orders.tasks.cancel_expired_orders",
+        "schedule": crontab(hour=0, minute=0),  # Every day at midnight
+        # 'schedule': 1,
+    },
+    "pending-orders": {
+        "task": "apps.orders.tasks.check_pending_orders",
+        "schedule": 60 * 5,  # Run every 5 minutes
+    },
+    "check-expired-discounts": {
+        "task": "apps.shop.tasks.check_expired_discounts",
+        "schedule": 60 * 5,  # Run every 5 minutes
+    },
+}
+
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
 
 REDIS_HOST = "localhost"

@@ -17,4 +17,7 @@ python manage.py collectstatic --noinput
 RUNTIME_PORT=${PORT:-8080}
 RUNTIME_HOST=${HOST:-0.0.0.0}
 
+# Start Celery (using the deployment folder path)
+/deployment/celery.sh &
+
 gunicorn clothing_store.wsgi:application --bind $RUNTIME_HOST:$RUNTIME_PORT
