@@ -3,10 +3,5 @@
     "build": {
       "builder": "DOCKERFILE",
       "dockerfilePath": "Dockerfile"
-      },
-    "deploy": {
-      "healthcheckPath": "/api/v1/healthcheck/",
-      "healthcheckTimeout": 300,
-        "restartPolicyMaxRetries": 10
       }
   }

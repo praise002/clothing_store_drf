@@ -40,13 +40,10 @@ class CreateData:
             "is_email_verified": True,
         }
         superuser = User.objects.get_or_none(email=user_dict["email"])
-        print(superuser)
+
         if not superuser:
             superuser = User.objects.create_superuser(**user_dict)
-        print(superuser)
-        user = User.objects.get_or_none(email=user_dict["email"])
-        print(user.is_staff)
-        print(user.is_superuser)
+
         return superuser
 
     def create_user_groups(self) -> Group:
@@ -65,7 +62,7 @@ class CreateData:
 
         # Assign permissions to Store Managers
         product_content_type = ContentType.objects.get_for_model(Product)
-        print(product_content_type)  # returns Shop | product
+        # print(product_content_type)  # returns Shop | product
         category_content_type = ContentType.objects.get_for_model(Category)
 
         # Get all permissions for Product and Category models
@@ -73,7 +70,7 @@ class CreateData:
             content_type=product_content_type
         )
         # returns <QuerySet [<Permission: Shop | product | Can add product>, <Permission: Shop | product | Can change product>, <Permission: Shop | product | Can delete product>, <Permission: Shop | product | Can view product>]>
-        print(product_permissions)
+        # print(product_permissions)
         category_permissions = Permission.objects.filter(
             content_type=category_content_type
         )
