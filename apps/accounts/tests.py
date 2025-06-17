@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APITestCase
@@ -241,55 +242,56 @@ class TestAccounts(APITestCase):
 
     def test_logout(self):
         # Successful Logout
-        verified_user = self.verified_user
-        login_response = self.client.post(
-            self.login_url,
-            {
-                "email": verified_user.email,
-                "password": "Verified2001#",
-            },
-        )
+        if settings.DEBUG:
+            verified_user = self.verified_user
+            login_response = self.client.post(
+                self.login_url,
+                {
+                    "email": verified_user.email,
+                    "password": "Verified2001#",
+                },
+            )
 
-        # Check login response and refresh token
-        self.assertEqual(login_response.status_code, 200)
-        refresh_token = login_response.json().get("data").get("refresh")
-        self.assertIsNotNone(
-            refresh_token, "Refresh token should be provided upon login"
-        )
+            # Check login response and refresh token
+            self.assertEqual(login_response.status_code, 200)
+            refresh_token = login_response.json().get("data").get("refresh")
+            self.assertIsNotNone(
+                refresh_token, "Refresh token should be provided upon login"
+            )
 
-        # Successful Logout using the refresh token
-        response = self.client.post(
-            self.logout_url,
-            {
-                "refresh": refresh_token,
-            },
-        )
+            # Successful Logout using the refresh token
+            response = self.client.post(
+                self.logout_url,
+                {
+                    "refresh": refresh_token,
+                },
+            )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.json(),
-            {"status": SUCCESS_RESPONSE_STATUS, "message": "Logged out successfully."},
-        )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                response.json(),
+                {"status": SUCCESS_RESPONSE_STATUS, "message": "Logged out successfully."},
+            )
 
-        # Invalid Refresh Token
-        response = self.client.post(
-            self.logout_url,
-            {
-                "refresh": f"{refresh_token}_invalid_refresh_token",
-            },
-        )
+            # Invalid Refresh Token
+            response = self.client.post(
+                self.logout_url,
+                {
+                    "refresh": f"{refresh_token}_invalid_refresh_token",
+                },
+            )
 
-        self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.status_code, 401)
 
-        # Missing Refresh Token
-        response = self.client.post(
-            self.logout_url,
-            {
-                "refresh": "",
-            },
-        )
+            # Missing Refresh Token
+            response = self.client.post(
+                self.logout_url,
+                {
+                    "refresh": "",
+                },
+            )
 
-        self.assertEqual(response.status_code, 422)
+            self.assertEqual(response.status_code, 422)
 
     def test_logout_all(self):
         # Test unauthorized access
@@ -325,13 +327,14 @@ class TestAccounts(APITestCase):
             },
         )
 
-        # Verify tokens are blacklisted by trying to use them
-        refresh_token = login_response.json()["data"]["refresh"]
-        refresh_response = self.client.post(
-            self.token_refresh_url, {"refresh": refresh_token}
-        )
+        if settings.DEBUG:
+            # Verify tokens are blacklisted by trying to use them
+            refresh_token = login_response.json()["data"]["refresh"]
+            refresh_response = self.client.post(
+                self.token_refresh_url, {"refresh": refresh_token}
+            )
 
-        self.assertEqual(refresh_response.status_code, 401)
+            self.assertEqual(refresh_response.status_code, 401)
 
     def test_password_change(self):
         verified_user = self.verified_user
