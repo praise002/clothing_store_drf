@@ -242,7 +242,7 @@ class TestAccounts(APITestCase):
 
     def test_logout(self):
         # Successful Logout
-        if settings.DEBUG:
+        if not settings.DEBUG:
             verified_user = self.verified_user
             login_response = self.client.post(
                 self.login_url,
