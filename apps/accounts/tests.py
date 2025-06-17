@@ -250,7 +250,7 @@ class TestAccounts(APITestCase):
             },
         )
 
-        # Check login response and extract access token
+        # Check login response and refresh token
         self.assertEqual(login_response.status_code, 200)
         refresh_token = login_response.json().get("data").get("refresh")
         self.assertIsNotNone(

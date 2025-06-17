@@ -79,13 +79,13 @@ TEAM_MEMBER_EXAMPLE = [
     },
 ]
 
-MESSAGE_CREATE_EXAMPLE = {
-    "name": "Bobby Johnson",
-    "email": EMAIL_EXAMPLE,
-    "subject": "Test subject",
-    "text": "Test text",
-    "sent_at": DATETIME_EXAMPLE,
-}
+# MESSAGE_CREATE_EXAMPLE = {
+#     "name": "Bobby Johnson",
+#     "email": EMAIL_EXAMPLE,
+#     "subject": "Test subject",
+#     "text": "Test text",
+#     "sent_at": DATETIME_EXAMPLE,
+# }
 
 SITE_DETAIL_RESPONSE_EXAMPLE = {
     #     200: SiteDetailResponseSerializer,
@@ -135,7 +135,6 @@ MESSAGE_RESPONSE_EXAMPLE = {
                 value={
                     "status": SUCCESS_RESPONSE_STATUS,
                     "message": "Message sent successfully.",
-                    "data": MESSAGE_CREATE_EXAMPLE,
                 },
             ),
         ],

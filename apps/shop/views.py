@@ -93,7 +93,12 @@ class CategoryProductsView(APIView):
             )
 
         # products = category.products.all()
-        products = Product.objects.available().filter(category=category)
+        products = (
+            Product.objects.available()
+            .filter(category=category)
+            .select_related("category")
+            .prefetch_related("reviews")
+        )
         paginated_products = self.paginator_class.paginate_queryset(products, request)
         serializer = self.serializer_class(paginated_products, many=True)
 
@@ -116,7 +121,12 @@ class ProductListView(APIView):
         auth=[],
     )
     def get(self, request):
-        products = Product.objects.available()
+        products = (
+            Product.objects.available()
+            .select_related("category")
+            .prefetch_related("reviews")
+        )
+        # products = Product.objects.available()
         serializer = self.serializer_class(products, many=True)
         return CustomResponse.success(
             message="Products retrieved successfully",
@@ -415,6 +425,7 @@ class CategoryProductsGenericView(RetrieveAPIView):
         products = (
             Product.objects.available()
             .filter(category=category_instance)
+            .select_related("category")
             .prefetch_related("reviews")
         )
         return products
@@ -444,7 +455,11 @@ class ProductListGenericView(ListAPIView):
     View to list all products using ListAPIView.
     """
 
-    queryset = Product.objects.all()
+    queryset = (
+        Product.objects.available()
+        .select_related("category")
+        .prefetch_related("reviews")
+    )
     serializer_class = ProductSerializer
     pagination_class = DefaultPagination
     filterset_class = ProductFilter

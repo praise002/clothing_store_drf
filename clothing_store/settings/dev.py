@@ -70,6 +70,7 @@ REDIS_DB = 0
 #         ),
 #     }
 
+
 logger = logging.getLogger(__name__)
 LOG_LEVEL = "DEBUG"
 logging.config.dictConfig(

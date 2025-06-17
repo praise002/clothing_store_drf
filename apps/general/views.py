@@ -1,9 +1,8 @@
-from rest_framework.views import APIView
-from rest_framework import status
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.views import APIView
 
 from apps.common.responses import CustomResponse
-
 from apps.general.schema_examples import (
     MESSAGE_RESPONSE_EXAMPLE,
     SITE_DETAIL_RESPONSE_EXAMPLE,
@@ -11,12 +10,7 @@ from apps.general.schema_examples import (
 )
 
 from .models import SiteDetail, TeamMember
-from .serializers import (
-    SiteDetailSerializer,
-    TeamMemberSerializer,
-    MessageSerializer,
-)
-
+from .serializers import MessageSerializer, SiteDetailSerializer, TeamMemberSerializer
 
 tags = ["General"]
 
@@ -54,7 +48,7 @@ class TeamMemberListView(APIView):
     )
     def get(self, request):
         """List all TeamMember objects."""
-        team_members = TeamMember.objects.all()
+        team_members = TeamMember.objects.select_related('social_links').all()
         serializer = self.serializer_class(team_members, many=True)
         return CustomResponse.success(
             message="Team members retrieved successfully.",
@@ -81,6 +75,5 @@ class MessageCreateView(APIView):
 
         return CustomResponse.success(
             message="Message sent successfully.",
-            data=serializer.data,
             status_code=status.HTTP_201_CREATED,
         )

@@ -44,8 +44,8 @@ help:  ## makefile documentation.
 lint: ## lint & format
 	pre-commit run --all-files
 
-seed_db: ## seed db
-	python manage.py seed_db
+init_db: ## init db
+	python manage.py initd
 
 # DOCKER COMMANDS
 build:

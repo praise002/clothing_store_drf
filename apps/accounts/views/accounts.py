@@ -1,22 +1,23 @@
-from django.utils import timezone
+import logging
 
-from rest_framework.views import APIView
+from django.conf import settings
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import (
+    TokenBlacklistView,
     TokenObtainPairView,
     TokenRefreshView,
-    TokenBlacklistView,
 )
 
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
-
-
-from drf_spectacular.utils import extend_schema
-
 from apps.accounts.emails import SendEmail
+from apps.accounts.models import Otp, User
+from apps.accounts.permissions import IsUnauthenticated
 from apps.accounts.schema_examples import (
     LOGIN_RESPONSE_EXAMPLE,
     LOGOUT_ALL_RESPONSE_EXAMPLE,
@@ -30,24 +31,18 @@ from apps.accounts.schema_examples import (
     VERIFY_EMAIL_RESPONSE_EXAMPLE,
     VERIFY_OTP_RESPONSE_EXAMPLE,
 )
-from apps.accounts.utils import invalidate_previous_otps
-from apps.common.errors import ErrorCode
-from apps.common.responses import CustomResponse
 from apps.accounts.serializers import (
+    CustomTokenObtainPairSerializer,
     PasswordChangeSerializer,
     RegisterSerializer,
     RequestPasswordResetOtpSerializer,
     SendOtpSerializer,
     SetNewPasswordSerializer,
     VerifyOtpSerializer,
-    CustomTokenObtainPairSerializer,
 )
-
-
-from apps.accounts.models import User, Otp
-from apps.accounts.permissions import IsUnauthenticated
-
-import logging
+from apps.accounts.utils import invalidate_previous_otps
+from apps.common.errors import ErrorCode
+from apps.common.responses import CustomResponse
 
 logger = logging.getLogger(__name__)
 
@@ -111,31 +106,32 @@ class LoginView(TokenObtainPairView):
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
-        # Extract the refresh token from the response
-        # refresh = response.data.pop("refresh", None)
-        # access = response.data.get("access")
+        if settings.DEBUG:
+            response = CustomResponse.success(
+                message="Login successful.",
+                data=serializer.validated_data,
+                status_code=status.HTTP_200_OK,
+            )
+        else:
+            # Extract the refresh token from the response
+            refresh = serializer.validated_data['refresh']
+            access = serializer.validated_data['access']
 
-        # Set the refresh token as an HTTP-only cookie
-        # response = CustomResponse.success(
-        #     message="Login successful.",
-        #     data={
-        #         "access": access_token,
-        #     },
-        #     status_code=status.HTTP_200_OK,
-        # )
-        # response.set_cookie(
-        #     key="refresh",
-        #     value=refresh,
-        #     httponly=True,  # Prevent JavaScript access
-        #     secure=True,    # Only send over HTTPS
-        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
-        # )
-
-        response = CustomResponse.success(
-            message="Login successful.",
-            data=serializer.validated_data,
-            status_code=status.HTTP_200_OK,
-        )
+            # Set the refresh token as an HTTP-only cookie
+            response = CustomResponse.success(
+                message="Login successful.",
+                data={
+                    "access": access,
+                },
+                status_code=status.HTTP_200_OK,
+            )
+            response.set_cookie(
+                key="refresh",
+                value=refresh,
+                httponly=True,  # Prevent JavaScript access
+                secure=True,    # Only send over HTTPS
+                samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+            )
 
         return response
 
@@ -266,15 +262,15 @@ class LogoutView(TokenBlacklistView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-
-        response = CustomResponse.success(
-            message="Logged out successfully.", status_code=status.HTTP_200_OK
-        )
+        
+        if settings.DEBUG:
+            response = CustomResponse.success(
+                message="Logged out successfully.", status_code=status.HTTP_200_OK
+            )
+        else:
+            # Clear the HTTP-only cookie containing the refresh token
+            response.delete_cookie("refresh")
         return response
-
-        # Clear the HTTP-only cookie containing the refresh token
-        # response.delete_cookie("refresh")
-        # return response
 
 
 class LogoutAllView(APIView):
@@ -480,36 +476,35 @@ class RefreshTokensView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
+        
+        if settings.DEBUG:
+            response = CustomResponse.success(
+                message="Token refreshed successfully.",
+                data=serializer.validated_data,
+                status_code=status.HTTP_200_OK,
+            )
+        else:
+            # Extract the new refresh token from the response
+            refresh = serializer.validated_data['refresh']
+            access = serializer.validated_data("access")
 
-        # Extract the new refresh token from the response
-        # refresh = response.data.pop("refresh", None)
-        # access = response.data.get("access")
+            # Set the new refresh token as an HTTP-only cookie
+            response = CustomResponse.success(
+                message="Token refreshed successfully.",
+                data={"access": access},
+                status_code=status.HTTP_200_OK,
+            )
 
-        # Set the new refresh token as an HTTP-only cookie
-        # response = CustomResponse.success(
-        #     message="Token refreshed successfully.",
-        #     data={"access": access},
-        #     status_code=status.HTTP_200_OK,
-        # )
-
-        # response.set_cookie(
-        #     key="refresh",
-        #     value=refresh,
-        #     httponly=True,  # Prevent JavaScript access
-        #     secure=True,    # Only send over HTTPS
-        #     samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
-        # )
-
-        response = CustomResponse.success(
-            message="Token refreshed successfully.",
-            data=serializer.validated_data,
-            status_code=status.HTTP_200_OK,
-        )
+            response.set_cookie(
+                key="refresh",
+                value=refresh,
+                httponly=True,  # Prevent JavaScript access
+                secure=True,    # Only send over HTTPS
+                samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+            )
 
         return response
 
-
-# TODO: TEST THE COOKIE STUFF
 
 # import os
 # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Add this at the top of the file

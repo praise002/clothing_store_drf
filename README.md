@@ -30,14 +30,27 @@
 ```bash
     $ pip install -r requirements.txt
 ```
-- Create an `.env` file and copy the contents from the `.env.example` to the file and set the respective values. A postgres database can be created with PG ADMIN or psql
+OR
+```bash
+    $ make reqn
+```
+- Create an `.env` file and copy the contents from the `.env.example` to the file and set the respective values. A postgres database can be created with PG ADMIN(GUI) or psql(on the CLI)
 
-- Run Locally
+- Make migrations
 ```bash
     $ python manage.py migrate
 ```
+OR
+```bash
+    $ make mig
+```
+- Run Locally
 ```bash
     $ python manage.py runserver
+```
+OR
+```bash
+    $ make serv
 ```
 ```bash
     $ python manage.py test apps.app_name.tests
@@ -61,16 +74,10 @@
 ```bash
     $ docker-compose up  
 ```
+OR
 ```bash
-    $ docker compose exec web python manage.py migrate
+    $ make up  
 ```
-```bash
-    $ docker compose exec web python manage.py createsuperuser
-```
-```bash
-    $ docker-compose exec web python manage.py collectstatic
-```
-
 - Run with ngrok
  ```bash
     $   ngrok http 8000
@@ -78,6 +85,11 @@
 
 ## NOTE
 * For webhook to work with paystack install ngrok with choco. Follow the installation guide in the resources section. Ensure choco is installed on your system.
+* To use the makefile follow these instructions if using Windows, for Linux OS and Mac OS you can google search the procedure
+- **Step 1**: Run powershell as administrator
+- **Step 2:** Visit chocolatey website
+- **Step 3:** choco install make
+- Now you can successfully use the make command in your django app, update the Makefile as you wish
 
 ## Resources 
 * [Ngrok](https://download.ngrok.com/downloads/windows)
@@ -85,9 +97,12 @@
 * [Production Django Deployments on Heroku](https://testdriven.io/blog/production-django-deployments-on-heroku/)
 * [Dockerizing Celery and Django](https://testdriven.io/courses/django-celery/docker/)
 * [Dockerizing Django with Postgres, Gunicorn, and Nginx](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/#project-setup)
+* [Deploying Django to production](https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Django/Deployment#example_hosting_on_railway)
+* [Deploy Django on Railway with this coding file](https://www.codingforentrepreneurs.com/blog/deploy-django-on-railway-with-this-dockerfile)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part I](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django)
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part II](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django-ii)
 * [An opinionated guide to drf-oauth](https://www.circumeo.io/blog/entry/an-opinionated-guide-to-drf-oauth/)
+* [Security scanner](https://www.apisec.ai/blog/apisec-the-only-platform-for-automated-api-security-testing)
 
   
 # Home Page

@@ -68,4 +68,5 @@ jobs:
             - name: Run tests
               run: |
                   python manage.py test --verbosity=2
-# NOTE: ADD DEPLOY LATER
+
+  

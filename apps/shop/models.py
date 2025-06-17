@@ -26,9 +26,6 @@ class Category(BaseModel):
         return self.name
 
 
-# NOTE: USE PERMSSIONS IN ADMIN TO PREVENT ACCIDENTAL DELETION OF PRODUCT
-
-
 class Product(BaseModel):
     name = models.CharField(max_length=19)
     slug = AutoSlugField(populate_from="name", unique=True, always_update=True)

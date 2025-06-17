@@ -25,13 +25,13 @@ from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSe
 REGISTER_EXAMPLE = {"email": "bob123@example.com"}
 
 LOGIN_EXAMPLE = {
-    "refresh": REFRESH_TOKEN,
+    # "refresh": REFRESH_TOKEN,
     "access": ACCESS_TOKEN,
 }
 
 REFRESH_TOKEN_EXAMPLE = {
     "access": ACCESS_TOKEN,
-    "refresh": REFRESH_TOKEN,
+    # "refresh": REFRESH_TOKEN,
 }
 
 UNAUTHORIZED_USER_RESPONSE = OpenApiResponse(

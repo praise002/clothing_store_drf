@@ -60,7 +60,6 @@ handler500 = handler500
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("__debug__/", include("debug_toolbar.urls")),
     path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/", include("apps.profiles.urls")),
     path("api/v1/", include("apps.general.urls")),
@@ -84,4 +83,5 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    urlpatterns.append(path("__debug__/", include("debug_toolbar.urls")))
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
