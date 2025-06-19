@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -9,6 +10,7 @@ from apps.common.responses import CustomResponse
 from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
 from apps.orders.filters import OrderFilter
 from apps.orders.models import Order
+from apps.orders.models.order import OrderItem
 from apps.orders.serializers import OrderCreateSerializer, OrderSerializer
 from apps.orders.serializers.order import OrderResponseSerializer
 from apps.orders.tasks import order_created
@@ -116,7 +118,18 @@ class OrderHistoryView(APIView):
         user_profile = request.user.profile
 
         # Retrieve all orders for the user
-        orders = Order.objects.filter(customer=user_profile).order_by("-created")
+        orders = (
+            Order.objects.filter(customer=self.request.user.profile)
+            .prefetch_related(
+                Prefetch(
+                    "items",
+                    queryset=OrderItem.objects.select_related(
+                        "product__category"
+                    ).prefetch_related("product__reviews"),
+                )
+            )
+            .order_by("-created")
+        )
 
         if not orders.exists():
             return CustomResponse.success(
@@ -151,8 +164,17 @@ class OrderHistoryGenericAPIView(ListAPIView):
             # Return an empty queryset to prevent errors during schema generation
             return Order.objects.none()
 
-        return Order.objects.filter(customer=self.request.user.profile).order_by(
-            "-created"
+        return (
+            Order.objects.filter(customer=self.request.user.profile)
+            .prefetch_related(
+                Prefetch(
+                    "items",
+                    queryset=OrderItem.objects.select_related(
+                        "product__category"
+                    ).prefetch_related("product__reviews"),
+                )
+            )
+            .order_by("-created")
         )
 
     def list(self, request, *args, **kwargs):

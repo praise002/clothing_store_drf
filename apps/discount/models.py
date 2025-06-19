@@ -102,7 +102,6 @@ class Coupon(BaseModel):
 
     def clean(self):
         if self.discount.discount_type in [
-            DiscountChoices.FREE_SHIPPING,
             DiscountChoices.TIERED,
         ]:
             raise ValidationError(

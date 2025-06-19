@@ -1,9 +1,10 @@
+import json
 from decimal import Decimal
+
+import redis
 from django.conf import settings
 
 from apps.shop.models import Product
-import redis
-import json
 
 
 class Cart:
@@ -97,7 +98,7 @@ class Cart:
         # convert the items in the cart from str to decimal
         product_ids = self.cart.keys()
         # get the product objects and add them to the cart
-        products = Product.objects.filter(id__in=product_ids)
+        products = Product.objects.filter(id__in=product_ids).select_related('category')
         cart = self.cart.copy()
 
         # First update prices in self.cart (without product objects)

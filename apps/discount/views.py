@@ -44,7 +44,7 @@ class ApplyCouponView(APIView):
             raise NotFoundError(err_msg="Order ID is required.")
         # 2. Get order
         try:
-            order = Order.objects.get(id=order_id)
+            order = Order.objects.select_related("customer").prefetch_related("items").get(id=order_id)
         except Order.DoesNotExist:
             raise NotFoundError(err_msg="Order not found.")
 

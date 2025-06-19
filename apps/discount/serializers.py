@@ -10,7 +10,7 @@ class CouponApplySerializer(serializers.Serializer):
     def validate_code(self, code):
         """Check if coupon exists and is valid."""
         try:
-            coupon = Coupon.objects.get(code=code)
+            coupon = Coupon.objects.select_related("discount").get(code=code)
             if not coupon.is_valid:
                 raise serializers.ValidationError("Expired coupon code")
         except Coupon.DoesNotExist:

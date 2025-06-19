@@ -117,7 +117,7 @@ class OrderCreateSerializer(
         cart = Cart(request)
 
         # Retrieve the shipping address
-        shipping_address = ShippingAddress.objects.get(
+        shipping_address = ShippingAddress.objects.select_related('user').get(
             id=shipping_id, user=user_profile
         )
 

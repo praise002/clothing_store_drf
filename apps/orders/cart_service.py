@@ -7,6 +7,7 @@ from apps.discount.models import Discount
 from apps.discount.service import apply_discount_to_order
 from apps.orders.choices import DiscountChoices
 from apps.orders.models import Order, OrderItem
+from apps.shop.models import Product
 
 
 def process_cart_for_order(request):
@@ -52,7 +53,7 @@ def process_cart_for_order(request):
 #             phone_number=shipping_address.phone_number,
 #             postal_code=shipping_address.postal_code,
 #         )
-        
+
 
 #         # Add items from the cart to the order
 #         for item in cart:
@@ -60,7 +61,7 @@ def process_cart_for_order(request):
 #             quantity = item["quantity"]
 #             price = Decimal(item["price"])
 #             discounted_price = Decimal(item["discounted_price"])
-            
+
 #             # Lock the product row to prevent concurrent updates
 #             product = (
 #                 product.__class__.objects.select_for_update().get(pk=product.pk)
@@ -97,6 +98,7 @@ def process_cart_for_order(request):
 
 #     return order, discount_info
 
+
 def create_order_from_cart(cart, shipping_address, user_profile):
     """
     Create an order from the cart and reduce stock for purchased items.
@@ -113,7 +115,9 @@ def create_order_from_cart(cart, shipping_address, user_profile):
             phone_number=shipping_address.phone_number,
             postal_code=shipping_address.postal_code,
         )
-        
+
+        order_items = []  # List to hold OrderItem instances
+        products_to_update = []
 
         # Add items from the cart to the order
         for item in cart:
@@ -121,24 +125,31 @@ def create_order_from_cart(cart, shipping_address, user_profile):
             quantity = item["quantity"]
             price = Decimal(item["price"])
             discounted_price = Decimal(item["discounted_price"])
-            
+
             # Lock the product row to prevent concurrent updates
-            product = (
-                product.__class__.objects.select_for_update().get(pk=product.pk)
-            )
+            product = product.__class__.objects.select_for_update().get(pk=product.pk)
 
             # Create order item and reduce stock
-            if discounted_price:
-                OrderItem.objects.create(
-                    order=order, product=product, quantity=quantity, price=discounted_price
-                )
-            else:
-                OrderItem.objects.create(
-                    order=order, product=product, quantity=quantity, price=price
-                )
+            # Set price based on discount
+            use_price = discounted_price if discounted_price else price
+
+            order_item = OrderItem(
+                order=order, product=product, quantity=quantity, price=use_price
+            )
+
+            order_items.append(order_item)
 
             product.in_stock -= quantity
-            product.save()
+            products_to_update.append(product)
+
+        # Bulk create order items
+        OrderItem.objects.bulk_create(order_items)
+        
+        # Bulk update product stock
+        Product.objects.bulk_update(products_to_update, ['in_stock'])
+        
+        # After bulk creating items, fetch the order with prefetched items
+        order = Order.objects.prefetch_related('items').get(id=order.id)
 
     # Clear the cart after creating the order
     cart.clear()
