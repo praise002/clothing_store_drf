@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Start Celery worker
-celery -A clothing_store worker --loglevel=info --pool=solo &
+celery -A clothing_store worker --loglevel=info --pool=solo --uid=celeryuser &
 
 # Start Celery Beat (scheduler)
-celery -A clothing_store beat --loglevel=info &
+celery -A clothing_store beat --loglevel=info --uid=celeryuser &
 
 # Keep the script running
 wait
