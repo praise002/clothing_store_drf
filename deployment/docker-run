@@ -18,6 +18,7 @@ RUNTIME_PORT=${PORT:-8080}
 RUNTIME_HOST=${HOST:-0.0.0.0}
 
 # Start Celery (using the deployment folder path)
-./deployment/celery &
+echo "Starting Celery worker..."
+su - celeryuser -c "./deployment/celery" &
 
 gunicorn clothing_store.wsgi:application --bind $RUNTIME_HOST:$RUNTIME_PORT

@@ -74,4 +74,7 @@ RUN mkdir -p /app/logs && \
 RUN chmod +x ./deployment/docker-run && \
     chmod +x ./deployment/celery
 
+# Create a non-root user
+RUN useradd -m celeryuser
+
 CMD ["./deployment/docker-run"]
