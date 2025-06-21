@@ -129,7 +129,7 @@ class OrderCreateSerializer(
 class OrderWithDiscountSerializer(serializers.ModelSerializer):
     order_subtotal = serializers.SerializerMethodField()
     final_total = serializers.SerializerMethodField()
-    items = OrderItemSerializer(many=True, source='items.all')
+    items = OrderItemSerializer(many=True)
     
     class Meta:
         model = Order

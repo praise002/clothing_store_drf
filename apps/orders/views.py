@@ -114,8 +114,6 @@ class OrderHistoryView(APIView):
         """
         Retrieve the order history of the authenticated user.
         """
-        # Get the authenticated user's profile
-        user_profile = request.user.profile
 
         # Retrieve all orders for the user
         orders = (

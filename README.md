@@ -103,6 +103,7 @@ OR
 * [Integrating Paystack Payment Gateway Into Your Django Project - Part II](https://willingly.hashnode.dev/integrating-paystack-payment-gateway-with-django-ii)
 * [An opinionated guide to drf-oauth](https://www.circumeo.io/blog/entry/an-opinionated-guide-to-drf-oauth/)
 * [Security scanner](https://www.apisec.ai/blog/apisec-the-only-platform-for-automated-api-security-testing)
+* [Variables](https://docs.railway.com/reference/variables)
 
   
 # Home Page

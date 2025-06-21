@@ -13,9 +13,11 @@ from rest_framework.views import APIView
 
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
-from apps.common.serializers import (ErrorDataResponseSerializer,
-                                     ErrorResponseSerializer,
-                                     SuccessResponseSerializer)
+from apps.common.serializers import (
+    ErrorDataResponseSerializer,
+    ErrorResponseSerializer,
+    SuccessResponseSerializer,
+)
 from apps.orders.choices import PaymentGateway
 from apps.orders.models import Order
 from apps.payments.serializers import PaymentInitializeSerializer
@@ -104,9 +106,6 @@ class InitiatePaymentFLW(APIView):
                 err_code=ErrorCode.BAD_REQUEST,
             )
 
-        order.payment_method = payment_method
-        order.save()
-
         # Generate a unique reference for the payment
         tx_ref = str(uuid.uuid4())
 
@@ -115,7 +114,7 @@ class InitiatePaymentFLW(APIView):
         flutterwave_secret_key = config("FLW_SECRET_KEY")
 
         redirect_url = "https://df4e-31-14-252-14.ngrok-free.app/api/v1/payments/flw/payment-callback/"
-        
+
         # Prepare the payload for Flutterwave
         payload = {
             "tx_ref": tx_ref,
@@ -145,6 +144,7 @@ class InitiatePaymentFLW(APIView):
 
         # Associate the reference to the Order record
         order.tx_ref = tx_ref
+        order.payment_method = payment_method
         order.save()
 
         try:
@@ -165,7 +165,7 @@ class InitiatePaymentFLW(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                err_code=ErrorCode.SERVER_ERROR
+                err_code=ErrorCode.SERVER_ERROR,
             )
         except ValueError as err:
             logger.error(
@@ -175,7 +175,7 @@ class InitiatePaymentFLW(APIView):
             return CustomResponse.error(
                 message="Payment initiation failed",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                err_code=ErrorCode.SERVER_ERROR
+                err_code=ErrorCode.SERVER_ERROR,
             )
 
 
@@ -215,9 +215,6 @@ class InitiatePaymentPaystack(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        order.payment_method = payment_method
-        order.save()
-
         # Paystack API URL
         url = "https://api.paystack.co/transaction/initialize"
 
@@ -237,6 +234,7 @@ class InitiatePaymentPaystack(APIView):
 
         # Associate the reference to the Order record
         order.tx_ref = tx_ref
+        order.payment_method = payment_method
         order.save()
 
         metadata = json.dumps(
