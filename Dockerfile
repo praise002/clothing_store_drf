@@ -63,12 +63,7 @@ RUN pip install --no-cache-dir /wheels/* && \
     rm -rf /wheels
 
 # Copy source code
-COPY . .
-
-# Create logs directory and set permissions
-RUN mkdir -p /app/logs && \
-    touch /app/logs/clothing_store.log &&  \
-    chmod -R 777 /app/logs/clothing_store.log 
+COPY . . 
 
 # Make scripts executable
 RUN chmod +x ./deployment/docker-run && \

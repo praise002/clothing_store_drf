@@ -1,28 +1,36 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import (ListAPIView, RetrieveUpdateAPIView,
-                                     RetrieveUpdateDestroyAPIView)
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.errors import ErrorCode
 from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
 from apps.profiles.schema_examples import (
-    PROFILE_RETRIEVE_RESPONSE_EXAMPLE, PROFILE_UPDATE_RESPONSE_EXAMPLE,
+    PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
+    PROFILE_UPDATE_RESPONSE_EXAMPLE,
     SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE,
     SHIPPING_ADDRESS_DETAIL_DELETE_RESPONSE_EXAMPLE,
     SHIPPING_ADDRESS_DETAIL_GET_RESPONSE_EXAMPLE,
     SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE,
-    SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE, build_avatar_request_schema)
+    SHIPPING_ADDRESS_RETRIEVE_RESPONSE_EXAMPLE,
+    build_avatar_request_schema,
+)
 
 from .models import ShippingAddress
-from .serializers import (AvatarSerializer, ProfileSerializer,
-                          ShippingAddressCreateSerializer,
-                          ShippingAddressSerializer,
-                          ShippingAddressUpdateSerializer)
+from .serializers import (
+    AvatarSerializer,
+    ProfileSerializer,
+    ShippingAddressCreateSerializer,
+    ShippingAddressSerializer,
+    ShippingAddressUpdateSerializer,
+)
 
 tags = ["Profiles"]
 

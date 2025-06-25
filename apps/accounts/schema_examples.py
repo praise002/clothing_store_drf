@@ -1,7 +1,4 @@
-from drf_spectacular.utils import (
-    OpenApiResponse,
-    OpenApiExample,
-)
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse
 
 from apps.accounts.serializers import (
     CustomTokenObtainPairSerializer,
@@ -17,7 +14,6 @@ from apps.common.errors import ErrorCode
 from apps.common.schema_examples import (
     ACCESS_TOKEN,
     ERR_RESPONSE_STATUS,
-    REFRESH_TOKEN,
     SUCCESS_RESPONSE_STATUS,
 )
 from apps.common.serializers import ErrorDataResponseSerializer, ErrorResponseSerializer
@@ -351,4 +347,3 @@ REFRESH_TOKEN_RESPONSE_EXAMPLE = {
     ),
     422: ErrorDataResponseSerializer,
 }
-
