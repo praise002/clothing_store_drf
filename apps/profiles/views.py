@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from apps.common.exceptions import NotFoundError
 from apps.common.responses import CustomResponse
 from apps.profiles.schema_examples import (
+    AVATAR_UPDATE_RESPONSE_EXAMPLE,
     PROFILE_RETRIEVE_RESPONSE_EXAMPLE,
     PROFILE_UPDATE_RESPONSE_EXAMPLE,
     SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE,
@@ -455,17 +456,19 @@ class AvatarUpdateView(APIView):
         description="This endpoint allows authenticated users to upload or update their profile avatar.",
         tags=tags,
         request=build_avatar_request_schema(),
-        responses=PROFILE_UPDATE_RESPONSE_EXAMPLE,
+        responses=AVATAR_UPDATE_RESPONSE_EXAMPLE,
     )
     def patch(self, request):
         profile = request.user.profile
         serializer = self.serializer_class(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         profile = serializer.save()
-        profile_serializer = ProfileSerializer(profile)  # re-serialize
+        
 
         return CustomResponse.success(
-            message="Profile updated successfully.",
-            data=profile_serializer.data,
+            message="Profile avatar updated successfully.",
+            data={
+                "avatar_url": profile.avatar_url,
+            },
             status_code=status.HTTP_200_OK,
         )

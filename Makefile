@@ -20,6 +20,9 @@ mig:
 serv:
 	python manage.py runserver
 
+serv-plus:
+	python manage.py runserver_plus --cert-file cert.crt
+	
 suser:
 	python manage.py createsuperuser
 

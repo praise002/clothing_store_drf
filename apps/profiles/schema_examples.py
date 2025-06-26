@@ -126,6 +126,26 @@ PROFILE_RETRIEVE_RESPONSE_EXAMPLE = {
     401: UNAUTHORIZED_USER_RESPONSE,
 }
 
+AVATAR_UPDATE_RESPONSE_EXAMPLE = {
+    200: OpenApiResponse(
+        description="Avatar Update Successful",
+        response=ProfileSerializer,
+        examples=[
+            OpenApiExample(
+                name="Success Response",
+                value={
+                    "status": SUCCESS_RESPONSE_STATUS,
+                    "message": "Profile avatar updated successfully.",
+                    "data": {
+                        "avatar_url": AVATAR_URL,
+                    },
+                },
+            ),
+        ],
+    ),
+    400: ErrorDataResponseSerializer,
+    401: UNAUTHORIZED_USER_RESPONSE,
+}
 
 def build_avatar_request_schema():
     return {
