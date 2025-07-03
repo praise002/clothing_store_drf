@@ -220,7 +220,10 @@ SHIPPING_ADDRESS_CREATE_RESPONSE_EXAMPLE = {
         ],
     ),
     401: UNAUTHORIZED_USER_RESPONSE,
-    422: ErrorDataResponseSerializer,
+    422: OpenApiResponse(
+        response=ErrorDataResponseSerializer,
+        description="Validation Error",
+    ),
     # 422: OpenApiResponse(
     #     response=ErrorDataResponseSerializer,
     #     description="Validation error",
@@ -295,7 +298,10 @@ SHIPPING_ADDRESS_DETAIL_PATCH_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    422: ErrorDataResponseSerializer,
+    422: OpenApiResponse(
+        response=ErrorDataResponseSerializer,
+        description="Validation Error",
+    ),
     401: UNAUTHORIZED_USER_RESPONSE,
     404: OpenApiResponse(
         response=ErrorResponseSerializer,

@@ -214,4 +214,3 @@ class WishlistResponseSerializer(SuccessResponseSerializer):
 
 class ReviewResponseSerializer(SuccessResponseSerializer):
     data = ReviewSerializer()
-    data = ReviewSerializer()

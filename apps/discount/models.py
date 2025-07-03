@@ -105,7 +105,7 @@ class Coupon(BaseModel):
             DiscountChoices.TIERED,
         ]:
             raise ValidationError(
-                f"Coupon discount type has to be 'fixed amount' or 'percentage'"
+                "Coupon discount type has to be 'fixed amount' or 'percentage'"
             )
 
         if not self.discount.is_active:

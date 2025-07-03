@@ -372,7 +372,10 @@ REVIEW_CREATE_RESPONSE = {
     ),
     401: ErrorResponseSerializer,
     404: ErrorResponseSerializer,
-    422: ErrorDataResponseSerializer,
+    422: OpenApiResponse(
+        response=ErrorDataResponseSerializer,
+        description="Validation Error",
+    ),
 }
 
 REVIEW_UPDATE_RESPONSE = {
