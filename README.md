@@ -20,10 +20,10 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
 
 - **Backend Framework:** Django Rest Framework (DRF)
 - **Database:** PostgreSQL
-- **Containerization:** Docker & Docker Compose
+- **Containerization:** Docker 
 - **Task Queue:** Celery with Redis broker
-- **Payment Gateway:** Paystack integration
-- **Testing:** Django Test Framework
+- **Payment Gateway:** Paystack and Flutterwave integration
+- **Testing:** APITestCase from DRF
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -31,7 +31,7 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
 - Python 3.8+
 - PostgreSQL
 - Redis (for Celery tasks)
-- Docker (optional)
+- Docker 
 
 ### 📋 Installation
 
