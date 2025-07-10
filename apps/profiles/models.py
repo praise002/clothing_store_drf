@@ -120,7 +120,7 @@ class Profile(BaseModel):
         on_delete=models.CASCADE,
         editable=False,
     )
-    avatar = models.ImageField(upload_to="avatars/", null=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:

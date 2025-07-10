@@ -160,30 +160,30 @@ class CreateData:
 
             try:
 
-                with transaction.atomic():
-                    # Create the social links first
-                    social_data = member_data.pop("social")
-                    social = Social.objects.create(**social_data)
+                # Create the social links first
+                social_data = member_data.pop("social")
+                social = Social.objects.create(**social_data)
 
-                    images = os.listdir(test_images_directory)
-                    image_file_name = self.get_image(images, "team")
-                    image_path = os.path.join(test_images_directory, image_file_name)
+                images = os.listdir(test_images_directory)
+                # FIXME
+                image_file_name = self.get_image(images, "team")
+                image_path = os.path.join(test_images_directory, image_file_name)
 
-                    with open(image_path, "rb") as image_file:
-                        file_storage = MediaCloudinaryStorage()
-                        file_path = file_storage.save(
-                            f"{TEAM_MEMBER_FOLDER}{image_file_name}", image_file
-                        )
-                        team_member = TeamMember(
-                            name=member_data["name"],
-                            role=member_data["role"],
-                            description=member_data["description"],
-                            social_links=social,
-                            avatar=file_path,
-                        )
-                        team_members_to_create.append(team_member)
-                        created_count += 1
-                        logger.debug(f"Created team member: {team_member.name}")
+                with open(image_path, "rb") as image_file:
+                    file_storage = MediaCloudinaryStorage()
+                    file_path = file_storage.save(
+                        f"{TEAM_MEMBER_FOLDER}{image_file_name}", image_file
+                    )
+                    team_member = TeamMember(
+                        name=member_data["name"],
+                        role=member_data["role"],
+                        description=member_data["description"],
+                        social_links=social,
+                        avatar=file_path,
+                    )
+                    team_members_to_create.append(team_member)
+                    created_count += 1
+                    logger.debug(f"Created team member: {team_member.name}")
 
             except Exception as e:
                 logger.error(

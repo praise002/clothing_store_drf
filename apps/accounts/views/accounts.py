@@ -103,6 +103,14 @@ class LoginView(TokenObtainPairView):
                     status_code=status.HTTP_403_FORBIDDEN,
                     err_code=ErrorCode.FORBIDDEN,
                 )
+                
+            if not user.user_active:
+                return CustomResponse.error(
+                    message="Your account has been disabled. Please contact support for assistance.",
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    err_code=ErrorCode.FORBIDDEN,
+                )
+                
         except TokenError as e:
             raise InvalidToken(e.args[0])
 

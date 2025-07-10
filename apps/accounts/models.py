@@ -45,7 +45,7 @@ class User(AbstractBaseUser, IsDeletedModel, PermissionsMixin):
 
 class Otp(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    otp = models.IntegerField(null=True)
+    otp = models.IntegerField()
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
