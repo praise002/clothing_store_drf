@@ -103,14 +103,14 @@ class LoginView(TokenObtainPairView):
                     status_code=status.HTTP_403_FORBIDDEN,
                     err_code=ErrorCode.FORBIDDEN,
                 )
-                
+
             if not user.user_active:
                 return CustomResponse.error(
                     message="Your account has been disabled. Please contact support for assistance.",
                     status_code=status.HTTP_403_FORBIDDEN,
                     err_code=ErrorCode.FORBIDDEN,
                 )
-                
+
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
@@ -122,8 +122,8 @@ class LoginView(TokenObtainPairView):
             )
         else:
             # Extract the refresh token from the response
-            refresh = serializer.validated_data['refresh']
-            access = serializer.validated_data['access']
+            refresh = serializer.validated_data["refresh"]
+            access = serializer.validated_data["access"]
 
             # Set the refresh token as an HTTP-only cookie
             response = CustomResponse.success(
@@ -137,8 +137,8 @@ class LoginView(TokenObtainPairView):
                 key="refresh",
                 value=refresh,
                 httponly=True,  # Prevent JavaScript access
-                secure=True,    # Only send over HTTPS
-                samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+                secure=True,  # Only send over HTTPS
+                samesite="None",  # Allow cross-origin requests if frontend and backend are on different domains
             )
 
         return response
@@ -165,8 +165,7 @@ class ResendVerificationEmailView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         if user.is_email_verified:
@@ -210,8 +209,7 @@ class VerifyEmailView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Check if the OTP is valid for this user
@@ -220,8 +218,7 @@ class VerifyEmailView(APIView):
         except Otp.DoesNotExist:
             return CustomResponse.error(
                 message="Invalid OTP provided.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Check if OTP is expired
@@ -270,7 +267,7 @@ class LogoutView(TokenBlacklistView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-        
+
         if settings.DEBUG:
             response = CustomResponse.success(
                 message="Logged out successfully.", status_code=status.HTTP_200_OK
@@ -357,8 +354,7 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="User with this email does not exist.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Clear otps if another otp is requested
@@ -395,8 +391,7 @@ class VerifyOtpView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Check if the OTP is valid for this user
@@ -405,8 +400,7 @@ class VerifyOtpView(APIView):
         except Otp.DoesNotExist:
             return CustomResponse.error(
                 message="The OTP could not be found. Please enter a valid OTP or request a new one.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Check if OTP is expired
@@ -449,8 +443,7 @@ class PasswordResetDoneView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Update the user's password
@@ -484,7 +477,7 @@ class RefreshTokensView(TokenRefreshView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
-        
+
         if settings.DEBUG:
             response = CustomResponse.success(
                 message="Token refreshed successfully.",
@@ -493,7 +486,7 @@ class RefreshTokensView(TokenRefreshView):
             )
         else:
             # Extract the new refresh token from the response
-            refresh = serializer.validated_data['refresh']
+            refresh = serializer.validated_data["refresh"]
             access = serializer.validated_data("access")
 
             # Set the new refresh token as an HTTP-only cookie
@@ -507,8 +500,8 @@ class RefreshTokensView(TokenRefreshView):
                 key="refresh",
                 value=refresh,
                 httponly=True,  # Prevent JavaScript access
-                secure=True,    # Only send over HTTPS
-                samesite="None", # Allow cross-origin requests if frontend and backend are on different domains
+                secure=True,  # Only send over HTTPS
+                samesite="None",  # Allow cross-origin requests if frontend and backend are on different domains
             )
 
         return response

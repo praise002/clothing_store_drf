@@ -23,7 +23,7 @@ class CustomResponse:
         return Response(data=response, status=status_code)
 
     @staticmethod
-    def error(message, err_code, data=None, status_code=400):
+    def error(message, err_code, data=None, status_code=422):
         response = {
             "status": "failure",
             "message": message,

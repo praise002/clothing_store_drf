@@ -69,7 +69,6 @@ REGISTER_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",
@@ -135,7 +134,6 @@ RESEND_VERIFICATION_EMAIL_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",
@@ -157,7 +155,6 @@ VERIFY_EMAIL_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",
@@ -256,7 +253,6 @@ PASSWORD_CHANGE_RESPONSE_EXAMPLE = {
 
 PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
     # 200: SuccessResponseSerializer,
-    # 400: ErrorDataResponseSerializer,
     # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=RequestPasswordResetOtpSerializer,
@@ -271,7 +267,6 @@ PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",
@@ -280,7 +275,6 @@ PASSWORD_RESET_REQUEST_RESPONSE_EXAMPLE = {
 
 VERIFY_OTP_RESPONSE_EXAMPLE = {
     # 200: SuccessResponseSerializer,
-    # 400: ErrorDataResponseSerializer,
     # 422: ErrorDataResponseSerializer,
     # 498: ErrorResponseSerializer,
     200: OpenApiResponse(
@@ -296,7 +290,6 @@ VERIFY_OTP_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",
@@ -318,7 +311,6 @@ VERIFY_OTP_RESPONSE_EXAMPLE = {
 
 PASSWORD_RESET_DONE_RESPONSE_EXAMPLE = {
     # 200: SuccessResponseSerializer,
-    # 400: ErrorDataResponseSerializer,
     # 422: ErrorDataResponseSerializer,
     200: OpenApiResponse(
         response=SetNewPasswordSerializer,
@@ -333,7 +325,6 @@ PASSWORD_RESET_DONE_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     422: OpenApiResponse(
         response=ErrorDataResponseSerializer,
         description="Validation Error",

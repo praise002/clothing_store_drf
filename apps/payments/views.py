@@ -40,7 +40,7 @@ class PaymentCallbackFlw(APIView):
             logger.warning("Missing required query parameters in payment_callback.")
             return CustomResponse.error(
                 message="Missing required query parameters",
-                status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         try:
@@ -79,7 +79,6 @@ class InitiatePaymentFLW(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorDataResponseSerializer,
             401: ErrorResponseSerializer,
             422: ErrorDataResponseSerializer,
         },
@@ -102,8 +101,7 @@ class InitiatePaymentFLW(APIView):
                 data={
                     "available_methods": dict(PaymentGateway.choices),
                 },
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Generate a unique reference for the payment
@@ -190,7 +188,6 @@ class InitiatePaymentPaystack(APIView):
         tags=tags,
         responses={
             200: SuccessResponseSerializer,
-            400: ErrorResponseSerializer,
             401: ErrorResponseSerializer,
             422: ErrorResponseSerializer,
         },
@@ -212,7 +209,7 @@ class InitiatePaymentPaystack(APIView):
                 data={
                     "available_methods": dict(PaymentGateway.choices),
                 },
-                status_code=status.HTTP_400_BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Paystack API URL

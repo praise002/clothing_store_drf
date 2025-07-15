@@ -29,7 +29,6 @@ class ApplyCouponView(APIView):
         tags=tags,
         responses={
             200: OrderWithDiscountResponseSerializer,
-            400: ErrorDataResponseSerializer,
             404: ErrorResponseSerializer,
             422: ErrorDataResponseSerializer,
         },
@@ -59,7 +58,7 @@ class ApplyCouponView(APIView):
         ):
             return CustomResponse.error(
                 message="This order has already been paid for.",
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         coupon = Coupon.objects.get(code=serializer.validated_data["code"])
