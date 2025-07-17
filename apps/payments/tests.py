@@ -40,7 +40,7 @@ class TestPayments(APITestCase):
 
         self.assertEqual(response.status_code, 422)
 
-        # Test 400 or 422
+        # Test 422
         invalid_payment_data = {"order_id": self.order.id, "payment_method": ""}
         response = self.client.post(self.initiate_payment_flw_url, invalid_payment_data)
 
@@ -73,7 +73,7 @@ class TestPayments(APITestCase):
 
         self.assertEqual(response.status_code, 422)
 
-        # Test 400 or 422
+        # Test 422
         invalid_payment_data = {"order_id": self.order.id, "payment_method": "flw"}
         response = self.client.post(
             self.initiate_payment_paystack_url, invalid_payment_data

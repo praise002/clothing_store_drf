@@ -394,7 +394,7 @@ REVIEW_UPDATE_RESPONSE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    
     401: ErrorResponseSerializer,
     403: OpenApiResponse(
         response=ErrorResponseSerializer,
@@ -424,6 +424,7 @@ REVIEW_UPDATE_RESPONSE = {
             ),
         ],
     ),
+    422: ErrorDataResponseSerializer,
 }
 
 REVIEW_DELETE_RESPONSE = {

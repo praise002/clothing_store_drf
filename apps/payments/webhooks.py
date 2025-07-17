@@ -54,7 +54,7 @@ def flw_payment_webhook(request):
 
     if not all([transaction_id, tx_ref]):
         logger.warning("Missing required fields in webhook payload.")
-        return HttpResponse(status=400)
+        return HttpResponse(status=422)
 
     verification_url = (
         f"https://api.flutterwave.com/v3/transactions/{transaction_id}/verify"

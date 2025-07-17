@@ -105,15 +105,15 @@ class TestDiscount(APITestCase):
 
         # Test coupon already applied to order
         response = self.client.post(self.apply_coupon_order_url, coupon_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 422)
 
         # Test order has been paid for
         response = self.client.post(self.paid_order_url, coupon_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 422)
 
         # Test delivered order
         response = self.client.post(self.delivered_order_url, coupon_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 422)
 
         # Test if order total is 0, no payment
         response = self.client.post(self.apply_coupon_other_order_url, coupon_data)

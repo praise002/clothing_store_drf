@@ -1,14 +1,14 @@
 from django.urls import reverse
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
-from rest_framework import status
-
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models import User
 from apps.accounts.utils import google_callback
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
+
 
 @extend_schema(exclude=True)
 class GoogleOAuth2LoginCallbackView(APIView):
@@ -26,8 +26,7 @@ class GoogleOAuth2LoginCallbackView(APIView):
         except User.DoesNotExist:
             return CustomResponse.error(
                 message="No account is associated with this email.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         # Create the jwt token for the frontend to use.

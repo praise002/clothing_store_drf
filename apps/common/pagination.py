@@ -1,6 +1,6 @@
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.exceptions import NotFound
 from django.core.paginator import InvalidPage
+from rest_framework.exceptions import NotFound
+from rest_framework.pagination import PageNumberPagination
 
 from apps.common.responses import CustomResponse
 
@@ -27,7 +27,6 @@ class CustomPagination(PageNumberPagination):
         try:
             self.page = paginator.page(page_number)
         except InvalidPage:
-            # Raise 404 error instead of 400 for invalid pages
             raise NotFound("The page you requested could not be found.")
 
         if paginator.num_pages > 1 and self.template is not None:

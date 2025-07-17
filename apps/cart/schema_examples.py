@@ -123,7 +123,7 @@ CART_ADD_UPDATE_RESPONSE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    
     401: ErrorResponseSerializer,
     404: OpenApiResponse(
         response=ErrorResponseSerializer,
@@ -139,11 +139,11 @@ CART_ADD_UPDATE_RESPONSE = {
             ),
         ],
     ),
+    422: ErrorDataResponseSerializer,
 }
 
 CART_REMOVE_RESPONSE = {
     204: None,
-    400: ErrorDataResponseSerializer,
     401: ErrorResponseSerializer,
     # 404: ErrorResponseSerializer,
     404: OpenApiResponse(
@@ -168,4 +168,5 @@ CART_REMOVE_RESPONSE = {
             ),
         ],
     ),
+    422: ErrorDataResponseSerializer,
 }

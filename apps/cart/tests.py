@@ -127,7 +127,7 @@ class TestCart(APITestCase):
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 404)
 
-        # Test 400 - insufficient stock (assuming product2 has stock=0)
+        # Test 404 - insufficient stock (assuming product2 has stock=0)
         cart_data = {"product_id": str(self.product2.id), "quantity": 1}
         response = self.client.post(self.cart_add_update_url, cart_data)
         self.assertEqual(response.status_code, 404)

@@ -102,8 +102,8 @@ PROFILE_UPDATE_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
     401: UNAUTHORIZED_USER_RESPONSE,
+    422: ErrorDataResponseSerializer,
 }
 
 PROFILE_RETRIEVE_RESPONSE_EXAMPLE = {
@@ -143,7 +143,7 @@ AVATAR_UPDATE_RESPONSE_EXAMPLE = {
             ),
         ],
     ),
-    400: ErrorDataResponseSerializer,
+    422: ErrorDataResponseSerializer,
     401: UNAUTHORIZED_USER_RESPONSE,
 }
 

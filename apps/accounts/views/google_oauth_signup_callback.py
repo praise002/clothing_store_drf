@@ -1,20 +1,17 @@
-from django.urls import reverse
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
-from rest_framework import status
+import logging
 
+from django.urls import reverse
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.emails import SendEmail
 from apps.accounts.models import User
-
-
 from apps.accounts.tasks import download_and_upload_avatar
 from apps.accounts.utils import google_callback
 from apps.common.errors import ErrorCode
 from apps.common.responses import CustomResponse
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +27,7 @@ class GoogleOAuth2SignUpCallbackView(APIView):
         if not state:
             return CustomResponse.error(
                 message="State parameter is missing.",
-                status_code=status.HTTP_400_BAD_REQUEST,
-                err_code=ErrorCode.BAD_REQUEST,
+                err_code=ErrorCode.VALIDATION_ERROR,
             )
 
         logger.debug(f"Redirect uri: {redirect_uri}")
