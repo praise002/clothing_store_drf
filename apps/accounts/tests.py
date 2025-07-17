@@ -478,7 +478,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "The OTP could not be found. Please enter a valid OTP or request a new one.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
