@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import Otp
+from apps.common.errors import ErrorCode
 from apps.common.schema_examples import ERR_RESPONSE_STATUS, SUCCESS_RESPONSE_STATUS
 from apps.common.utils import TestUtil
 
@@ -149,7 +150,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
@@ -192,7 +193,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "Invalid OTP provided.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
@@ -441,7 +442,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "User with this email does not exist.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
@@ -461,7 +462,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
@@ -549,7 +550,7 @@ class TestAccounts(APITestCase):
             {
                 "status": ERR_RESPONSE_STATUS,
                 "message": "No account is associated with this email.",
-                "code": VALIDATION_ERROR,
+                "code": ErrorCode.VALIDATION_ERROR,
             },
         )
 
