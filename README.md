@@ -24,6 +24,8 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
 - **Task Queue:** Celery with Redis broker
 - **Payment Gateway:** Paystack and Flutterwave integration
 - **Testing:** APITestCase from DRF
+- **Deployment**: Heroku
+  
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -107,7 +109,7 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
 
 **Option 1: Docker Compose**
 ```bash
-docker-compose up
+docker compose -f docker-compose.dev.yml up --watch
 ```
 
 **Option 2: Using Make**
