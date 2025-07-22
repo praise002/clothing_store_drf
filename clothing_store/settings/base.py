@@ -302,7 +302,6 @@ JAZZMIN_SETTINGS = {
         "accounts.user": "fas fa-users-cog",
         "accounts.otp": "fas fa-shield-alt",
         "auth.Group": "fas fa-users",
-        "sites.site": "fas fa-globe",
         "profiles.profile": "fas fa-id-card",
         "discount.couponusage": "fas fa-ticket-alt",
         "discount.coupon": "fas fa-tags",
