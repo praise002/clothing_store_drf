@@ -1,6 +1,7 @@
 from django.core.paginator import InvalidPage
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from apps.common.responses import CustomResponse
 
@@ -67,6 +68,4 @@ class DefaultPagination(PageNumberPagination):
             "previous": self.get_previous_link(),
             "results": data,
         }
-        return CustomResponse.success(
-            message="Paginated data retrieved successfully", data=data
-        )
+        return Response(data=data, status=200)

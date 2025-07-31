@@ -154,6 +154,7 @@ CATEGORY_PRODUCT_LIST_RESPONSE = {
             OpenApiExample(
                 name="Success Response",
                 value={
+                    "message": "Products retrieved successfully.",
                     "data": PRODUCT_EXAMPLE,
                 },
             ),
@@ -184,8 +185,7 @@ PRODUCT_LIST_RESPONSE = {
             OpenApiExample(
                 name="Success Response",
                 value={
-                    "status": ERR_RESPONSE_STATUS,
-                    "message": "Product not found.",
+                    "message": "Products retrieved successfully.",
                     "data": PRODUCT_EXAMPLE,
                 },
             ),
