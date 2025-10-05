@@ -49,7 +49,7 @@ RUN apt-get update && \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         libcairo2 \
-        libgdk-pixbuf2.0-0 \
+        libgdk-pixbuf-2.0-0 \
         netcat-openbsd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
