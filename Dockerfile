@@ -22,7 +22,7 @@ RUN apt-get update && \
         libpq-dev \
         libpango1.0-dev \
         libcairo2-dev \
-        libgdk-pixbuf2.0-dev && \
+        libgdk-pixbuf-2.0-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
