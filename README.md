@@ -45,7 +45,7 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
 
 2. **Create and activate virtual environment**
    ```bash
-   python -m venv env
+   python3 -m venv env
    source env/bin/activate  # On Windows: env\Scripts\activate
    ```
 
@@ -62,6 +62,10 @@ A comprehensive e-commerce REST API built with Django Rest Framework, featuring 
    - Create a `.env` file in the root directory
    - Copy contents from `.env.example` and set your values
    - Create a PostgreSQL database (using PG Admin GUI or psql CLI)
+   ```bash 
+      sudo -u postgres psql
+      CREATE USER postgres WITH PASSWORD 'XXXXXXXX'
+      CREATE DATABASE clothing_store_api OWNER postgres ENCODING 'UTF8';
 
 5. **Database migrations**
    ```bash

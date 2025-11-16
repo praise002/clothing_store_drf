@@ -6,10 +6,11 @@ ENV_FILE_PARAM = --env-file .env
 endif
 
 create_env:
-	py -m venv env
+	python3 -m venv env
 
-act:
-	.\env\Scripts\activate
+# act:  # doesn't work
+# 	source env/bin/activate
+# realpath env
 
 mmig: 
 	python manage.py makemigrations
@@ -62,3 +63,12 @@ down:
 
 show-logs:
 	docker-compose logs
+
+redis:
+	sudo docker run -it --rm --name redis -p 6378:6379 redis
+
+celery:
+	celery -A clothing_store worker -l info --pool=solo
+
+test:
+	python manage.py test

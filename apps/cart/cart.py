@@ -1,11 +1,13 @@
 import json
 from decimal import Decimal
+import logging
 
 import redis
 from django.conf import settings
 
 from apps.shop.models import Product
 
+logger = logging.getLogger(__name__)
 
 class Cart:
 
@@ -13,14 +15,31 @@ class Cart:
         """
         Initialize the cart.
         """
-
+        
         # Connect to Redis
-        self.redis_client = redis.StrictRedis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-            decode_responses=True,  # Ensures data is stored as strings
-        )
+        # self.redis_client = redis.StrictRedis(
+        #     host=settings.REDIS_HOST,
+        #     port=settings.REDIS_PORT,
+        #     db=settings.REDIS_DB,
+        #     decode_responses=True,  # Ensures data is stored as strings
+        # )
+        try:
+            self.redis_client = redis.from_url(
+                settings.REDIS_URL,
+                decode_responses=True,
+                max_connections=50,
+            )
+
+            # Test connection
+            self.redis_client.ping()
+            logger.info("Redis connection established successfully")
+
+        except redis.ConnectionError as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error connecting to Redis: {e}")
+            raise
 
         # Create a unique key for the cart
         # self.cart_key = (
