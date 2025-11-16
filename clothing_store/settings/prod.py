@@ -34,9 +34,6 @@ if DATABASE_URL:
         )
 
 
-# CELERY_BROKER_URL = "redis://redis:6379/1"
-
-
 CELERY_BEAT_SCHEDULE = {
     "cancel-expired-orders": {
         "task": "apps.orders.tasks.cancel_expired_orders",
