@@ -33,6 +33,8 @@ if DATABASE_URL:
             conn_health_checks=True,
         )
 
+CELERY_BROKER_URL = config("CELERY_BROKER_URL")
+REDIS_URL = config("REDIS_URL")
 
 CELERY_BEAT_SCHEDULE = {
     "cancel-expired-orders": {

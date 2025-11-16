@@ -54,6 +54,9 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# set default cos of CI 
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/1")
+REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
 
 # if DEBUG:
 #     hide_toolbar_patterns = ["/media/", "/static/"]
